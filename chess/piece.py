@@ -1,20 +1,43 @@
 
-
-def algebraic_converter(pos):
+def algebraic_uniconverter(value):
     '''
     converts algebraic notation into coordinate notation ala A1 -> (1, 1)
+    or vice versa ala (3, 1) -> C1.
+    Complains with Exception if inputs are ill posed. 
     '''
-    map = {1:'A', 2:'B', 3:'C', 4:'D', 5:'E', 6:'F', 7:'G', 8:'H'}
-    return map[pos[0]]+str(pos[1])
+    c_to_a_map = {1:'A', 2:'B', 3:'C', 4:'D', 5:'E', 6:'F', 7:'G', 8:'H'}
+    a_to_c_map = {'A':1, 'B':2, 'C':3, 'D':4, 'E':5, 'F':6, 'G':7, 'H':8}
+
+    if type(value) != str:
+        if len(value) != 2:
+            raise Exception()
+        elif value[0]-1 not in range(8) or value[1]-1 not in range(8):
+            raise Exception()
+    else:
+        if value[0] not in a_to_c_map.keys() or int(value[1])-1 not in range(8):
+            raise Exception()
+        
+    if type(value) == str:
+        return a_to_c_map[value[0]], int(value[1])
+    else:
+        return c_to_a_map[value[0]]+str(value[1])
+    
+def convert_letter_to_rank(letter):
+    '''
+    converts letter to rank, ie 'N' -> 'KNIGHT' or 'K' -> 'KING'
+    '''
+    converter = {'P': 'PAWN', 'R': 'ROOK', 'N': 'KNIGHT', 'B': 'BISHOP', 'K': 'KING', 'Q': 'QUEEN'}
+    return converter[letter]
 
 class Piece:
-    def __init__(self, color: str, rank: str, pos=None):
+    def __init__(self, color: str, rank: str, player, pos=None):
         self.color = color
         self.rank = rank # 'PAWN', 'ROOK', 'QUEEN', etc
         self.pos = pos # is ordered pair from [8]x[8], and (1, 2) <-> A2
         rank_letter = rank[0] if rank[0] != 'KNIGHT' else 'N'
-        self.name = rank_letter + '-' + algebraic_converter(pos)   # eg white pawn in A2 is P-A2. 
-                                                                        # Note King is K-XX, and Knight is N-XX
+        self.name = rank_letter + '-' + algebraic_uniconverter(pos)   # eg white pawn in A2 is P-A2. 
+                                                                   # Note King is K-XX, and Knight is N-XX
+        self.player = player # refers to the Player which this piece belongs to.
     
     def __str__(self):
         return self.name
