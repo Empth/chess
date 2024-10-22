@@ -18,7 +18,7 @@ def algebraic_uniconverter(value):
             raise Exception()
         
     if type(value) == str:
-        return a_to_c_map[value[0]], int(value[1])
+        return [a_to_c_map[value[0]], int(value[1])]
     else:
         return c_to_a_map[value[0]]+str(value[1])
     
@@ -40,4 +40,13 @@ class Piece:
         self.player = player # refers to the Player which this piece belongs to.
     
     def __str__(self):
-        return self.name
+        pos = "None" if self.pos == None else str(self.pos[0]) +', '+str(self.pos[1])
+        return ("Name: " + str(self.name) + ", color: " + str(self.color) 
+                + ', rank: ' + str(self.rank) + ', position: ' + pos)
+    
+    def __eq__(self, other):
+        if not isinstance(other, Piece):
+            return False
+        return (self.name == other.name and self.color == other.color 
+                and self.rank == other.rank and self.pos == other.pos
+                and self.player == other.player)

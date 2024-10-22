@@ -28,8 +28,20 @@ class Board:
     def add_or_replace_piece(self, pos, piece: Piece) -> Piece:
         '''
         Adds or replaces an existing piece in the board with piece.
+
+
         pos: input format of coordinate (1, 1) (which corresponds to A1)
+        piece: piece which we wish to add or already exists and want to place in pos.
+        
+        Requires: If piece's name already exists in this player's collection, then 'piece'
+        must be the same as that named piece in that player's collection. 
+
+        Modifies: Player(s) collection of pieces, current pieces in a collection if 'piece'
+        exists, we modify the piece's position so that duplicates are not possible.
+        We also get rid of piece on the board so dupes aren't possible.
+
         Returns: Replaced piece or None if not present.
+
         Note, this method updates the replaced piece position to None if it exists,
         and the added piece position to 'pos'.
         Note, a replaced piece is removed from that player's collection, and
@@ -38,12 +50,18 @@ class Board:
         x, y = convert_coord(pos)
         replaced = self.game_board[x][y]
         self.game_board[x][y] = piece
+        if piece != None:
+            if piece.name in piece.player.pieces:
+                if piece != piece.player.pieces[piece.name]:
+                    raise Exception('Pieces with the same name from same player should correspond to the same piece')
+                if pos != piece.pos:
+                    old_x, old_y = convert_coord(piece.pos)
+                    self.game_board[old_x][old_y] = None
+            piece.player.pieces[piece.name] = piece
+            piece.pos = pos
         if replaced != None:
             replaced.pos = None
-            del replaced.player.pieces[str(replaced)]
-        if piece != None:
-            piece.player.pieces[str(piece)] = piece
-            piece.pos = pos
+            del replaced.player.pieces[replaced.name]
         return replaced
 
 
@@ -59,6 +77,8 @@ class Board:
     def move_piece(self, pos, piece: Piece) -> Piece:
         '''
         We need that piece is not None.
+        Next, we need that 'piece' actually exists in the player's collection, and is identical to its name code 
+        in the collection. 
         We assume this move is legal, and that if we replace an existing piece, that replacement is a kill.
         Moves 'piece' to position at pos, and if another piece exists at that pos, we replace it
         with 'piece'. We return that replaced piece, or None otherwise.
@@ -67,14 +87,9 @@ class Board:
         Note, a killed piece is removed from that player's collection/pieces.
         '''
         if piece == None:
-            raise Exception()
+            raise Exception("Piece to be moved can't be None.")
         
-        taken_piece = self.remove_piece(pos)
-
-        if taken_piece != piece: # sanity check but not required
-            raise Exception()
-        
-        killed_piece = self.add_or_replace_piece(pos, taken_piece)
+        killed_piece = self.add_or_replace_piece(pos, piece)
         return killed_piece
 
 
