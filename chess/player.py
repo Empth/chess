@@ -45,10 +45,11 @@ class Player:
 
     def make_move(self, pos, dest):
         '''
-        This moves a piece at pos to dest, if said move is legal.
+        This moves a piece at pos to dest if said move is legal.
         Note, pos, dest are [8]^2 coordinates.
         '''
         if not self.move_legal(pos, dest):
+            print('Move is not legal!')
             return
         
         if self.board.get_piece(pos) == None:
