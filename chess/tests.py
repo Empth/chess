@@ -170,7 +170,8 @@ class TestPlayerMoves(unittest.TestCase):
         player_1 = game.p1
         player_2 = game.p2
 
-        self.assertTrue(player_1.move_legal(pos=[1,2], dest=[1,3]))
+        self.assertFalse(player_1.move_legal(pos=[1,2], dest=[1,5])[0])
+        self.assertTrue(player_1.move_legal(pos=[1,2], dest=[1,3])[0])
         player_1.make_move(pos=[1,2], dest=[1,3])
         w_pawn_1 = board.get_piece([1, 3])
         self.assertEqual(w_pawn_1.name, 'P-A2')
@@ -178,7 +179,8 @@ class TestPlayerMoves(unittest.TestCase):
         self.assertEqual(player_1.pieces['P-A2'], w_pawn_1)
         self.assertIsNone(board.get_piece([1, 2]))
 
-        self.assertTrue(player_1.move_legal(pos=[2,2], dest=[2,4]))
+        self.assertFalse(player_1.move_legal(pos=[2,2], dest=[2,6])[0])
+        self.assertTrue(player_1.move_legal(pos=[2,2], dest=[2,4])[0])
         player_1.make_move(pos=[2,2], dest=[2,4])
         w_pawn_2 = board.get_piece([2, 4])
         self.assertEqual(w_pawn_2.name, 'P-B2')
@@ -186,7 +188,8 @@ class TestPlayerMoves(unittest.TestCase):
         self.assertEqual(player_1.pieces['P-B2'], w_pawn_2)
         self.assertIsNone(board.get_piece([2, 2]))
 
-        self.assertTrue(player_2.move_legal(pos=[1,7], dest=[1,6]))
+        self.assertFalse(player_2.move_legal(pos=[4,7], dest=[4,4])[0])
+        self.assertTrue(player_2.move_legal(pos=[1,7], dest=[1,6])[0])
         player_2.make_move(pos=[1,7], dest=[1,6])
         b_pawn_1 = board.get_piece([1,6])
         self.assertEqual(b_pawn_1.name, 'P-A7')
@@ -194,9 +197,10 @@ class TestPlayerMoves(unittest.TestCase):
         self.assertEqual(player_2.pieces['P-A7'], b_pawn_1)
         self.assertIsNone(board.get_piece([1, 7]))
 
-        self.assertTrue(player_2.move_legal(pos=[2,7], dest=[2,5]))
+        self.assertFalse(player_2.move_legal(pos=[3,7], dest=[3,4])[0])
+        self.assertTrue(player_2.move_legal(pos=[2,7], dest=[2,5])[0])
         player_2.make_move(pos=[2,7], dest=[2,5])
-        b_pawn_2 = board.get_piece([2,7])
+        b_pawn_2 = board.get_piece([2,5])
         self.assertEqual(b_pawn_2.name, 'P-B7')
         self.assertEqual(b_pawn_2.color, 'BLACK')
         self.assertEqual(player_2.pieces['P-B7'], b_pawn_2)
@@ -208,22 +212,22 @@ class TestPlayerMoves(unittest.TestCase):
         Tests that a pawn outside of its starting position only moves 1 straight and not 2.
         '''
         game = Game()
+        board = game.board
         player_1 = game.p1
         player_2 = game.p2
-
         player_1.make_move(pos=[1,2], dest=[1,3])
         player_1.make_move(pos=[2,2], dest=[2,4])
         player_2.make_move(pos=[8,7], dest=[8,6])
         player_2.make_move(pos=[7,7], dest=[7,5])
 
-        self.assertTrue(player_1.move_legal(pos=[1,3], dest=[1,4]))
-        self.assertFalse(player_1.move_legal(pos=[1,3], dest=[1,5]))
-        self.assertTrue(player_1.move_legal(pos=[2,4], dest=[2,5]))
-        self.assertFalse(player_1.move_legal(pos=[2,4], dest=[2,6]))
-        self.assertTrue(player_2.move_legal(pos=[8,6], dest=[8,5]))
-        self.assertFalse(player_2.move_legal(pos=[8,6], dest=[8,4]))
-        self.assertTrue(player_2.move_legal(pos=[8,6], dest=[8,5]))
-        self.assertFalse(player_2.move_legal(pos=[8,6], dest=[8,4]))
+        self.assertTrue(player_1.move_legal(pos=[1,3], dest=[1,4])[0])
+        self.assertFalse(player_1.move_legal(pos=[1,3], dest=[1,5])[0])
+        self.assertTrue(player_1.move_legal(pos=[2,4], dest=[2,5])[0])
+        self.assertFalse(player_1.move_legal(pos=[2,4], dest=[2,6])[0])
+        self.assertTrue(player_2.move_legal(pos=[8,6], dest=[8,5])[0])
+        self.assertFalse(player_2.move_legal(pos=[8,6], dest=[8,4])[0])
+        self.assertTrue(player_2.move_legal(pos=[8,6], dest=[8,5])[0])
+        self.assertFalse(player_2.move_legal(pos=[8,6], dest=[8,4])[0])
 
 
     def test_cannot_move_blank_space(self):
@@ -234,10 +238,10 @@ class TestPlayerMoves(unittest.TestCase):
         player_1 = game.p1
         player_2 = game.p2
 
-        self.assertFalse(player_1.move_legal(pos=[1,3], dest=[2,4]))
-        self.assertFalse(player_1.move_legal(pos=[2,4], dest=[3,6]))
-        self.assertFalse(player_2.move_legal(pos=[8,6], dest=[7,5]))
-        self.assertFalse(player_2.move_legal(pos=[7,5], dest=[6,4]))
+        self.assertFalse(player_1.move_legal(pos=[1,3], dest=[2,4])[0])
+        self.assertFalse(player_1.move_legal(pos=[2,4], dest=[3,6])[0])
+        self.assertFalse(player_2.move_legal(pos=[8,6], dest=[7,5])[0])
+        self.assertFalse(player_2.move_legal(pos=[7,5], dest=[6,4])[0])
         
     
     def test_cannot_move_wrong_color(self):
@@ -248,11 +252,11 @@ class TestPlayerMoves(unittest.TestCase):
         game = Game()
         player_1 = game.p1
         player_2 = game.p2
-
-        self.assertFalse(player_1.move_legal(pos=[8,7], dest=[8,6]))
-        self.assertFalse(player_1.move_legal(pos=[8,7], dest=[8,5]))
-        self.assertFalse(player_2.move_legal(pos=[1,2], dest=[1,3]))
-        self.assertFalse(player_2.move_legal(pos=[1,2], dest=[1,4]))
+        print('HI ' + str(game.board.get_piece([8,7]).color))
+        self.assertFalse(player_1.move_legal(pos=[8,7], dest=[8,6])[0])
+        self.assertFalse(player_1.move_legal(pos=[8,7], dest=[8,5])[0])
+        self.assertFalse(player_2.move_legal(pos=[1,2], dest=[1,3])[0])
+        self.assertFalse(player_2.move_legal(pos=[1,2], dest=[1,4])[0])
 
     def test_pawn_cannot_backtrack(self):
         '''
@@ -264,12 +268,12 @@ class TestPlayerMoves(unittest.TestCase):
         player_2 = game.p2
         player_1.make_move(pos=[1,2], dest=[1,3])
         player_1.make_move(pos=[2,2], dest=[2,4])
-        self.assertFalse(player_1.move_legal(pos=[1,3], dest=[1,2]))
-        self.assertFalse(player_1.move_legal(pos=[1,3], dest=[1,2]))
+        self.assertFalse(player_1.move_legal(pos=[1,3], dest=[1,2])[0])
+        self.assertFalse(player_1.move_legal(pos=[1,3], dest=[1,2])[0])
         player_2.make_move(pos=[1,7], dest=[1,6])
         player_2.make_move(pos=[2,7], dest=[2,5])
-        self.assertFalse(player_2.move_legal(pos=[1,6], dest=[1,7]))
-        self.assertFalse(player_1.move_legal(pos=[2,5], dest=[2,7]))
+        self.assertFalse(player_2.move_legal(pos=[1,6], dest=[1,7])[0])
+        self.assertFalse(player_1.move_legal(pos=[2,5], dest=[2,7])[0])
 
     def test_pawn_capture(self):
         '''
@@ -285,9 +289,9 @@ class TestPlayerMoves(unittest.TestCase):
         board.move_piece(pos=[5, 5], piece=board.get_piece([1, 8]))
         board.move_piece(pos=[4, 5], piece=board.get_piece([2, 8]))
         board.move_piece(pos=[3, 3], piece=board.get_piece([3, 8]))
-        self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[3, 3])) # can't capture diagonally backwards
-        self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[4, 5])) # can't capture straight forward
-        self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[5, 5]))
+        self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[3, 3])[0]) # can't capture diagonally backwards
+        self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[4, 5])[0]) # can't capture straight forward
+        self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[5, 5])[0])
         player_1.make_move(pos=[4, 4], dest=[5, 5])
         self.assertTrue('R-A8' not in player_2.pieces)
         self.assertIsNone(board.get_piece([4, 4]))
@@ -303,12 +307,12 @@ class TestPlayerMoves(unittest.TestCase):
         board.move_piece(pos=[4, 4], piece=killer_pawn)
         board.move_piece(pos=[5, 5], piece=board.get_piece([1, 1]))
         board.move_piece(pos=[3, 3], piece=board.get_piece([2, 1]))
-        self.assertFalse(player_2.move_legal(pos=[4, 4], dest=[5, 5])) # can't capture diagonally backwards
-        self.assertTrue(player_2.move_legal(pos=[4, 4], dest=[3, 3]))
+        self.assertFalse(player_2.move_legal(pos=[4, 4], dest=[5, 5])[0]) # can't capture diagonally backwards
+        self.assertTrue(player_2.move_legal(pos=[4, 4], dest=[3, 3])[0])
         player_2.make_move(pos=[4,4], dest=[3,3])
         self.assertTrue('N-B1' not in player_1.pieces)
         self.assertIsNone(board.get_piece([4, 4]))
-        self.assertEqual(killer_pawn, player_1.pieces['P-A7'])
+        self.assertEqual(killer_pawn, player_2.pieces['P-A7'])
         self.assertEqual(killer_pawn.pos, [3,3])
 
     def test_pawn_promotion(self):
@@ -320,8 +324,8 @@ class TestPlayerMoves(unittest.TestCase):
         board = game.board
         player_1 = game.p1
         player_2 = game.p2
-        self.assertTrue(player_1.move_legal(pos=[1,7], dest=[1,8]))
-        self.assertTrue(player_2.move_legal(pos=[1,2], dest=[1,1]))
+        self.assertTrue(player_1.move_legal(pos=[1,7], dest=[1,8])[0])
+        self.assertTrue(player_2.move_legal(pos=[1,2], dest=[1,1])[0])
         player_1.make_move(pos=[1,7], dest=[1,8])
         player_2.make_move(pos=[1,2], dest=[1,1])
         self.assertEqual(len(player_1.pieces), 1)
@@ -340,6 +344,26 @@ class TestPlayerMoves(unittest.TestCase):
         self.assertIsNone(board.get_piece([1,2]))
         self.assertEqual(queen_1, board.get_piece([1,8]))
         self.assertEqual(queen_2, board.get_piece([1,1]))
+
+
+    def test_cannot_move_oob(self):
+        '''
+        Tests that we cannot move any piece out of bounds.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['P-B2']))
+        player_1 = game.p1
+        self.assertFalse(player_1.move_legal(pos=[2,2], dest=[0,0])[0])
+        self.assertFalse(player_1.move_legal(pos=[2,2], dest=[0,9])[0])
+        self.assertFalse(player_1.move_legal(pos=[2,2], dest=[-2,9])[0])
+
+    def test_pawn_cannot_teamkill_diagonally(self):
+        '''
+        Test that a pawn cannot diagonally team kill its own team member
+        '''
+
+        game = Game(debug=set_up_debug(white_pieces=['P-A2', 'Q-B3']))
+        player_1 = game.p1
+        self.assertFalse(player_1.move_legal(pos=[1, 2], dest=[2, 3])[0]) # can't team kill your own kind
 
 if __name__ == '__main__':
     unittest.main()

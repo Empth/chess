@@ -102,7 +102,7 @@ class Board:
                 if cur_piece == None:
                     cur_string += '[--] '
                 else:
-                    cur_string += str(cur_piece) + ' '
+                    cur_string += cur_piece.name + ' '
             cur_string += '\n\n'
             string += cur_string
         return string

@@ -33,7 +33,7 @@ class Piece:
     def __init__(self, color: str, rank: str, player, pos=None):
         self.color = color
         self.rank = rank # 'PAWN', 'ROOK', 'QUEEN', etc
-        self.pos = pos # is ordered pair from [8]x[8], and (1, 2) <-> A2
+        self.pos = pos # is ordered pair from [8]x[8], and [1, 2] <-> A2
         rank_letter = rank[0] if rank[0] != 'KNIGHT' else 'N'
         self.name = rank_letter + '-' + algebraic_uniconverter(pos)   # eg white pawn in A2 is P-A2. 
                                                                    # Note King is K-XX, and Knight is N-XX
