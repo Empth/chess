@@ -16,6 +16,27 @@ def check_in_bounds(coord):
     return coord[0]-1 in range(8) and coord[1]-1 in range(8)
 
 
+def cardinal_direction(pos, dest) -> str:
+    '''
+    Helper returns 'N'/ 'E' / 'S' / 'W' direction of pos -> dest
+    Required: pos, dest are horizontally or vertically aligned, but not equal. 
+    '''
+    assert(pos != dest)
+    assert(pos[0] == dest[0] or pos[1] == dest[1])
+
+    if pos[0] == dest[0]: # vertically aligned
+        if pos[1] < dest[1]:
+            return 'N'
+        else:
+            return 'S'
+    else: # horizontally aligned
+        if pos[0] < dest[0]:
+            return 'E'
+        else:
+            return 'W'
+
+
+
 class Player:
     def __init__(self, color: str, board: Board, debug=None):
         self.color = color
@@ -62,10 +83,11 @@ class Player:
         This moves a piece at pos to dest if said move is legal.
         Note, pos, dest are [8]^2 coordinates.
         '''
-        if self.move_legal(pos=pos, dest=dest)[0]:
+        legality = self.move_legal(pos=pos, dest=dest)
+        if legality[0]:
             self.board.move_piece(pos=dest, piece=self.board.get_piece(pos))
         else:
-            print('Move is not legal!')
+            print(legality[1])
             return
 
     def move_legal(self, pos, dest) -> tuple[bool, str]:
@@ -80,6 +102,7 @@ class Player:
             return misc_check
         
         cur_piece = self.board.get_piece(pos=pos)
+        assert(cur_piece.pos == pos)
         rank = cur_piece.rank
 
         if rank == None:
@@ -87,6 +110,8 @@ class Player:
         
         if rank == 'PAWN':
             return self.pawn_move_legal(pos=pos, dest=dest, cur_piece=cur_piece)
+        elif rank == 'ROOK':
+            return self.rook_move_legal(pos=pos, dest=dest, cur_piece=cur_piece)
                 
         return True, 'Placeholder behavior'
     
@@ -182,8 +207,6 @@ class Player:
         '''
         Helper checks if pawn move is legal.
         '''
-        if cur_piece.pos != pos:
-            return False, 'weird!'+str(cur_piece.pos) +'<- cur piece pos vs pos->' +str(pos)
         
         taxicab_distance = taxicab_dist(start=pos, dest=dest)
 
@@ -197,7 +220,7 @@ class Player:
             # or 1 unit forward generally
 
             if self.board.get_piece(pos=dest) != None:
-                return False, 'Another pawn is in dest, so we cant move our pawn forward'
+                return False, 'Another piece is in dest, so we cant move our pawn forward'
             
             return True, '' # We can proceed forward to the forward blank space.
         elif self.pawn_moving_diagonal_forward(piece=cur_piece, dest=dest):
@@ -214,3 +237,50 @@ class Player:
             return True, ''
         else:
             return False, 'Pawn is not moving forward or is not moving straight/diagonal.'
+        
+
+    def rook_move_legal(self, pos, dest, cur_piece) -> tuple[bool, str]:
+        '''
+        Helper checks if rook move is legal.
+        '''
+        if dest[0] != pos[0] and dest[1] != pos[1]:
+            return False, 'Rook is not moving N/E/S/W!'
+        
+        # Rook is moving in one of the cardinal directions, North, East, South, or West
+        cardinal = cardinal_direction(pos=pos, dest=dest)
+        cardinal_collision = self.get_cardinal_collision(pos=pos, cardinal=cardinal)
+        if cardinal_collision == None:
+            return True, '' # no piece is blocking your direction, you can freely move.
+        elif cardinal_collision == dest:
+            return True, '' # a piece is the first to block your dest, and from the misc checks, 
+                            # it is an opponent piece, so you can capture it.
+        else:
+            return False, 'A piece is blocking your rook\'s movement!'
+
+    
+    def get_cardinal_collision(self, pos, cardinal):
+        '''
+        Helper for cardinal movement collision.
+        For a piece with unlimited cardinal movement, ie rook or queen, returns the position
+        of the first piece that something from 'pos' will encounter when moving in 'cardinal' direction.
+        Returns None if no such colliding piece exists.
+        Required: cardinal is 'N', 'E', 'S', 'W'
+        '''
+
+        dictionary = {'N':['y', 1], 'E':['x', 1], 'S':['y', -1], 'W':['x', -1]} # abs_dir, i, sign
+        value = dictionary[cardinal]
+        abs_dir, sign = value[0], value[1]  # abs_dir: 'x' or 'y'; movement in x dir or y dir;sign differentiates N vs S, E vs W
+        i = pos[0] if abs_dir == 'x' else pos[1]
+
+        while True:
+            i += sign
+            if i-1 not in range(8):
+                break
+            if abs_dir == 'x':
+                if self.board.piece_exists(pos=[i, pos[1]]):
+                    return [i, pos[1]]
+            else:
+                if self.board.piece_exists(pos=[pos[0], i]):
+                    return [pos[0], i]
+        
+        return None

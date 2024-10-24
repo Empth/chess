@@ -73,6 +73,13 @@ class Board:
         x, y = convert_coord(pos)
         return self.game_board[x][y]
     
+    def piece_exists(self, pos) -> bool:
+        '''
+        Returns boolean of wheather piece exists at position pos.
+        pos: input format of coordinate (1, 1) (which corresponds to A1)
+        '''
+        return self.get_piece(pos=pos) != None
+    
 
     def move_piece(self, pos, piece: Piece) -> Piece:
         '''

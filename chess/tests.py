@@ -414,7 +414,7 @@ class TestPlayerRookMoves(unittest.TestCase):
             self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos))
         self.assertTrue(player_2.move_legal(pos=[4,6], dest=[4,4]))
         player_1.make_move(pos=[4,4], dest=[4,6])
-        self.assertEqual(player_1.pieces['R-D4'].pos == [4, 6])
+        self.assertEqual(player_1.pieces['R-D4'].pos, [4, 6])
         self.assertEqual(len(player_2.pieces), 3)
         self.assertTrue('R-D6' not in player_2.pieces)
 
@@ -435,7 +435,7 @@ class TestPlayerRookMoves(unittest.TestCase):
         self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,2])[0])
         self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,4])[0])
         self.assertFalse(player_2.move_legal(pos=[4,6], dest=[4,4])[0])
-        
+
 
 if __name__ == '__main__':
     unittest.main()
