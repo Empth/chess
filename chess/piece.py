@@ -34,7 +34,7 @@ class Piece:
         self.color = color
         self.rank = rank # 'PAWN', 'ROOK', 'QUEEN', etc
         self.pos = pos # is ordered pair from [8]x[8], and [1, 2] <-> A2
-        rank_letter = rank[0] if rank[0] != 'KNIGHT' else 'N'
+        rank_letter = rank[0] if rank != 'KNIGHT' else 'N'
         self.name = rank_letter + '-' + algebraic_uniconverter(pos)   # eg white pawn in A2 is P-A2. 
                                                                    # Note King is K-XX, and Knight is N-XX
         self.player = player # refers to the Player which this piece belongs to.

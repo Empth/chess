@@ -156,9 +156,9 @@ class TestBoardMoves(unittest.TestCase):
         self.assertEqual(moving_pawn, player_1.pieces['P-B2'])
 
 
-class TestPlayerMoves(unittest.TestCase):
+class TestPlayerPawnMoves(unittest.TestCase):
     '''
-    Tests moves that the player makes, and their legality. No collision testing yet.
+    Tests moves that the player makes, and their legality.
     '''
 
     def test_move_starting_pawn(self):
@@ -252,7 +252,6 @@ class TestPlayerMoves(unittest.TestCase):
         game = Game()
         player_1 = game.p1
         player_2 = game.p2
-        print('HI ' + str(game.board.get_piece([8,7]).color))
         self.assertFalse(player_1.move_legal(pos=[8,7], dest=[8,6])[0])
         self.assertFalse(player_1.move_legal(pos=[8,7], dest=[8,5])[0])
         self.assertFalse(player_2.move_legal(pos=[1,2], dest=[1,3])[0])
@@ -364,6 +363,79 @@ class TestPlayerMoves(unittest.TestCase):
         game = Game(debug=set_up_debug(white_pieces=['P-A2', 'Q-B3']))
         player_1 = game.p1
         self.assertFalse(player_1.move_legal(pos=[1, 2], dest=[2, 3])[0]) # can't team kill your own kind
+    
+    def test_piece_cannot_stall(self):
+        '''
+        Test that a piece cannot do a stall as a move, it must move to a different position.
+        '''
+
+        game = Game()
+        player_1 = game.p1
+        for i in range(8):
+            for j in range(2):
+                x, y = i+1, j+1
+                self.assertFalse(player_1.move_legal(pos=[x, y], dest=[x, y])[0])
+
+
+class TestPlayerRookMoves(unittest.TestCase):
+    '''
+    Tests moves that the player makes for their rooks, and their legality.
+    '''
+
+    def test_rook_legal_moves(self):
+
+        '''
+        Tests that rooks, in absense of other pieces, can precisely move only in straight directions.
+        '''
+
+        game = Game(debug=set_up_debug(white_pieces=['R-D4']))
+        player_1 = game.p1
+        for i in range(8):
+            for j in range(8):
+                x, y = i+1, j+1
+                if x == y == 4:
+                    continue
+                if x==4 or y==4:
+                    self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                else:
+                    self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+
+    def test_rook_captures(self):
+
+        '''
+        Tests that rooks can capture correctly in straight directions.
+        '''
+        black_pieces = ['P-D3', 'R-D6', 'N-G4', 'Q-A4']
+        game = Game(debug=set_up_debug(white_pieces=['R-D4'], black_pieces=black_pieces))
+        player_1 = game.p1
+        player_2 = game.p2
+        for code in black_pieces:
+            enemy_pos = player_2.pieces[code].pos
+            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos))
+        self.assertTrue(player_2.move_legal(pos=[4,6], dest=[4,4]))
+        player_1.make_move(pos=[4,4], dest=[4,6])
+        self.assertEqual(player_1.pieces['R-D4'].pos == [4, 6])
+        self.assertEqual(len(player_2.pieces), 3)
+        self.assertTrue('R-D6' not in player_2.pieces)
+
+    def test_rook_collision(self):
+
+        '''
+        Tests that rooks cannot capture a piece if there is another piece blocking its direction.
+        '''
+        whites = ['R-D5', 'Q-E4']
+        black_pieces = ['P-D2', 'R-D6', 'N-G4', 'Q-A4', 'Q-B4']
+        game = Game(debug=set_up_debug(white_pieces=['R-D4']+whites, black_pieces=black_pieces))
+        player_1 = game.p1
+        player_2 = game.p2
+        board = game.board
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[1,4])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,6])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[7,4])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,2])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,4])[0])
+        self.assertFalse(player_2.move_legal(pos=[4,6], dest=[4,4])[0])
+        
 
 if __name__ == '__main__':
     unittest.main()

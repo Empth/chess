@@ -44,7 +44,7 @@ class Player:
             for code in player_board_state:
                 piece = Piece(color=self.color, rank=convert_letter_to_rank(code[0]), 
                               pos=algebraic_uniconverter(code[2:]), player=self)
-                assert(piece.name == code)
+                assert(piece.name == code) # sanity check, helped catch a knight is N bug once
                 self.pieces[piece.name] = piece
             
 
@@ -74,6 +74,28 @@ class Player:
         Note, pos, dest are [8]^2 coordinates.
         Returns True, '' or False, error message string.
         '''
+
+        misc_check = self.misc_checks(pos=pos, dest=dest) # helper
+        if not misc_check[0]:
+            return misc_check
+        
+        cur_piece = self.board.get_piece(pos=pos)
+        rank = cur_piece.rank
+
+        if rank == None:
+            raise Exception("Piece needs to have rank")
+        
+        if rank == 'PAWN':
+            return self.pawn_move_legal(pos=pos, dest=dest, cur_piece=cur_piece)
+                
+        return True, 'Placeholder behavior'
+    
+
+    def misc_checks(self, pos, dest) -> tuple[bool, str]:
+        '''
+        Helper for move_legal.
+        '''
+
         if not check_in_bounds(pos) or not check_in_bounds(dest):
             return False, 'Given coordinates '+str(pos)+' is out of bounds'
         cur_piece = self.board.get_piece(pos=pos)
@@ -83,16 +105,16 @@ class Player:
             return False, 'Object in pos needs to be piece!'
         if cur_piece.color != self.color:
             return False, 'Color of selected piece doesnt match players color!'
-
-        rank = cur_piece.rank
-
-        if rank == None:
-            raise Exception("Piece needs to have rank")
+        if dest == pos:
+            return False, 'Piece cannot stall as a move!'
         
-        if rank == 'PAWN':
-            return self.pawn_move_legal(pos=pos, dest=dest, cur_piece=cur_piece)
-                
-        return False, 'Misc error'
+        dest_piece = self.board.get_piece(dest)
+        if dest_piece != None:
+            if dest_piece.color == cur_piece.color:
+                return False, 'Cannot attempt move to a position which already has your colored piece!'
+            
+        return True, 'Cannot detect any issues with prelim checks'
+
 
 
     def pawn_starting(self, piece):
