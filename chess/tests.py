@@ -447,6 +447,31 @@ class TestPlayerRookMoves(unittest.TestCase):
         player_1 = game.p1
         self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,5])[0])
 
+    def test_rook_can_move_between_collision(self):
+
+        '''
+        Tests that rooks can move to a position that is
+        between its initial position and the first colliding piece in the 
+        cardinal direction of movement.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['R-D4'], black_pieces=['P-A4', 'P-G4', 'P-D5', 'P-D2']))
+        player_1 = game.p1
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,4])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,4])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[1,4])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5,4])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[6,4])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[7,4])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[8,4])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,5])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,3])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,2])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,1])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,6])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,7])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,8])[0])
+
+
 
 class TestPlayerBishopMoves(unittest.TestCase):
     '''
@@ -467,7 +492,7 @@ class TestPlayerBishopMoves(unittest.TestCase):
                 x_diff, y_diff = abs(x-4), abs(y-4)
                 if x_diff == y_diff == 0:
                     continue
-                if x_diff == 0 or y_diff == 0:
+                elif x_diff == y_diff:
                     self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
                 else:
                     self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
@@ -487,7 +512,7 @@ class TestPlayerBishopMoves(unittest.TestCase):
             self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos))
         self.assertTrue(player_2.move_legal(pos=[7,7], dest=[4,4]))
         player_1.make_move(pos=[4,4], dest=[7,7])
-        self.assertEqual(player_1.pieces['R-D4'].pos, [7, 7])
+        self.assertEqual(player_1.pieces['B-D4'].pos, [7, 7])
         self.assertEqual(len(player_2.pieces), 3)
         self.assertTrue('B-G7' not in player_2.pieces)
 
@@ -543,6 +568,30 @@ class TestPlayerBishopMoves(unittest.TestCase):
             player_1.make_move(pos=[x, y], dest=new_pos)
 
         self.assertTrue(len(player_2.pieces), 2)
+
+
+    def test_bishop_can_move_between_collision(self):
+
+        '''
+        Tests that bishops can move to a position that is
+        between its initial position and the first colliding piece in the 
+        ordinal direction of movement.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['B-D4'], black_pieces=['P-B2', 'P-G7', 'P-B6', 'P-F2']))
+        player_1 = game.p1
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,3])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,2])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[1,1])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5,5])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[6,6])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[7,7])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[8,8])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,5])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,6])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[1,7])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5,3])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[6,2])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[7,1])[0])
             
 
 if __name__ == '__main__':

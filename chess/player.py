@@ -34,6 +34,30 @@ def cardinal_direction(pos, dest) -> str:
             return 'E'
         else:
             return 'W'
+        
+
+def ordinal_direction(pos, dest) -> str:
+    '''
+    Helper returns the ordinal direction 'NE', 'SE', 'SW', 'NW' from pos->dest
+    Required: pos -> dest is diagonal, and pos != dest
+    '''
+    assert(pos != dest)
+    assert(abs(pos[0] - dest[0]) == abs(pos[1] - dest[1]))
+
+    dir = ''
+
+    if dest[1] > pos[1]: # moving north
+        dir += 'N'
+    else: # moving south
+        dir += 'S'
+
+    if dest[0] > pos[0]: # moving east
+        dir += 'E'
+    else: # moving west
+        dir += 'W'
+
+    return dir
+
 
 
 
@@ -109,9 +133,11 @@ class Player:
             raise Exception("Piece needs to have rank")
         
         if rank == 'PAWN':
-            return self.pawn_move_legal(pos=pos, dest=dest, cur_piece=cur_piece)
+            return self.pawn_move_legal(pos=pos, dest=dest)
         elif rank == 'ROOK':
-            return self.rook_move_legal(pos=pos, dest=dest, cur_piece=cur_piece)
+            return self.rook_move_legal(pos=pos, dest=dest)
+        elif rank == 'BISHOP':
+            return self.bishop_move_legal(pos=pos, dest=dest)
                 
         return True, 'Placeholder behavior'
     
@@ -202,11 +228,13 @@ class Player:
 
         return False
     
-    def pawn_move_legal(self, pos, dest, cur_piece) -> tuple[bool, str]:
+    def pawn_move_legal(self, pos, dest) -> tuple[bool, str]:
 
         '''
         Helper checks if pawn move is legal.
         '''
+
+        cur_piece = self.board.get_piece(pos=pos)
         
         taxicab_distance = taxicab_dist(start=pos, dest=dest)
 
@@ -239,7 +267,7 @@ class Player:
             return False, 'Pawn is not moving forward or is not moving straight/diagonal.'
         
 
-    def rook_move_legal(self, pos, dest, cur_piece) -> tuple[bool, str]:
+    def rook_move_legal(self, pos, dest) -> tuple[bool, str]:
         '''
         Helper checks if rook move is legal.
         '''
@@ -248,14 +276,31 @@ class Player:
         
         # Rook is moving in one of the cardinal directions, North, East, South, or West
         cardinal = cardinal_direction(pos=pos, dest=dest)
-        cardinal_collision = self.get_cardinal_collision(pos=pos, cardinal=cardinal)
+        cardinal_collision = self.get_cardinal_collision(pos=pos, cardinal=cardinal) # None or [x, y]
         if cardinal_collision == None:
             return True, '' # no piece is blocking your direction, you can freely move.
-        elif cardinal_collision == dest:
-            return True, '' # a piece is the first to block your dest, and from the misc checks, 
-                            # it is an opponent piece, so you can capture it.
+        elif self.cardinal_dest_between_collider(init_pos=pos, collider_pos=cardinal_collision, dest=dest, cardinal=cardinal):
+            return True, '' # No piece blocking your direction, or the first piece to block your direction
+                            # is one we can go to and capture.
         else:
             return False, 'A piece is blocking your rook\'s movement!'
+        
+    def cardinal_dest_between_collider(self, init_pos, collider_pos, dest, cardinal):
+        '''
+        Helper for rooks/queens cardinal directional movers.
+        Checks to see if dest is in between init_pos and collider_pos (inclusive),
+        wrt cardinal direction. If so, returns True, otherwise, returns False.
+        '''
+        if cardinal == 'N':
+            return init_pos[1] <= dest[1] <= collider_pos[1]
+        elif cardinal == 'S':
+            return collider_pos[1] <= dest[1] <= init_pos[1]
+        elif cardinal == 'E':
+            return init_pos[0] <= dest[0] <= collider_pos[0]
+        elif cardinal == 'W':
+            return collider_pos[0] <= dest[0] <= init_pos[0]
+        else:
+            raise Exception('Wrong cardinal input!')
 
     
     def get_cardinal_collision(self, pos, cardinal):
@@ -284,3 +329,71 @@ class Player:
                     return [pos[0], i]
         
         return None
+    
+
+    def bishop_move_legal(self, pos, dest) -> tuple[bool, str]:
+        '''
+        Helper checks if bishop move is legal.
+        '''
+        if abs(pos[0] - dest[0]) != abs(pos[1] - dest[1]):
+            return False, 'Bishop is not moving NE/SE/SW/NW!'
+        
+        # Bishop is now moving in one of the ordinal directions, NE/SE/SW/NW.
+        ordinal = ordinal_direction(pos=pos, dest=dest)
+        ordinal_collision = self.get_ordinal_collision(pos=pos, ordinal=ordinal)
+        if ordinal_collision == None:
+            return True, '' # No piece is blocking your direction, you can freely move
+        elif self.ordinal_dest_between_collider(init_pos=pos, collider_pos=ordinal_collision, dest=dest, ordinal=ordinal):
+            return True, '' # No piece blocking your direction, or the first piece to block your direction
+                            # is one we can go to and capture.
+        else:
+            return False, 'A piece is blocking your bishop\'s movement!'
+
+    def get_ordinal_collision(self, pos, ordinal):
+        '''
+        Helper for ordinal movement collision.
+        For a piece with unlimited ordinal movement, ie bishop or queen, returns the position
+        of the first piece that something from 'pos' will encounter when moving in the 'ordinal' direction.
+        Returns None if no such colliding piece exists.
+        Required: cardinal is 'NE', 'SE', 'SW', 'NW'
+        '''
+        dictionary = {'NE': [1, 1], 'SE': [1, -1], 'SW': [-1, -1], 'NW': [-1, 1]} # x_dir, y_dir
+        value = dictionary[ordinal]
+        x_dir, y_dir = value[0], value[1]
+        x, y = pos[0], pos[1]
+
+        while True:
+            x += x_dir
+            y += y_dir
+            if x-1 not in range(8) or y-1 not in range(8):
+                break # we went oob
+            if self.board.piece_exists(pos=[x, y]):
+                return [x, y]
+
+        return None
+    
+
+    def ordinal_dest_between_collider(self, init_pos, collider_pos, dest, ordinal):
+        '''
+        Helper for bishops/queens cardinal directional movers.
+        Checks to see if dest is in between init_pos and collider_pos (inclusive), 
+        wrt ordinal direction. If so, returns True, otherwise, returns False.
+        '''
+        if ordinal == 'NE':
+            assert((init_pos[0] <= dest[0] <= collider_pos[0]) == 
+                   (init_pos[1] <= dest[1] <= collider_pos[1]))
+            return init_pos[0] <= dest[0] <= collider_pos[0]
+        elif ordinal == 'SE':
+            assert((init_pos[0] <= dest[0] <= collider_pos[0]) == 
+                   (collider_pos[1] <= dest[1] <= init_pos[1]))
+            return init_pos[0] <= dest[0] <= collider_pos[0]
+        elif ordinal == 'SW':
+            assert((collider_pos[0] <= dest[0] <= init_pos[0]) == 
+                   (collider_pos[1] <= dest[1] <= init_pos[1]))
+            return collider_pos[0] <= dest[0] <= init_pos[0]
+        elif ordinal == 'NW':
+            assert((collider_pos[0] <= dest[0] <= init_pos[0]) == 
+                   (init_pos[1] <= dest[1] <= collider_pos[1]))
+            return collider_pos[0] <= dest[0] <= init_pos[0]
+        else:
+            raise Exception('Wrong ordinal input!')
