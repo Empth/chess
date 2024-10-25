@@ -3,6 +3,7 @@ import unittest
 from game import Game
 from debug import Debug
 from piece import Piece
+import random
 
 def set_up_debug(white_pieces = [], black_pieces = [], turn_state=None):
     mapper = {}
@@ -436,6 +437,113 @@ class TestPlayerRookMoves(unittest.TestCase):
         self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,4])[0])
         self.assertFalse(player_2.move_legal(pos=[4,6], dest=[4,4])[0])
 
+
+    def test_rook_cannot_team_kill(self):
+
+        '''
+        Tests that rooks cannot teamkill.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['R-D4', 'P-D5']))
+        player_1 = game.p1
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,5])[0])
+
+
+class TestPlayerBishopMoves(unittest.TestCase):
+    '''
+    Tests moves that the player makes for their bishops, and their legality.
+    '''
+
+    def test_bishop_legal_moves(self):
+
+        '''
+        Tests that bishops, in absense of other pieces, can precisely move diagonally.
+        '''
+
+        game = Game(debug=set_up_debug(white_pieces=['B-D4']))
+        player_1 = game.p1
+        for i in range(8):
+            for j in range(8):
+                x, y = i+1, j+1
+                x_diff, y_diff = abs(x-4), abs(y-4)
+                if x_diff == y_diff == 0:
+                    continue
+                if x_diff == 0 or y_diff == 0:
+                    self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                else:
+                    self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+
+
+    def test_bishop_captures(self):
+
+        '''
+        Tests that bishops can capture correctly in diagonal directions.
+        '''
+        black_pieces = ['P-C3', 'R-C5', 'N-G2', 'B-G7']
+        game = Game(debug=set_up_debug(white_pieces=['B-D4'], black_pieces=black_pieces))
+        player_1 = game.p1
+        player_2 = game.p2
+        for code in black_pieces:
+            enemy_pos = player_2.pieces[code].pos
+            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos))
+        self.assertTrue(player_2.move_legal(pos=[7,7], dest=[4,4]))
+        player_1.make_move(pos=[4,4], dest=[7,7])
+        self.assertEqual(player_1.pieces['R-D4'].pos, [7, 7])
+        self.assertEqual(len(player_2.pieces), 3)
+        self.assertTrue('B-G7' not in player_2.pieces)
+
+
+    def test_bishop_collision(self):
+
+        '''
+        Tests that Bishops cannot capture a piece if there is another piece blocking its direction.
+        '''
+        whites = ['R-E5', 'Q-E3']
+        black_pieces = ['P-G7', 'R-F2', 'N-C3', 'Q-B6', 'Q-B2']
+        game = Game(debug=set_up_debug(white_pieces=['B-D4']+whites, black_pieces=black_pieces))
+        player_1 = game.p1
+        player_2 = game.p2
+        board = game.board
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[2,2])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[6,2])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[7,7])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,3])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,6])[0])
+
+
+    def test_bishop_cannot_team_kill(self):
+
+        '''
+        Tests that bishops cannot teamkill.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['B-D4', 'P-E5']))
+        player_1 = game.p1
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[5,5])[0])
+
+
+    def test_bishop_fuzz(self):
+
+        '''
+        Tests that bishops on 'white' tiles (this distinction isn't implemented)
+        cannot kill opponents on 'black' tiles.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['B-D4'], black_pieces=['K-B3', 'R-F5']))
+        player_1 = game.p1
+        player_2 = game.p2
+        dirs = [[1, 1], [1, -1], [-1, 1], [-1, -1]]
+
+        for i in range(50000):
+            new_pos_arr = []
+            x, y = player_1.pieces['B-D4'].pos
+            for d in dirs:
+                new_pos_arr.append([x+d[0], y+d[1]])
+            new_pos = random.choice(new_pos_arr)
+            if new_pos[0]-1 not in range(8) or new_pos[1]-1 not in range(8):
+                continue
+            self.assertTrue(player_1.move_legal(pos=[x, y], dest=new_pos))
+            player_1.make_move(pos=[x, y], dest=new_pos)
+
+        self.assertTrue(len(player_2.pieces), 2)
+            
 
 if __name__ == '__main__':
     unittest.main()
