@@ -29,7 +29,6 @@ class Board:
         '''
         Adds or replaces an existing piece in the board with piece.
 
-
         pos: input format of coordinate (1, 1) (which corresponds to A1)
         piece: piece which we wish to add or already exists and want to place in pos.
         

@@ -592,7 +592,80 @@ class TestPlayerBishopMoves(unittest.TestCase):
         self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5,3])[0])
         self.assertTrue(player_1.move_legal(pos=[4,4], dest=[6,2])[0])
         self.assertFalse(player_1.move_legal(pos=[4,4], dest=[7,1])[0])
-            
+
+
+class TestPlayerKnightMoves(unittest.TestCase):
+    '''
+    Tests moves that the player makes for their knight, and their legality.
+    '''
+
+    def test_knight_legal_moves(self):
+
+        '''
+        Tests that knights move precisely in an L shape.
+        '''
+
+        game = Game(debug=set_up_debug(white_pieces=['N-D4']))
+        legal_dest = set([(2, 3), (3, 2), (6, 5), (5, 6), (3, 6), (6, 3), (2, 5), (5, 2)])
+        player_1 = game.p1
+        for i in range(8):
+            for j in range(8):
+                x, y = i+1, j+1
+                if x == y == 4:
+                    continue
+                if (x, y) in legal_dest:
+                    self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                else:
+                    self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+
+
+    def test_knight_capture(self):
+        '''
+        Tests that knights can capture in an L shape
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['N-D4'], black_pieces=['P-E2']))
+        player_1 = game.p1
+        player_2 = game.p2
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5, 2]))
+        player_1.make_move(pos=[4,4], dest=[5, 2])
+        self.assertEqual(player_1.pieces['N-D4'].pos, [5, 2])
+        self.assertEqual(len(player_2.pieces), 0)
+
+    def test_knight_jump(self):
+        '''
+        Tests that knights can jump to its destination and bypass all collision.
+        In this test, a square of pieces blocks the knight from making an L move, 
+        but the knight can jump over them anyways.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['N-D4'], 
+                                       black_pieces=['P-E2', 'P-C3', 'P-C4', 'P-C5', 'P-D5',
+                                                     'P-E5', 'P-E4', 'P-E3', 'P-D3']))
+        player_1 = game.p1
+        player_2 = game.p2
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5, 2]))
+        player_1.make_move(pos=[4,4], dest=[5, 2])
+        self.assertEqual(player_1.pieces['N-D4'].pos, [5, 2])
+        self.assertEqual(len(player_2.pieces), 8)
+        self.assertTrue(player_1.move_legal(pos=[5,2], dest=[4,4]))
+        player_1.make_move(pos=[5,2], dest=[4,4])
+        self.assertEqual(player_1.pieces['N-D4'].pos, [4, 4])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,6]))
+        player_1.make_move(pos=[4,4], dest=[3, 6])
+        self.assertEqual(len(player_2.pieces), 8)
+        self.assertEqual(player_1.pieces['N-D4'].pos, [3,6])
+
+    def test_knight_cannot_team_kill(self):
+
+        '''
+        Tests that knights cannot teamkill.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['N-D4', 'P-E2']))
+        player_1 = game.p1
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[5,2])[0])
+
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

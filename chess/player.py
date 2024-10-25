@@ -138,6 +138,8 @@ class Player:
             return self.rook_move_legal(pos=pos, dest=dest)
         elif rank == 'BISHOP':
             return self.bishop_move_legal(pos=pos, dest=dest)
+        elif rank == 'KNIGHT':
+            return self.knight_move_legal(pos=pos, dest=dest)
                 
         return True, 'Placeholder behavior'
     
@@ -397,3 +399,19 @@ class Player:
             return collider_pos[0] <= dest[0] <= init_pos[0]
         else:
             raise Exception('Wrong ordinal input!')
+        
+
+    def knight_move_legal(self, pos, dest) -> tuple[bool, str]:
+        '''
+        Helper checks if knight move is legal.
+        '''
+        x, y = pos[0], pos[1]
+        offsets = [[1, 2], [2, 1], [-1, 2], [2, -1], [1, -2], [-2, 1], [-1, -2], [-2, -1]]
+        for offset in offsets:
+            new_x, new_y = x+offset[0], y+offset[1]
+            if new_x not in range(8) or new_y not in range(8):
+                continue
+            if dest == [new_x, new_y]:
+                return True, ''
+        
+        return False, 'This is not a valid knight move!'
