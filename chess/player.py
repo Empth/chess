@@ -140,6 +140,8 @@ class Player:
             return self.bishop_move_legal(pos=pos, dest=dest)
         elif rank == 'KNIGHT':
             return self.knight_move_legal(pos=pos, dest=dest)
+        elif rank == 'QUEEN':
+            return self.queen_move_legal(pos=pos, dest=dest)
                 
         return True, 'Placeholder behavior'
     
@@ -377,7 +379,7 @@ class Player:
 
     def ordinal_dest_between_collider(self, init_pos, collider_pos, dest, ordinal):
         '''
-        Helper for bishops/queens cardinal directional movers.
+        Helper for bishops/queens ordinal directional movers.
         Checks to see if dest is in between init_pos and collider_pos (inclusive), 
         wrt ordinal direction. If so, returns True, otherwise, returns False.
         '''
@@ -415,3 +417,28 @@ class Player:
                 return True, ''
         
         return False, 'This is not a valid knight move!'
+    
+
+    def queen_move_legal(self, pos, dest) -> tuple[bool, str]:
+        '''
+        Helper checks if queen move is legal.
+        '''
+
+        cardinal = (dest[0] == pos[0] or dest[1] == pos[1])
+        ordinal = (abs(pos[0] - dest[0]) == abs(pos[1] - dest[1]))
+        if not cardinal and not ordinal:
+            return False, 'Queen is not moving straight or diagonally!'
+        
+        assert(cardinal != ordinal)
+        
+        truth_message = True, ''
+        if cardinal:
+            truth_message = self.rook_move_legal(pos=pos, dest=dest)
+        if ordinal:
+            truth_message = self.bishop_move_legal(pos=pos, dest=dest)
+
+        if truth_message[0]:
+            return truth_message[0], ''
+        else:
+            return truth_message[0], 'A piece is blocking your queen\'s way!'
+        

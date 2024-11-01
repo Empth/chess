@@ -396,7 +396,7 @@ class TestPlayerRookMoves(unittest.TestCase):
                 x, y = i+1, j+1
                 if x == y == 4:
                     continue
-                if x==4 or y==4:
+                elif x==4 or y==4:
                     self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
                 else:
                     self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
@@ -437,7 +437,6 @@ class TestPlayerRookMoves(unittest.TestCase):
         self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,4])[0])
         self.assertFalse(player_2.move_legal(pos=[4,6], dest=[4,4])[0])
 
-
     def test_rook_cannot_team_kill(self):
 
         '''
@@ -470,6 +469,18 @@ class TestPlayerRookMoves(unittest.TestCase):
         self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,6])[0])
         self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,7])[0])
         self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,8])[0])
+
+    def test_rook_cannot_move_past_collision(self):
+
+        '''
+        Tests that rooks can't move straight past a piece that blocks its way.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['R-D4'], black_pieces=['P-C4', 'P-E4', 'P-D5', 'P-D3']))
+        player_1 = game.p1
+        bad_values = [1, 2, 6, 7, 8]
+        for val in bad_values:
+            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4, val])[0])
+            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[val, 4])[0])
 
 
 
@@ -593,6 +604,20 @@ class TestPlayerBishopMoves(unittest.TestCase):
         self.assertTrue(player_1.move_legal(pos=[4,4], dest=[6,2])[0])
         self.assertFalse(player_1.move_legal(pos=[4,4], dest=[7,1])[0])
 
+    def test_bishop_cannot_move_past_collision(self):
+
+        '''
+        Tests that bishops can't move diagonally past a piece that blocks its way.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['B-D4'], black_pieces=['P-C3', 'P-C5', 'P-E3', 'P-E5']))
+        player_1 = game.p1
+        bad_values_1 = [1, 2, 6, 7, 8]
+        for val in bad_values_1:
+            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[val, val])[0])
+        bad_values_2 = [1, 2, 6, 7]
+        for val in bad_values_2:
+            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[8-val, val])[0])
+
 
 class TestPlayerKnightMoves(unittest.TestCase):
     '''
@@ -613,7 +638,7 @@ class TestPlayerKnightMoves(unittest.TestCase):
                 x, y = i+1, j+1
                 if x == y == 4:
                     continue
-                if (x, y) in legal_dest:
+                elif (x, y) in legal_dest:
                     self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
                 else:
                     self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
@@ -664,7 +689,186 @@ class TestPlayerKnightMoves(unittest.TestCase):
         self.assertFalse(player_1.move_legal(pos=[4,4], dest=[5,2])[0])
 
 
+class TestPlayerQueenMoves(unittest.TestCase):
+    '''
+    Tests moves that the player makes for their queen, and their legality.
+    '''
 
+    def test_queen_legal_moves(self):
+
+        '''
+        Tests that queens, in absense of other pieces, can precisely move in straight or diagonal directions.
+        '''
+
+        game = Game(debug=set_up_debug(white_pieces=['Q-D4']))
+        player_1 = game.p1
+        for i in range(8):
+            for j in range(8):
+                x, y = i+1, j+1
+                x_diff, y_diff = abs(x-4), abs(y-4)
+                if x == y == 4:
+                    continue
+                elif x==4 or y==4:
+                    self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                elif x_diff == y_diff:
+                    self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                else:
+                    self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+
+
+    def test_queen_diagonal_captures(self):
+
+        '''
+        Tests that queens can capture correctly in diagonal directions.
+        '''
+        black_pieces = ['P-C3', 'R-C5', 'N-G2', 'B-G7']
+        game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=black_pieces))
+        player_1 = game.p1
+        player_2 = game.p2
+        for code in black_pieces:
+            enemy_pos = player_2.pieces[code].pos
+            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos))
+        self.assertTrue(player_2.move_legal(pos=[7,7], dest=[4,4]))
+        player_1.make_move(pos=[4,4], dest=[7,7])
+        self.assertEqual(player_1.pieces['Q-D4'].pos, [7, 7])
+        self.assertEqual(len(player_2.pieces), 3)
+        self.assertTrue('B-G7' not in player_2.pieces)
+
+    def test_queen_straight_captures(self):
+
+        '''
+        Tests that queens can capture correctly in straight directions.
+        '''
+        black_pieces = ['P-D3', 'R-D6', 'N-G4', 'Q-A4']
+        game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=black_pieces))
+        player_1 = game.p1
+        player_2 = game.p2
+        for code in black_pieces:
+            enemy_pos = player_2.pieces[code].pos
+            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos))
+        self.assertTrue(player_2.move_legal(pos=[4,6], dest=[4,4]))
+        player_1.make_move(pos=[4,4], dest=[4,6])
+        self.assertEqual(player_1.pieces['Q-D4'].pos, [4, 6])
+        self.assertEqual(len(player_2.pieces), 3)
+        self.assertTrue('R-D6' not in player_2.pieces)
+
+    def test_queen_straight_collision(self):
+
+        '''
+        Tests that a queen cannot capture a piece straight if there is another piece blocking its straight direction.
+        '''
+        whites = ['R-D5', 'Q-E4']
+        black_pieces = ['P-D2', 'R-D6', 'N-G4', 'Q-A4', 'Q-B4']
+        game = Game(debug=set_up_debug(white_pieces=['Q-D4']+whites, black_pieces=black_pieces))
+        player_1 = game.p1
+        player_2 = game.p2
+        board = game.board
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[1,4])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,6])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[7,4])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,2])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,4])[0])
+        self.assertFalse(player_2.move_legal(pos=[4,6], dest=[4,4])[0])
+
+    def test_queen_diagonal_collision(self):
+
+        '''
+        Tests that a queen cannot capture a piece diagonally if there is another piece blocking its diagonal direction.
+        '''
+        whites = ['R-E5', 'Q-E3']
+        black_pieces = ['P-G7', 'R-F2', 'N-C3', 'Q-B6', 'Q-B2']
+        game = Game(debug=set_up_debug(white_pieces=['Q-D4']+whites, black_pieces=black_pieces))
+        player_1 = game.p1
+        player_2 = game.p2
+        board = game.board
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[2,2])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[6,2])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[7,7])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,3])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,6])[0])
+
+    def test_queen_cannot_team_kill(self):
+
+        '''
+        Tests that queens cannot teamkill.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['Q-D4', 'P-D5', 'P-E5']))
+        player_1 = game.p1
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,5])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[5,5])[0])
+
+    def test_queen_can_move_straight_between_collision(self):
+
+        '''
+        Tests that queens can move straight to a position that is
+        between its initial position and the first colliding piece in the 
+        cardinal direction of movement.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-A4', 'P-G4', 'P-D5', 'P-D2']))
+        player_1 = game.p1
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,4])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,4])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[1,4])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5,4])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[6,4])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[7,4])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[8,4])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,5])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,3])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,2])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,1])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,6])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,7])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,8])[0])
+
+    def test_queen_can_move_diagonally_between_collision(self):
+
+        '''
+        Tests that queens can move diagonally to a position that is
+        between its initial position and the first colliding piece in the 
+        ordinal direction of movement.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-B2', 'P-G7', 'P-B6', 'P-F2']))
+        player_1 = game.p1
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,3])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,2])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[1,1])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5,5])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[6,6])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[7,7])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[8,8])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,5])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,6])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[1,7])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5,3])[0])
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[6,2])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[7,1])[0])
+
+    def test_queen_cannot_move_straight_past_collision(self):
+
+        '''
+        Tests that a queen can't move straight past a piece that blocks its way.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-C4', 'P-E4', 'P-D5', 'P-D3']))
+        player_1 = game.p1
+        bad_values = [1, 2, 6, 7, 8]
+        for val in bad_values:
+            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4, val])[0])
+            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[val, 4])[0])
+
+    def test_queen_cannot_move_diagonally_past_collision(self):
+
+        '''
+        Tests that a queen can't move diagonally past a piece that blocks its way.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-C3', 'P-C5', 'P-E3', 'P-E5']))
+        player_1 = game.p1
+        bad_values_1 = [1, 2, 6, 7, 8]
+        for val in bad_values_1:
+            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[val, val])[0])
+        bad_values_2 = [1, 2, 6, 7]
+        for val in bad_values_2:
+            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[8-val, val])[0])
 
 
 if __name__ == '__main__':
