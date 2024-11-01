@@ -402,9 +402,6 @@ class TestPlayerPawnMoves(unittest.TestCase):
         self.assertFalse(player_2.move_legal(pos=[4, 6], dest=[4, 4])[0])
 
 
-
-
-
 class TestPlayerRookMoves(unittest.TestCase):
     '''
     Tests moves that the player makes for their rooks, and their legality.
@@ -936,7 +933,7 @@ class TestPlayerKingMoves(unittest.TestCase):
         player_2 = game.p2
         enemy_pos_list = [[3,4], [3,5], [4,5], [5,5], [5,4], [5,3], [4,3], [3,3]]
         for enemy in player_2.pieces:
-            enemy_pos = player_2.pieces[enemy.name].pos
+            enemy_pos = player_2.pieces[enemy].pos
             self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos))
         # Now kill all 8 pieces in a spiral
         prev = [4, 4]

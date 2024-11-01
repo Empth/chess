@@ -142,8 +142,10 @@ class Player:
             return self.knight_move_legal(pos=pos, dest=dest)
         elif rank == 'QUEEN':
             return self.queen_move_legal(pos=pos, dest=dest)
+        elif rank == 'KING':
+            return self.king_move_legal(pos=pos, dest=dest)
                 
-        return True, 'Placeholder behavior'
+        return False, 'Rank of piece at position ' +str(pos)+ ' does not match any of the 6 classes.'
     
 
     def misc_checks(self, pos, dest) -> tuple[bool, str]:
@@ -169,7 +171,6 @@ class Player:
                 return False, 'Cannot attempt move to a position which already has your colored piece!'
             
         return True, 'Cannot detect any issues with prelim checks'
-
 
 
     def pawn_starting(self, piece):
@@ -456,4 +457,20 @@ class Player:
         message = '' if valid else 'A piece is blocking your queen\'s way!'
 
         return valid, message
+    
+    
+    def king_move_legal(self, pos, dest) -> tuple[bool, str]:
+        '''
+        Helper checks if king move is legal.
+        '''
+        x, y = pos[0], pos[1]
+        offsets = [[1, 1], [1, -1], [-1, 1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]]
+        for offset in offsets:
+            new_x, new_y = x+offset[0], y+offset[1]
+            if new_x not in range(8) or new_y not in range(8):
+                continue
+            if dest == [new_x, new_y]:
+                return True, ''
+        
+        return False, 'This is not a valid king move!'
         
