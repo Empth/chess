@@ -250,11 +250,18 @@ class Player:
             
             # Now pawn must be moving either 2 units forward at starting
             # or 1 unit forward generally
+            # By extension, pawn is cardinally moving north or south.
+            cardinal = cardinal_direction(pos=pos, dest=dest)
+            cardinal_collision = self.get_cardinal_collision(pos=pos, cardinal=cardinal) # None or [x, y]
 
-            if self.board.get_piece(pos=dest) != None:
-                return False, 'Another piece is in dest, so we cant move our pawn forward'
+            if cardinal_collision == None:
+                return True, '' # no piece is blocking your direction, you can freely move.
+            elif self.cardinal_dest_between_collider(init_pos=pos, collider_pos=cardinal_collision, dest=dest, cardinal=cardinal, is_pawn=True):
+                return True, '' # No piece blocking the direction to your straight destination.
+            else:
+                return False, 'A piece is blocking your pawn\'s forward movement!'
             
-            return True, '' # We can proceed forward to the forward blank space.
+            return True, '' # We can proceed forward to the dest's blank space.
         elif self.pawn_moving_diagonal_forward(piece=cur_piece, dest=dest):
             if taxicab_distance >= 4:
                 return False, "Moving pawn too diagonally"
@@ -289,22 +296,31 @@ class Player:
         else:
             return False, 'A piece is blocking your rook\'s movement!'
         
-    def cardinal_dest_between_collider(self, init_pos, collider_pos, dest, cardinal):
+    def cardinal_dest_between_collider(self, init_pos, collider_pos, dest, cardinal, is_pawn=False):
         '''
         Helper for rooks/queens cardinal directional movers.
+        Also applicable for pawns, with their custom collision logic.
         Checks to see if dest is in between init_pos and collider_pos (inclusive),
         wrt cardinal direction. If so, returns True, otherwise, returns False.
         '''
-        if cardinal == 'N':
-            return init_pos[1] <= dest[1] <= collider_pos[1]
-        elif cardinal == 'S':
-            return collider_pos[1] <= dest[1] <= init_pos[1]
-        elif cardinal == 'E':
-            return init_pos[0] <= dest[0] <= collider_pos[0]
-        elif cardinal == 'W':
-            return collider_pos[0] <= dest[0] <= init_pos[0]
+        if not is_pawn:
+            if cardinal == 'N':
+                return init_pos[1] <= dest[1] <= collider_pos[1]
+            elif cardinal == 'S':
+                return collider_pos[1] <= dest[1] <= init_pos[1]
+            elif cardinal == 'E':
+                return init_pos[0] <= dest[0] <= collider_pos[0]
+            elif cardinal == 'W':
+                return collider_pos[0] <= dest[0] <= init_pos[0]
+            else:
+                raise Exception('Wrong cardinal input!')
         else:
-            raise Exception('Wrong cardinal input!')
+            assert(cardinal in ['N', 'S'])
+            if cardinal == 'N':
+                return init_pos[1] < dest[1] < collider_pos[1]
+            else:
+                assert(cardinal == 'S')
+                return collider_pos[1] < dest[1] < init_pos[1]
 
     
     def get_cardinal_collision(self, pos, cardinal):

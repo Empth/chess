@@ -207,7 +207,6 @@ class TestPlayerPawnMoves(unittest.TestCase):
         self.assertEqual(player_2.pieces['P-B7'], b_pawn_2)
         self.assertIsNone(board.get_piece([2, 7]))
 
-
     def test_move_nonstarting_pawn(self):
         '''
         Tests that a pawn outside of its starting position only moves 1 straight and not 2.
@@ -230,7 +229,6 @@ class TestPlayerPawnMoves(unittest.TestCase):
         self.assertTrue(player_2.move_legal(pos=[8,6], dest=[8,5])[0])
         self.assertFalse(player_2.move_legal(pos=[8,6], dest=[8,4])[0])
 
-
     def test_cannot_move_blank_space(self):
         '''
         Test that we cannot move from a blank position on the board.
@@ -243,7 +241,6 @@ class TestPlayerPawnMoves(unittest.TestCase):
         self.assertFalse(player_1.move_legal(pos=[2,4], dest=[3,6])[0])
         self.assertFalse(player_2.move_legal(pos=[8,6], dest=[7,5])[0])
         self.assertFalse(player_2.move_legal(pos=[7,5], dest=[6,4])[0])
-        
     
     def test_cannot_move_wrong_color(self):
         '''
@@ -345,8 +342,7 @@ class TestPlayerPawnMoves(unittest.TestCase):
         self.assertEqual(queen_1, board.get_piece([1,8]))
         self.assertEqual(queen_2, board.get_piece([1,1]))
 
-
-    def test_cannot_move_oob(self):
+    def test_cannot_move_out_of_bounds(self):
         '''
         Tests that we cannot move any piece out of bounds.
         '''
@@ -376,6 +372,37 @@ class TestPlayerPawnMoves(unittest.TestCase):
             for j in range(2):
                 x, y = i+1, j+1
                 self.assertFalse(player_1.move_legal(pos=[x, y], dest=[x, y])[0])
+
+    def test_pawn_collision(self):
+        '''
+        Tests that a pawn cannot proceed if there is collision blocking straight ahead.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['P-A2', 'P-B2', 'P-C2', 'P-D3'], black_pieces=['Q-A3', 'Q-A4', 'Q-B4', 'Q-C3', 'Q-D4']))
+        player_1 = game.p1
+        self.assertFalse(player_1.move_legal(pos=[1, 2], dest=[1, 3])[0])
+        self.assertFalse(player_1.move_legal(pos=[1, 2], dest=[1, 4])[0])
+        self.assertTrue(player_1.move_legal(pos=[2, 2], dest=[2, 3])[0])
+        self.assertFalse(player_1.move_legal(pos=[2, 2], dest=[2, 4])[0])
+        self.assertFalse(player_1.move_legal(pos=[3, 2], dest=[3, 3])[0])
+        self.assertFalse(player_1.move_legal(pos=[3, 2], dest=[3, 4])[0])
+        self.assertFalse(player_1.move_legal(pos=[4, 3], dest=[4, 4])[0])
+        self.assertFalse(player_1.move_legal(pos=[4, 3], dest=[4, 5])[0])
+
+        # Now do the same but with black pawns attacking in reverse direction
+
+        game = Game(debug=set_up_debug(black_pieces=['P-A7', 'P-B7', 'P-C7', 'P-D6'], white_pieces=['Q-A6', 'Q-A5', 'Q-B5', 'Q-C6', 'Q-D5']))
+        player_2 = game.p2
+        self.assertFalse(player_2.move_legal(pos=[1, 7], dest=[1, 6])[0])
+        self.assertFalse(player_2.move_legal(pos=[1, 7], dest=[1, 5])[0])
+        self.assertTrue(player_2.move_legal(pos=[2, 7], dest=[2, 6])[0])
+        self.assertFalse(player_2.move_legal(pos=[2, 7], dest=[2, 5])[0])
+        self.assertFalse(player_2.move_legal(pos=[3, 7], dest=[3, 6])[0])
+        self.assertFalse(player_2.move_legal(pos=[3, 7], dest=[3, 5])[0])
+        self.assertFalse(player_2.move_legal(pos=[4, 6], dest=[4, 5])[0])
+        self.assertFalse(player_2.move_legal(pos=[4, 6], dest=[4, 4])[0])
+
+
+
 
 
 class TestPlayerRookMoves(unittest.TestCase):
@@ -715,7 +742,6 @@ class TestPlayerQueenMoves(unittest.TestCase):
                 else:
                     self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
 
-
     def test_queen_diagonal_captures(self):
 
         '''
@@ -869,6 +895,69 @@ class TestPlayerQueenMoves(unittest.TestCase):
         bad_values_2 = [1, 2, 6, 7]
         for val in bad_values_2:
             self.assertFalse(player_1.move_legal(pos=[4,4], dest=[8-val, val])[0])
+
+
+class TestPlayerKingMoves(unittest.TestCase):
+    '''
+    Tests moves that the player makes for their king, and their legality.
+    '''
+
+    def test_king_legal_moves(self):
+
+        '''
+        Tests that kings can precisely move 1 unit straight or diagonally.
+        '''
+
+        game = Game(debug=set_up_debug(white_pieces=['K-D4']))
+        player_1 = game.p1
+        temp = [[3,3], [3,4], [3,5], [4,5], [5,5], [5,4], [5,3], [4,3]]
+        legal_pos = set()
+        for elt in temp:
+            legal_pos.add(tuple(elt))
+
+        for i in range(8):
+            for j in range(8):
+                x, y = i+1, j+1
+                if x == y == 4:
+                    self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                elif tuple([x, y]) in legal_pos:
+                    self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                else:
+                    self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+
+    def test_king_captures(self):
+
+        '''
+        Tests that kings can capture within its movement zone.
+        '''
+        black_pieces = ['P-C3', 'P-C4', 'P-C5', 'P-D5', 'P-E5', 'P-E4', 'P-E3', 'P-D3']
+        game = Game(debug=set_up_debug(white_pieces=['K-D4'], black_pieces=black_pieces))
+        player_1 = game.p1
+        player_2 = game.p2
+        enemy_pos_list = [[3,4], [3,5], [4,5], [5,5], [5,4], [5,3], [4,3], [3,3]]
+        for enemy in player_2.pieces:
+            enemy_pos = player_2.pieces[enemy.name].pos
+            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos))
+        # Now kill all 8 pieces in a spiral
+        prev = [4, 4]
+        for new_pos in enemy_pos_list:
+            player_1.make_move(pos=prev, dest=new_pos)
+            prev = new_pos
+        self.assertEqual(player_1.pieces['K-D4'].pos, [3, 3])
+        self.assertEqual(len(player_2.pieces), 0)
+
+    def test_king_cannot_team_kill(self):
+
+        '''
+        Tests that kings cannot teamkill.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['K-D4', 'P-D5', 'P-E5']))
+        player_1 = game.p1
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,5])[0])
+        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[5,5])[0])
+
+
+
 
 
 if __name__ == '__main__':
