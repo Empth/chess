@@ -431,14 +431,13 @@ class Player:
         
         assert(cardinal != ordinal)
         
-        truth_message = True, ''
+        valid = True
         if cardinal:
-            truth_message = self.rook_move_legal(pos=pos, dest=dest)
+            valid = self.rook_move_legal(pos=pos, dest=dest)[0]
         if ordinal:
-            truth_message = self.bishop_move_legal(pos=pos, dest=dest)
+            valid = self.bishop_move_legal(pos=pos, dest=dest)[0]
 
-        if truth_message[0]:
-            return truth_message[0], ''
-        else:
-            return truth_message[0], 'A piece is blocking your queen\'s way!'
+        message = '' if valid else 'A piece is blocking your queen\'s way!'
+
+        return valid, message
         
