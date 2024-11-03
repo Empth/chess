@@ -64,7 +64,7 @@ class Board:
         return replaced
 
 
-    def get_piece(self, pos):
+    def get_piece(self, pos) -> Piece:
         '''
         Gets a piece at pos on the board if it exists. Otherwise returns None.
         pos: input format of coordinate (1, 1) (which corresponds to A1)
@@ -108,7 +108,7 @@ class Board:
                 if cur_piece == None:
                     cur_string += '[--] '
                 else:
-                    cur_string += cur_piece.name + ' '
+                    cur_string += '[' + cur_piece.visual + ' ] '
             cur_string += '\n\n'
             string += cur_string
         return string

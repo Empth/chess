@@ -76,7 +76,7 @@ class Player:
         '''
         if debug == None:
             assert(self.color == 'WHITE' or self.color == 'BLACK')
-            main_row = ['ROOK', 'KNIGHT', 'BISHOP', 'KING', 'QUEEN', 'BISHOP', 'KNIGHT', 'ROOK']
+            main_row = ['ROOK', 'KNIGHT', 'BISHOP', 'QUEEN', 'KING', 'BISHOP', 'KNIGHT', 'ROOK']
             main_row_pos = 1 if self.color == 'WHITE' else 8
             pawn_row_pos = 2 if self.color == 'WHITE' else 7
             for i in range(8):

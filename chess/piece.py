@@ -29,15 +29,25 @@ def convert_letter_to_rank(letter):
     converter = {'P': 'PAWN', 'R': 'ROOK', 'N': 'KNIGHT', 'B': 'BISHOP', 'K': 'KING', 'Q': 'QUEEN'}
     return converter[letter]
 
+def get_piece_visual(rank, color):
+    white_map = {'PAWN':'♟', 'ROOK':'♜', 'KNIGHT':'♞', 'BISHOP':'♝', 'QUEEN':'♛', 'KING':'♚'}
+    black_map = {'PAWN':'♙', 'ROOK':'♖', 'KNIGHT':'♘', 'BISHOP':'♗', 'QUEEN':'♕', 'KING':'♔'}
+    assert(color in ['BLACK', 'WHITE'])
+    if color == 'WHITE':
+        return white_map[rank]
+    else:
+        return black_map[rank]
+
 class Piece:
     def __init__(self, color: str, rank: str, player, pos=None):
-        self.color = color
+        self.color = color # 'WHITE' or 'BLACK'
         self.rank = rank # 'PAWN', 'ROOK', 'QUEEN', etc
         self.pos = pos # is ordered pair from [8]x[8], and [1, 2] <-> A2
         rank_letter = rank[0] if rank != 'KNIGHT' else 'N'
         self.name = rank_letter + '-' + algebraic_uniconverter(pos)   # eg white pawn in A2 is P-A2. 
                                                                    # Note King is K-XX, and Knight is N-XX
         self.player = player # refers to the Player which this piece belongs to.
+        self.visual = get_piece_visual(rank=self.rank, color=self.color)
     
     def __str__(self):
         pos = "None" if self.pos == None else str(self.pos[0]) +', '+str(self.pos[1])
