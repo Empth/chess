@@ -59,7 +59,7 @@ class Game:
                 self.get_error_message()
                 print('\n')
             else:
-                print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT (Reselect piece)')
+                print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT')
                 print('\n')
             print(str(self.board))
             turn_success = self.make_turn()
@@ -84,12 +84,13 @@ class Game:
         if self.winner != None:
             print(str(self.winner.color)+' has won the game!')
 
+
     def make_turn(self) -> bool:
         '''
         Returns True if turn executes successful move, otherwise returns False.
         '''
         pos_example = 'E2 or e2' if self.turn == 'WHITE' else 'E7 or e7'
-        dest_example = 'E4 or e4' if self.turn == 'WHITE' else 'E5 or e4'
+        dest_example = 'E4 or e4' if self.turn == 'WHITE' else 'E5 or e5'
         pos = input('['+str(self.turn)+"\'S TURN] Select piece\'s position (e.g. "+str(pos_example)+"): ")
         if pos.upper() in special_command:
             self.set_special_command(pos.upper())
