@@ -1,9 +1,12 @@
 import unittest
+import unittest.mock
+from unittest.mock import patch
 
 from game import Game
 from debug import Debug
 from piece import Piece
 import random
+import os
 
 def set_up_debug(white_pieces = [], black_pieces = [], turn_state=None):
     mapper = {}
@@ -953,6 +956,32 @@ class TestPlayerKingMoves(unittest.TestCase):
         self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,5])[0])
         self.assertFalse(player_1.move_legal(pos=[4,4], dest=[5,5])[0])
 
+class TestGameplayBugcatchers(unittest.TestCase):
+    '''
+    Tests bugs found in the course of actual play. Basically a debugging class within actual play.
+    '''
+
+    def test_black_king_moves(self):
+
+        '''
+        Tests that black king can move right after the initial series of moves. Once black king is killed, game should end.
+        '''
+        game = Game()
+        input_commands = (['e2', 'e4']+ ['e7', 'e5'] + ['d2', 'd4'] + ['e5', 'd4'] + ['c1', 'g5'] 
+                          + ['f8', 'e7'] + ['g5', 'e7'] + ['PAUSE'])
+        with patch('builtins.input', side_effect=input_commands):
+            game.start()
+        #print(game.board) Affected by terminal clear, we dont want that
+        self.assertTrue(game.p2.move_legal(pos=[5, 8], dest=[6, 8]))
+        input_commands = (['e8', 'f8'] + ['PAUSE'])
+        with patch('builtins.input', side_effect=input_commands):
+            game.start()
+        #print(game.board)
+        input_commands = (['e7', 'f8'])
+        with patch('builtins.input', side_effect=input_commands):
+            game.start()
+        os.system('cls') # change this for non-windows
+        self.assertEqual(game.winner, game.p1)
 
 
 

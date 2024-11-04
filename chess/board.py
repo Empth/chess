@@ -100,9 +100,10 @@ class Board:
 
 
     def __str__(self):
+        c_map = {1:'A', 2:'B', 3:'C', 4:'D', 5:'E', 6:'F', 7:'G', 8:'H'}
         string = ''
         for i in range(8):
-            cur_string = ' '
+            cur_string = str(8-i)+'  '
             for j in range(8):
                 cur_piece = self.game_board[i][j]
                 if cur_piece == None:
@@ -111,6 +112,7 @@ class Board:
                     cur_string += '[' + cur_piece.visual + ' ] '
             cur_string += '\n\n'
             string += cur_string
+        string += '    Aa   Bb   Cc   Dd   Ee   Ff   Gg   Hh   \n\n'
         return string
 
 

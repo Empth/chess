@@ -59,8 +59,6 @@ def ordinal_direction(pos, dest) -> str:
     return dir
 
 
-
-
 class Player:
     def __init__(self, color: str, board: Board, debug=None):
         self.color = color
@@ -428,7 +426,8 @@ class Player:
         offsets = [[1, 2], [2, 1], [-1, 2], [2, -1], [1, -2], [-2, 1], [-1, -2], [-2, -1]]
         for offset in offsets:
             new_x, new_y = x+offset[0], y+offset[1]
-            if new_x not in range(8) or new_y not in range(8):
+            if new_x-1 not in range(8) or new_y-1 not in range(8):
+                # minus 1 on new_x, new_y to deal with python ranges.
                 continue
             if dest == [new_x, new_y]:
                 return True, ''
@@ -467,7 +466,8 @@ class Player:
         offsets = [[1, 1], [1, -1], [-1, 1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]]
         for offset in offsets:
             new_x, new_y = x+offset[0], y+offset[1]
-            if new_x not in range(8) or new_y not in range(8):
+            if new_x-1 not in range(8) or new_y-1 not in range(8):
+                # minus 1 on new_x, new_y to deal with python ranges.
                 continue
             if dest == [new_x, new_y]:
                 return True, ''
