@@ -107,7 +107,11 @@ class Board:
             for j in range(8):
                 cur_piece = self.game_board[i][j]
                 if cur_piece == None:
-                    cur_string += '[--] '
+                    checkerboard_color = (i + j) % 2
+                    if checkerboard_color == 0: 
+                        cur_string += '[--] '
+                    else:
+                        cur_string += '[  ] '
                 else:
                     cur_string += '[' + cur_piece.visual + ' ] '
             cur_string += '\n\n'
