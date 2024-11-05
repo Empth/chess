@@ -983,8 +983,5 @@ class TestGameplayBugcatchers(unittest.TestCase):
         os.system('cls') # change this for non-windows
         self.assertEqual(game.winner, game.p1)
 
-
-
-
 if __name__ == '__main__':
     unittest.main()

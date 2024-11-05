@@ -102,3 +102,13 @@ def get_piece_visual(rank, color):
         return white_map[rank]
     else:
         return black_map[rank]
+    
+def convert_to_movement_set(arr):
+    '''
+    Takes an array of arrays and returns it as a set of tuples.
+    Mainly for movement zone.
+    '''
+    output = set()
+    for sub_arr in arr:
+        output.add(tuple(sub_arr))
+    return output

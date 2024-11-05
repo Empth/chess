@@ -27,7 +27,7 @@ def pawn_move_legal(player, pos, dest) -> tuple[bool, str]: # type: ignore
         # or 1 unit forward generally
         # By extension, pawn is cardinally moving north or south.
         cardinal = cardinal_direction(pos=pos, dest=dest)
-        cardinal_collision = get_cardinal_collision(player=player, pos=pos, cardinal=cardinal) # None or [x, y]
+        cardinal_collision = get_cardinal_collision(board=player.board, pos=pos, cardinal=cardinal) # None or [x, y]
 
         if cardinal_collision == None:
             return True, '' # no piece is blocking your direction, you can freely move.
@@ -61,7 +61,7 @@ def rook_move_legal(player, pos, dest) -> tuple[bool, str]:
     
     # Rook is moving in one of the cardinal directions, North, East, South, or West
     cardinal = cardinal_direction(pos=pos, dest=dest)
-    cardinal_collision = get_cardinal_collision(player=player, pos=pos, cardinal=cardinal) # None or [x, y]
+    cardinal_collision = get_cardinal_collision(board=player.board, pos=pos, cardinal=cardinal) # None or [x, y]
     if cardinal_collision == None:
         return True, '' # no piece is blocking your direction, you can freely move.
     
@@ -86,7 +86,7 @@ def bishop_move_legal(player, pos, dest) -> tuple[bool, str]:
     
     # Bishop is now moving in one of the ordinal directions, NE/SE/SW/NW.
     ordinal = ordinal_direction(pos=pos, dest=dest)
-    ordinal_collision = get_ordinal_collision(player=player, pos=pos, ordinal=ordinal)
+    ordinal_collision = get_ordinal_collision(board=player.board, pos=pos, ordinal=ordinal)
     if ordinal_collision == None:
         return True, '' # No piece is blocking your direction, you can freely move
     collider_piece = player.board.get_piece(pos=ordinal_collision) # mainly to check no team kill

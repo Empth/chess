@@ -90,7 +90,7 @@ def cardinal_dest_between_collider(init_pos, collider_pos, dest, cardinal, is_pa
             return collider_pos[1] < dest[1] < init_pos[1]
 
 
-def get_cardinal_collision(player, pos, cardinal):
+def get_cardinal_collision(board, pos, cardinal):
     '''
     Helper for cardinal movement collision.
     For a piece with unlimited cardinal movement, ie rook or queen, returns the position
@@ -109,15 +109,15 @@ def get_cardinal_collision(player, pos, cardinal):
         if i-1 not in range(8):
             break
         if abs_dir == 'x':
-            if player.board.piece_exists(pos=[i, pos[1]]):
+            if board.piece_exists(pos=[i, pos[1]]):
                 return [i, pos[1]]
         else:
-            if player.board.piece_exists(pos=[pos[0], i]):
+            if board.piece_exists(pos=[pos[0], i]):
                 return [pos[0], i]
     
     return None
 
-def get_ordinal_collision(player, pos, ordinal):
+def get_ordinal_collision(board, pos, ordinal):
     '''
     Helper for ordinal movement collision.
     For a piece with unlimited ordinal movement, ie bishop or queen, returns the position
@@ -135,7 +135,7 @@ def get_ordinal_collision(player, pos, ordinal):
         y += y_dir
         if x-1 not in range(8) or y-1 not in range(8):
             break # we went oob
-        if player.board.piece_exists(pos=[x, y]):
+        if board.piece_exists(pos=[x, y]):
             return [x, y]
 
     return None
