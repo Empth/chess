@@ -1,5 +1,5 @@
 from piece import Piece
-from general_helpers import convert_coord
+from helpers.general_helpers import convert_coord
 
 '''Chess board and also primitive piece crud add/remove logic on board'''
 

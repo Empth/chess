@@ -1,10 +1,10 @@
-from general_helpers import get_piece_visual
+from .general_helpers import get_piece_visual
 
 '''
 For things like pawn promotion status, king in check, etc
 '''
 
-def pawn_promotion(player, dest, piece): # type: ignore
+def pawn_promotion(player, dest, piece):
     '''Given a piece that moved to dest, checks whether it is a pawn that reached its "end",
     in which case we promote it to QUEEN. Otherwise, does nothing.'''
     # TODO Implement underpromotion to lower than queen 

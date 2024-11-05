@@ -1,5 +1,5 @@
 import os
-from general_helpers import algebraic_uniconverter
+from .general_helpers import algebraic_uniconverter
 
 '''Helper functions specialized for game logic. The variable game refers to Game type.'''
 

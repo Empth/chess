@@ -1,5 +1,5 @@
-from general_helpers import taxicab_dist, cardinal_direction, ordinal_direction
-from legality_helpers import (pawn_moving_straight_forward, pawn_moving_diagonal_forward, pawn_starting, 
+from helpers.general_helpers import taxicab_dist, cardinal_direction, ordinal_direction
+from helpers.legality_helpers import (pawn_moving_straight_forward, pawn_moving_diagonal_forward, pawn_starting, 
                               get_cardinal_collision, get_ordinal_collision, cardinal_dest_between_collider, 
                               ordinal_dest_between_collider)
 

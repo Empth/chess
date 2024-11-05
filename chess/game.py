@@ -1,8 +1,8 @@
 from player import Player
 from board import Board
 from debug import Debug
-from general_helpers import algebraic_uniconverter
-from game_helpers import (clear_terminal, get_error_message, get_special_command, set_error_message, set_special_command, 
+from helpers.general_helpers import algebraic_uniconverter
+from helpers.game_helpers import (clear_terminal, get_error_message, get_special_command, set_error_message, set_special_command, 
                           check_winner_king_condition, pos_checker, dest_checker, convert_color_to_player)
 
 '''File contains The Game logic.'''

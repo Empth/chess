@@ -1,4 +1,4 @@
-from general_helpers import algebraic_uniconverter, get_piece_visual
+from helpers.general_helpers import algebraic_uniconverter, get_piece_visual
 
 class Piece:
     def __init__(self, color: str, rank: str, player, pos=None):
