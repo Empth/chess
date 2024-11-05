@@ -2,7 +2,11 @@ from piece import Piece
 from board import Board
 from move_legal import pawn_move_legal, rook_move_legal, bishop_move_legal, knight_move_legal, queen_move_legal, king_move_legal
 from state_helpers import pawn_promotion
-from general_helpers import check_in_bounds, algebraic_uniconverter, convert_letter_to_rank, get_piece_visual
+from general_helpers import check_in_bounds, algebraic_uniconverter, convert_letter_to_rank
+
+'''
+Player who gets to make chess moves.
+'''
 
 class Player:
     def __init__(self, color: str, board: Board, debug=None):

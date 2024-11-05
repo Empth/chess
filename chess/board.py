@@ -1,6 +1,8 @@
 from piece import Piece
 from general_helpers import convert_coord
 
+'''Chess board and also primitive piece crud logic on board'''
+
 class Board:
     def __init__(self):
         self.game_board = [[None for x in range(8)] for y in range(8)]  # board with Pieces

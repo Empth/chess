@@ -4,6 +4,8 @@ from debug import Debug
 from general_helpers import algebraic_uniconverter
 import os
 
+'''File contains generally The Game logic.'''
+
 special_command = set(['PAUSE', 'EXIT', 'RESELECT', 'FORFEIT'])
 
 def well_formed(input) -> tuple[bool, str]:
