@@ -1,20 +1,12 @@
 from piece import Piece
-
-
-def convert_coord(pos):
-    '''
-    converts coordinates into python array friendly coordinates for Board
-    eg (1, 1) -> (7, 0) or (2, 3) -> (5, 1)
-    '''
-    return 8-pos[1], pos[0]-1
-
+from general_helpers import convert_coord
 
 class Board:
     def __init__(self):
         self.game_board = [[None for x in range(8)] for y in range(8)]  # board with Pieces
 
 
-    def remove_piece(self, pos) -> Piece:
+    def remove_piece(self, pos) -> Piece | None:
         '''
         Removes a piece from the board.
         pos: input format of coordinate (1, 1) (which corresponds to A1)
@@ -25,7 +17,7 @@ class Board:
         return self.add_or_replace_piece(pos=pos, piece=None)
 
 
-    def add_or_replace_piece(self, pos, piece: Piece) -> Piece:
+    def add_or_replace_piece(self, pos, piece: Piece | None) -> Piece | None:
         '''
         Adds or replaces an existing piece in the board with piece.
 
@@ -80,7 +72,7 @@ class Board:
         return self.get_piece(pos=pos) != None
     
 
-    def move_piece(self, pos, piece: Piece) -> Piece:
+    def move_piece(self, pos, piece: Piece) -> Piece | None:
         '''
         We need that piece is not None.
         Next, we need that 'piece' actually exists in the player's collection, and is identical to its name code 

@@ -1,7 +1,7 @@
 from player import Player
 from board import Board
 from debug import Debug
-from piece import algebraic_uniconverter
+from general_helpers import algebraic_uniconverter
 import os
 
 special_command = set(['PAUSE', 'EXIT', 'RESELECT', 'FORFEIT'])
@@ -76,12 +76,13 @@ class Game:
                     self.reset()
                     break
                 if command == 'FORFEIT':
-                    self.winner = self.p2 if self.color == 'WHITE' else self.p2
+                    self.winner = self.p2 if self.turn == 'WHITE' else self.p1
                     break
                 if command == 'RESELECT':
                     continue
 
         if self.winner != None:
+            print(str(self.board)) # for kill king to win gameplay
             print(str(self.winner.color)+' has won the game!')
 
 

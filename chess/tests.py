@@ -91,7 +91,6 @@ class TestBoardMoves(unittest.TestCase):
         self.assertEqual(p2_queen.rank, 'QUEEN')
         self.assertEqual(p2_queen.color, 'BLACK')
         replaced = board.add_or_replace_piece(pos=[2, 8], piece=p1_pawn) # god pawn, also this isn't a move
-        #print(str(board))
         self.assertEqual(p2_queen, replaced)
         self.assertEqual(player_2.pieces, {})
         self.assertIsNone(board.get_piece(pos=[1,2])) # existant piece replace is a move
@@ -104,13 +103,11 @@ class TestBoardMoves(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['P-A8']))
         board = game.board
-        # print(str(board))
         player_1 = game.p1
         pawn = player_1.pieces['P-A8']
         promoted_queen = Piece(color='WHITE', rank='QUEEN', player=player_1, pos=[2, 7])
         replaced = board.add_or_replace_piece(pos=[1, 8], piece=promoted_queen)
-        # print(str(board))
-        self.assertIsNone(replaced.pos)
+        self.assertIsNone(replaced.pos) # type: ignore
         self.assertEqual(replaced, pawn)
         self.assertEqual(len(player_1.pieces), 1)
         self.assertEqual(promoted_queen, board.get_piece(pos=[1, 8]))
@@ -319,6 +316,7 @@ class TestPlayerPawnMoves(unittest.TestCase):
         '''
         Test that a pawn that reaches its relative end of the board is promoted to Queen.
         '''
+        # TODO need to refactor after implementing underpromotion
 
         game = Game(debug=set_up_debug(white_pieces=['P-A7'], black_pieces=['P-A2']))
         board = game.board
@@ -818,7 +816,7 @@ class TestPlayerQueenMoves(unittest.TestCase):
     def test_queen_cannot_team_kill(self):
 
         '''
-        Tests that queens cannot teamkill.
+        Tests that queens cannot teamkill in straight or diagonal directions.
         '''
         game = Game(debug=set_up_debug(white_pieces=['Q-D4', 'P-D5', 'P-E5']))
         player_1 = game.p1
