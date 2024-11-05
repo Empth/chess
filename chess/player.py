@@ -1,4 +1,4 @@
-from piece import Piece, algebraic_uniconverter, convert_letter_to_rank
+from piece import Piece, algebraic_uniconverter, convert_letter_to_rank, get_piece_visual
 from board import Board
 
 def taxicab_dist(start, dest):
@@ -107,7 +107,9 @@ class Player:
         '''
         legality = self.move_legal(pos=pos, dest=dest)
         if legality[0]:
-            self.board.move_piece(pos=dest, piece=self.board.get_piece(pos))
+            moving_piece = self.board.get_piece(pos)
+            self.board.move_piece(pos=dest, piece=moving_piece)
+            self.pawn_promotion(dest=dest, piece=moving_piece)
         else:
             print(legality[1])
             return
@@ -473,4 +475,12 @@ class Player:
                 return True, ''
         
         return False, 'This is not a valid king move!'
-        
+    
+    def pawn_promotion(self, dest, piece):
+        '''Given a piece that moved to dest, checks whether it is a pawn that reached its "end",
+        in which case we promote it to QUEEN. Otherwise, does nothing.'''
+        # TODO Implement underpromotion to lower than queen 
+        end = 8 if self.color == 'WHITE' else 1
+        if piece.rank == 'PAWN' and dest[1] == end:
+            piece.rank = 'QUEEN'
+            piece.visual = get_piece_visual(rank=piece.rank, color=piece.color)

@@ -333,13 +333,15 @@ class TestPlayerPawnMoves(unittest.TestCase):
         queen_1 = None
         queen_2 = None
         for piece in player_1.pieces:
-            queen_1 = piece
-            self.assertTrue(piece.rank == 'QUEEN')
-            self.assertEqual(piece.pos, [1, 8])
+            queen_1 = player_1.pieces[piece]
+            self.assertTrue(queen_1.rank == 'QUEEN')
+            self.assertEqual(queen_1.pos, [1, 8])
+            self.assertEqual(queen_1.visual, '♛')
         for piece in player_2.pieces:
-            queen_2 = piece
-            self.assertTrue(piece.rank == 'QUEEN')
-            self.assertEqual(piece.pos, [1, 1])
+            queen_2 = player_2.pieces[piece]
+            self.assertTrue(queen_2.rank == 'QUEEN')
+            self.assertEqual(queen_2.pos, [1, 1])
+            self.assertEqual(queen_2.visual, '♕')
         self.assertIsNone(board.get_piece([1,7]))
         self.assertIsNone(board.get_piece([1,2]))
         self.assertEqual(queen_1, board.get_piece([1,8]))
