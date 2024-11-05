@@ -1,7 +1,7 @@
 from piece import Piece
 from general_helpers import convert_coord
 
-'''Chess board and also primitive piece crud logic on board'''
+'''Chess board and also primitive piece crud add/remove logic on board'''
 
 class Board:
     def __init__(self):
