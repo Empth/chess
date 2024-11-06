@@ -37,8 +37,7 @@ class Player:
                 piece = Piece(color=self.color, rank=convert_letter_to_rank(code[0]), 
                               pos=algebraic_uniconverter(code[2:]), player=self)
                 assert(piece.name == code) # sanity check, helped catch a knight is N bug once
-                self.pieces[piece.name] = piece
-            
+                self.pieces[piece.name] = piece 
 
 
     def set_pieces_on_board(self):
@@ -54,13 +53,13 @@ class Player:
         This moves a piece at pos to dest if said move is legal.
         Note, pos, dest are [8]^2 coordinates.
         '''
-        legality = self.move_legal(pos=pos, dest=dest)
-        if legality[0]:
+        legality, message = self.move_legal(pos=pos, dest=dest)
+        if legality:
             moving_piece = self.board.get_piece(pos)
             self.board.move_piece(pos=dest, piece=moving_piece)
             pawn_promotion(player=self, dest=dest, piece=moving_piece)
         else:
-            print(legality[1])
+            print(message)
             return
 
     def move_legal(self, pos, dest) -> tuple[bool, str]:
@@ -117,3 +116,11 @@ class Player:
             return False, 'Piece cannot stall as a move!'
             
         return True, 'Cannot detect any issues with prelim checks'
+    
+
+    def bool_move_legal(self, pos, dest) -> bool:
+        '''
+        Returns boolean value of move_legal's tuple output.
+        Mainly for use when testing truth values of move legality.
+        '''
+        return self.move_legal(pos=pos, dest=dest)[0]

@@ -171,8 +171,8 @@ class TestPlayerPawnMoves(unittest.TestCase):
         player_1 = game.p1
         player_2 = game.p2
 
-        self.assertFalse(player_1.move_legal(pos=[1,2], dest=[1,5])[0])
-        self.assertTrue(player_1.move_legal(pos=[1,2], dest=[1,3])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[1,2], dest=[1,5]))
+        self.assertTrue(player_1.bool_move_legal(pos=[1,2], dest=[1,3]))
         player_1.make_move(pos=[1,2], dest=[1,3])
         w_pawn_1 = board.get_piece([1, 3])
         self.assertEqual(w_pawn_1.name, 'P-A2')
@@ -180,8 +180,8 @@ class TestPlayerPawnMoves(unittest.TestCase):
         self.assertEqual(player_1.pieces['P-A2'], w_pawn_1)
         self.assertIsNone(board.get_piece([1, 2]))
 
-        self.assertFalse(player_1.move_legal(pos=[2,2], dest=[2,6])[0])
-        self.assertTrue(player_1.move_legal(pos=[2,2], dest=[2,4])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[2,2], dest=[2,6]))
+        self.assertTrue(player_1.bool_move_legal(pos=[2,2], dest=[2,4]))
         player_1.make_move(pos=[2,2], dest=[2,4])
         w_pawn_2 = board.get_piece([2, 4])
         self.assertEqual(w_pawn_2.name, 'P-B2')
@@ -189,8 +189,8 @@ class TestPlayerPawnMoves(unittest.TestCase):
         self.assertEqual(player_1.pieces['P-B2'], w_pawn_2)
         self.assertIsNone(board.get_piece([2, 2]))
 
-        self.assertFalse(player_2.move_legal(pos=[4,7], dest=[4,4])[0])
-        self.assertTrue(player_2.move_legal(pos=[1,7], dest=[1,6])[0])
+        self.assertFalse(player_2.bool_move_legal(pos=[4,7], dest=[4,4]))
+        self.assertTrue(player_2.bool_move_legal(pos=[1,7], dest=[1,6]))
         player_2.make_move(pos=[1,7], dest=[1,6])
         b_pawn_1 = board.get_piece([1,6])
         self.assertEqual(b_pawn_1.name, 'P-A7')
@@ -198,8 +198,8 @@ class TestPlayerPawnMoves(unittest.TestCase):
         self.assertEqual(player_2.pieces['P-A7'], b_pawn_1)
         self.assertIsNone(board.get_piece([1, 7]))
 
-        self.assertFalse(player_2.move_legal(pos=[3,7], dest=[3,4])[0])
-        self.assertTrue(player_2.move_legal(pos=[2,7], dest=[2,5])[0])
+        self.assertFalse(player_2.bool_move_legal(pos=[3,7], dest=[3,4]))
+        self.assertTrue(player_2.bool_move_legal(pos=[2,7], dest=[2,5]))
         player_2.make_move(pos=[2,7], dest=[2,5])
         b_pawn_2 = board.get_piece([2,5])
         self.assertEqual(b_pawn_2.name, 'P-B7')
@@ -220,14 +220,14 @@ class TestPlayerPawnMoves(unittest.TestCase):
         player_2.make_move(pos=[8,7], dest=[8,6])
         player_2.make_move(pos=[7,7], dest=[7,5])
 
-        self.assertTrue(player_1.move_legal(pos=[1,3], dest=[1,4])[0])
-        self.assertFalse(player_1.move_legal(pos=[1,3], dest=[1,5])[0])
-        self.assertTrue(player_1.move_legal(pos=[2,4], dest=[2,5])[0])
-        self.assertFalse(player_1.move_legal(pos=[2,4], dest=[2,6])[0])
-        self.assertTrue(player_2.move_legal(pos=[8,6], dest=[8,5])[0])
-        self.assertFalse(player_2.move_legal(pos=[8,6], dest=[8,4])[0])
-        self.assertTrue(player_2.move_legal(pos=[8,6], dest=[8,5])[0])
-        self.assertFalse(player_2.move_legal(pos=[8,6], dest=[8,4])[0])
+        self.assertTrue(player_1.bool_move_legal(pos=[1,3], dest=[1,4]))
+        self.assertFalse(player_1.bool_move_legal(pos=[1,3], dest=[1,5]))
+        self.assertTrue(player_1.bool_move_legal(pos=[2,4], dest=[2,5]))
+        self.assertFalse(player_1.bool_move_legal(pos=[2,4], dest=[2,6]))
+        self.assertTrue(player_2.bool_move_legal(pos=[8,6], dest=[8,5]))
+        self.assertFalse(player_2.bool_move_legal(pos=[8,6], dest=[8,4]))
+        self.assertTrue(player_2.bool_move_legal(pos=[8,6], dest=[8,5]))
+        self.assertFalse(player_2.bool_move_legal(pos=[8,6], dest=[8,4]))
 
     def test_cannot_move_blank_space(self):
         '''
@@ -237,10 +237,10 @@ class TestPlayerPawnMoves(unittest.TestCase):
         player_1 = game.p1
         player_2 = game.p2
 
-        self.assertFalse(player_1.move_legal(pos=[1,3], dest=[2,4])[0])
-        self.assertFalse(player_1.move_legal(pos=[2,4], dest=[3,6])[0])
-        self.assertFalse(player_2.move_legal(pos=[8,6], dest=[7,5])[0])
-        self.assertFalse(player_2.move_legal(pos=[7,5], dest=[6,4])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[1,3], dest=[2,4]))
+        self.assertFalse(player_1.bool_move_legal(pos=[2,4], dest=[3,6]))
+        self.assertFalse(player_2.bool_move_legal(pos=[8,6], dest=[7,5]))
+        self.assertFalse(player_2.bool_move_legal(pos=[7,5], dest=[6,4]))
     
     def test_cannot_move_wrong_color(self):
         '''
@@ -250,10 +250,10 @@ class TestPlayerPawnMoves(unittest.TestCase):
         game = Game()
         player_1 = game.p1
         player_2 = game.p2
-        self.assertFalse(player_1.move_legal(pos=[8,7], dest=[8,6])[0])
-        self.assertFalse(player_1.move_legal(pos=[8,7], dest=[8,5])[0])
-        self.assertFalse(player_2.move_legal(pos=[1,2], dest=[1,3])[0])
-        self.assertFalse(player_2.move_legal(pos=[1,2], dest=[1,4])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[8,7], dest=[8,6]))
+        self.assertFalse(player_1.bool_move_legal(pos=[8,7], dest=[8,5]))
+        self.assertFalse(player_2.bool_move_legal(pos=[1,2], dest=[1,3]))
+        self.assertFalse(player_2.bool_move_legal(pos=[1,2], dest=[1,4]))
 
     def test_pawn_cannot_backtrack(self):
         '''
@@ -265,12 +265,12 @@ class TestPlayerPawnMoves(unittest.TestCase):
         player_2 = game.p2
         player_1.make_move(pos=[1,2], dest=[1,3])
         player_1.make_move(pos=[2,2], dest=[2,4])
-        self.assertFalse(player_1.move_legal(pos=[1,3], dest=[1,2])[0])
-        self.assertFalse(player_1.move_legal(pos=[1,3], dest=[1,2])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[1,3], dest=[1,2]))
+        self.assertFalse(player_1.bool_move_legal(pos=[1,3], dest=[1,2]))
         player_2.make_move(pos=[1,7], dest=[1,6])
         player_2.make_move(pos=[2,7], dest=[2,5])
-        self.assertFalse(player_2.move_legal(pos=[1,6], dest=[1,7])[0])
-        self.assertFalse(player_1.move_legal(pos=[2,5], dest=[2,7])[0])
+        self.assertFalse(player_2.bool_move_legal(pos=[1,6], dest=[1,7]))
+        self.assertFalse(player_1.bool_move_legal(pos=[2,5], dest=[2,7]))
 
     def test_pawn_capture(self):
         '''
@@ -286,9 +286,9 @@ class TestPlayerPawnMoves(unittest.TestCase):
         board.move_piece(pos=[5, 5], piece=board.get_piece([1, 8]))
         board.move_piece(pos=[4, 5], piece=board.get_piece([2, 8]))
         board.move_piece(pos=[3, 3], piece=board.get_piece([3, 8]))
-        self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[3, 3])[0]) # can't capture diagonally backwards
-        self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[4, 5])[0]) # can't capture straight forward
-        self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[5, 5])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[4, 4], dest=[3, 3])) # can't capture diagonally backwards
+        self.assertFalse(player_1.bool_move_legal(pos=[4, 4], dest=[4, 5])) # can't capture straight forward
+        self.assertTrue(player_1.bool_move_legal(pos=[4, 4], dest=[5, 5]))
         player_1.make_move(pos=[4, 4], dest=[5, 5])
         self.assertTrue('R-A8' not in player_2.pieces)
         self.assertIsNone(board.get_piece([4, 4]))
@@ -304,8 +304,8 @@ class TestPlayerPawnMoves(unittest.TestCase):
         board.move_piece(pos=[4, 4], piece=killer_pawn)
         board.move_piece(pos=[5, 5], piece=board.get_piece([1, 1]))
         board.move_piece(pos=[3, 3], piece=board.get_piece([2, 1]))
-        self.assertFalse(player_2.move_legal(pos=[4, 4], dest=[5, 5])[0]) # can't capture diagonally backwards
-        self.assertTrue(player_2.move_legal(pos=[4, 4], dest=[3, 3])[0])
+        self.assertFalse(player_2.bool_move_legal(pos=[4, 4], dest=[5, 5])) # can't capture diagonally backwards
+        self.assertTrue(player_2.bool_move_legal(pos=[4, 4], dest=[3, 3]))
         player_2.make_move(pos=[4,4], dest=[3,3])
         self.assertTrue('N-B1' not in player_1.pieces)
         self.assertIsNone(board.get_piece([4, 4]))
@@ -322,8 +322,8 @@ class TestPlayerPawnMoves(unittest.TestCase):
         board = game.board
         player_1 = game.p1
         player_2 = game.p2
-        self.assertTrue(player_1.move_legal(pos=[1,7], dest=[1,8])[0])
-        self.assertTrue(player_2.move_legal(pos=[1,2], dest=[1,1])[0])
+        self.assertTrue(player_1.bool_move_legal(pos=[1,7], dest=[1,8]))
+        self.assertTrue(player_2.bool_move_legal(pos=[1,2], dest=[1,1]))
         player_1.make_move(pos=[1,7], dest=[1,8])
         player_2.make_move(pos=[1,2], dest=[1,1])
         self.assertEqual(len(player_1.pieces), 1)
@@ -351,9 +351,9 @@ class TestPlayerPawnMoves(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['P-B2']))
         player_1 = game.p1
-        self.assertFalse(player_1.move_legal(pos=[2,2], dest=[0,0])[0])
-        self.assertFalse(player_1.move_legal(pos=[2,2], dest=[0,9])[0])
-        self.assertFalse(player_1.move_legal(pos=[2,2], dest=[-2,9])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[2,2], dest=[0,0]))
+        self.assertFalse(player_1.bool_move_legal(pos=[2,2], dest=[0,9]))
+        self.assertFalse(player_1.bool_move_legal(pos=[2,2], dest=[-2,9]))
 
     def test_pawn_cannot_teamkill_diagonally(self):
         '''
@@ -362,7 +362,7 @@ class TestPlayerPawnMoves(unittest.TestCase):
 
         game = Game(debug=set_up_debug(white_pieces=['P-A2', 'Q-B3']))
         player_1 = game.p1
-        self.assertFalse(player_1.move_legal(pos=[1, 2], dest=[2, 3])[0]) # can't team kill your own kind
+        self.assertFalse(player_1.bool_move_legal(pos=[1, 2], dest=[2, 3])) # can't team kill your own kind
     
     def test_piece_cannot_stall(self):
         '''
@@ -374,7 +374,7 @@ class TestPlayerPawnMoves(unittest.TestCase):
         for i in range(8):
             for j in range(2):
                 x, y = i+1, j+1
-                self.assertFalse(player_1.move_legal(pos=[x, y], dest=[x, y])[0])
+                self.assertFalse(player_1.bool_move_legal(pos=[x, y], dest=[x, y]))
 
     def test_pawn_collision(self):
         '''
@@ -382,27 +382,27 @@ class TestPlayerPawnMoves(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['P-A2', 'P-B2', 'P-C2', 'P-D3'], black_pieces=['Q-A3', 'Q-A4', 'Q-B4', 'Q-C3', 'Q-D4']))
         player_1 = game.p1
-        self.assertFalse(player_1.move_legal(pos=[1, 2], dest=[1, 3])[0])
-        self.assertFalse(player_1.move_legal(pos=[1, 2], dest=[1, 4])[0])
-        self.assertTrue(player_1.move_legal(pos=[2, 2], dest=[2, 3])[0])
-        self.assertFalse(player_1.move_legal(pos=[2, 2], dest=[2, 4])[0])
-        self.assertFalse(player_1.move_legal(pos=[3, 2], dest=[3, 3])[0])
-        self.assertFalse(player_1.move_legal(pos=[3, 2], dest=[3, 4])[0])
-        self.assertFalse(player_1.move_legal(pos=[4, 3], dest=[4, 4])[0])
-        self.assertFalse(player_1.move_legal(pos=[4, 3], dest=[4, 5])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[1, 2], dest=[1, 3]))
+        self.assertFalse(player_1.bool_move_legal(pos=[1, 2], dest=[1, 4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[2, 2], dest=[2, 3]))
+        self.assertFalse(player_1.bool_move_legal(pos=[2, 2], dest=[2, 4]))
+        self.assertFalse(player_1.bool_move_legal(pos=[3, 2], dest=[3, 3]))
+        self.assertFalse(player_1.bool_move_legal(pos=[3, 2], dest=[3, 4]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4, 3], dest=[4, 4]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4, 3], dest=[4, 5]))
 
         # Now do the same but with black pawns attacking in reverse direction
 
         game = Game(debug=set_up_debug(black_pieces=['P-A7', 'P-B7', 'P-C7', 'P-D6'], white_pieces=['Q-A6', 'Q-A5', 'Q-B5', 'Q-C6', 'Q-D5']))
         player_2 = game.p2
-        self.assertFalse(player_2.move_legal(pos=[1, 7], dest=[1, 6])[0])
-        self.assertFalse(player_2.move_legal(pos=[1, 7], dest=[1, 5])[0])
-        self.assertTrue(player_2.move_legal(pos=[2, 7], dest=[2, 6])[0])
-        self.assertFalse(player_2.move_legal(pos=[2, 7], dest=[2, 5])[0])
-        self.assertFalse(player_2.move_legal(pos=[3, 7], dest=[3, 6])[0])
-        self.assertFalse(player_2.move_legal(pos=[3, 7], dest=[3, 5])[0])
-        self.assertFalse(player_2.move_legal(pos=[4, 6], dest=[4, 5])[0])
-        self.assertFalse(player_2.move_legal(pos=[4, 6], dest=[4, 4])[0])
+        self.assertFalse(player_2.bool_move_legal(pos=[1, 7], dest=[1, 6]))
+        self.assertFalse(player_2.bool_move_legal(pos=[1, 7], dest=[1, 5]))
+        self.assertTrue(player_2.bool_move_legal(pos=[2, 7], dest=[2, 6]))
+        self.assertFalse(player_2.bool_move_legal(pos=[2, 7], dest=[2, 5]))
+        self.assertFalse(player_2.bool_move_legal(pos=[3, 7], dest=[3, 6]))
+        self.assertFalse(player_2.bool_move_legal(pos=[3, 7], dest=[3, 5]))
+        self.assertFalse(player_2.bool_move_legal(pos=[4, 6], dest=[4, 5]))
+        self.assertFalse(player_2.bool_move_legal(pos=[4, 6], dest=[4, 4]))
 
 
 class TestPlayerRookMoves(unittest.TestCase):
@@ -424,9 +424,9 @@ class TestPlayerRookMoves(unittest.TestCase):
                 if x == y == 4:
                     continue
                 elif x==4 or y==4:
-                    self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                    self.assertTrue(player_1.bool_move_legal(pos=[4, 4], dest=[x, y]))
                 else:
-                    self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                    self.assertFalse(player_1.bool_move_legal(pos=[4, 4], dest=[x, y]))
 
     def test_rook_captures(self):
 
@@ -439,8 +439,8 @@ class TestPlayerRookMoves(unittest.TestCase):
         player_2 = game.p2
         for code in black_pieces:
             enemy_pos = player_2.pieces[code].pos
-            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos)[0])
-        self.assertTrue(player_2.move_legal(pos=[4,6], dest=[4,4])[0])
+            self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=enemy_pos))
+        self.assertTrue(player_2.bool_move_legal(pos=[4,6], dest=[4,4]))
         player_1.make_move(pos=[4,4], dest=[4,6])
         self.assertEqual(player_1.pieces['R-D4'].pos, [4, 6])
         self.assertEqual(len(player_2.pieces), 3)
@@ -457,12 +457,12 @@ class TestPlayerRookMoves(unittest.TestCase):
         player_1 = game.p1
         player_2 = game.p2
         board = game.board
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[1,4])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,6])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[7,4])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,2])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,4])[0])
-        self.assertFalse(player_2.move_legal(pos=[4,6], dest=[4,4])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[1,4]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,6]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[7,4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[4,2]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[2,4]))
+        self.assertFalse(player_2.bool_move_legal(pos=[4,6], dest=[4,4]))
 
     def test_rook_cannot_team_kill(self):
 
@@ -471,7 +471,7 @@ class TestPlayerRookMoves(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['R-D4', 'P-D5']))
         player_1 = game.p1
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,5])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,5]))
 
     def test_rook_can_move_between_collision(self):
 
@@ -482,20 +482,20 @@ class TestPlayerRookMoves(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['R-D4'], black_pieces=['P-A4', 'P-G4', 'P-D5', 'P-D2']))
         player_1 = game.p1
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,4])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,4])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[1,4])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5,4])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[6,4])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[7,4])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[8,4])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,5])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,3])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,2])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,1])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,6])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,7])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,8])[0])
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[3,4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[2,4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[1,4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[5,4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[6,4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[7,4]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[8,4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[4,5]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[4,3]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[4,2]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,1]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,6]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,7]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,8]))
 
     def test_rook_cannot_move_past_collision(self):
 
@@ -506,8 +506,8 @@ class TestPlayerRookMoves(unittest.TestCase):
         player_1 = game.p1
         bad_values = [1, 2, 6, 7, 8]
         for val in bad_values:
-            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4, val])[0])
-            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[val, 4])[0])
+            self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4, val]))
+            self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[val, 4]))
 
 
 
@@ -531,9 +531,9 @@ class TestPlayerBishopMoves(unittest.TestCase):
                 if x_diff == y_diff == 0:
                     continue
                 elif x_diff == y_diff:
-                    self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                    self.assertTrue(player_1.bool_move_legal(pos=[4, 4], dest=[x, y]))
                 else:
-                    self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                    self.assertFalse(player_1.bool_move_legal(pos=[4, 4], dest=[x, y]))
 
 
     def test_bishop_captures(self):
@@ -547,8 +547,8 @@ class TestPlayerBishopMoves(unittest.TestCase):
         player_2 = game.p2
         for code in black_pieces:
             enemy_pos = player_2.pieces[code].pos
-            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos)[0])
-        self.assertTrue(player_2.move_legal(pos=[7,7], dest=[4,4])[0])
+            self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=enemy_pos))
+        self.assertTrue(player_2.bool_move_legal(pos=[7,7], dest=[4,4]))
         player_1.make_move(pos=[4,4], dest=[7,7])
         self.assertEqual(player_1.pieces['B-D4'].pos, [7, 7])
         self.assertEqual(len(player_2.pieces), 3)
@@ -565,11 +565,11 @@ class TestPlayerBishopMoves(unittest.TestCase):
         player_1 = game.p1
         player_2 = game.p2
         board = game.board
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[2,2])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[6,2])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[7,7])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,3])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,6])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[2,2]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[6,2]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[7,7]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[3,3]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[2,6]))
 
 
     def test_bishop_cannot_team_kill(self):
@@ -579,7 +579,7 @@ class TestPlayerBishopMoves(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['B-D4', 'P-E5']))
         player_1 = game.p1
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[5,5])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[5,5]))
 
 
     def test_bishop_fuzz(self):
@@ -597,11 +597,11 @@ class TestPlayerBishopMoves(unittest.TestCase):
             new_pos_arr = []
             x, y = player_1.pieces['B-D4'].pos
             for d in dirs:
-                new_pos_arr.append([x+d[0], y+d[1]])
+                new_pos_arr.append([x+d, y+d[1]])
             new_pos = random.choice(new_pos_arr)
-            if new_pos[0]-1 not in range(8) or new_pos[1]-1 not in range(8):
+            if new_pos-1 not in range(8) or new_pos[1]-1 not in range(8):
                 continue
-            self.assertTrue(player_1.move_legal(pos=[x, y], dest=new_pos)[0])
+            self.assertTrue(player_1.bool_move_legal(pos=[x, y], dest=new_pos))
             player_1.make_move(pos=[x, y], dest=new_pos)
 
         self.assertTrue(len(player_2.pieces), 2)
@@ -616,19 +616,19 @@ class TestPlayerBishopMoves(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['B-D4'], black_pieces=['P-B2', 'P-G7', 'P-B6', 'P-F2']))
         player_1 = game.p1
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,3])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,2])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[1,1])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5,5])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[6,6])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[7,7])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[8,8])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,5])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,6])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[1,7])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5,3])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[6,2])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[7,1])[0])
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[3,3]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[2,2]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[1,1]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[5,5]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[6,6]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[7,7]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[8,8]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[3,5]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[2,6]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[1,7]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[5,3]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[6,2]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[7,1]))
 
     def test_bishop_cannot_move_past_collision(self):
 
@@ -639,10 +639,10 @@ class TestPlayerBishopMoves(unittest.TestCase):
         player_1 = game.p1
         bad_values_1 = [1, 2, 6, 7, 8]
         for val in bad_values_1:
-            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[val, val])[0])
+            self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[val, val]))
         bad_values_2 = [1, 2, 6, 7]
         for val in bad_values_2:
-            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[8-val, val])[0])
+            self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[8-val, val]))
 
 
 class TestPlayerKnightMoves(unittest.TestCase):
@@ -665,9 +665,9 @@ class TestPlayerKnightMoves(unittest.TestCase):
                 if x == y == 4:
                     continue
                 elif (x, y) in legal_dest:
-                    self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                    self.assertTrue(player_1.bool_move_legal(pos=[4, 4], dest=[x, y]))
                 else:
-                    self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                    self.assertFalse(player_1.bool_move_legal(pos=[4, 4], dest=[x, y]))
 
 
     def test_knight_capture(self):
@@ -677,7 +677,7 @@ class TestPlayerKnightMoves(unittest.TestCase):
         game = Game(debug=set_up_debug(white_pieces=['N-D4'], black_pieces=['P-E2']))
         player_1 = game.p1
         player_2 = game.p2
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5, 2])[0])
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[5, 2]))
         player_1.make_move(pos=[4,4], dest=[5, 2])
         self.assertEqual(player_1.pieces['N-D4'].pos, [5, 2])
         self.assertEqual(len(player_2.pieces), 0)
@@ -693,14 +693,14 @@ class TestPlayerKnightMoves(unittest.TestCase):
                                                      'P-E5', 'P-E4', 'P-E3', 'P-D3']))
         player_1 = game.p1
         player_2 = game.p2
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5, 2])[0])
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[5, 2]))
         player_1.make_move(pos=[4,4], dest=[5, 2])
         self.assertEqual(player_1.pieces['N-D4'].pos, [5, 2])
         self.assertEqual(len(player_2.pieces), 8)
-        self.assertTrue(player_1.move_legal(pos=[5,2], dest=[4,4])[0])
+        self.assertTrue(player_1.bool_move_legal(pos=[5,2], dest=[4,4]))
         player_1.make_move(pos=[5,2], dest=[4,4])
         self.assertEqual(player_1.pieces['N-D4'].pos, [4, 4])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,6])[0])
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[3,6]))
         player_1.make_move(pos=[4,4], dest=[3, 6])
         self.assertEqual(len(player_2.pieces), 8)
         self.assertEqual(player_1.pieces['N-D4'].pos, [3,6])
@@ -712,7 +712,7 @@ class TestPlayerKnightMoves(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['N-D4', 'P-E2']))
         player_1 = game.p1
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[5,2])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[5,2]))
 
 
 class TestPlayerQueenMoves(unittest.TestCase):
@@ -735,25 +735,25 @@ class TestPlayerQueenMoves(unittest.TestCase):
                 if x == y == 4:
                     continue
                 elif x==4 or y==4:
-                    self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                    self.assertTrue(player_1.bool_move_legal(pos=[4, 4], dest=[x, y]))
                 elif x_diff == y_diff:
-                    self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                    self.assertTrue(player_1.bool_move_legal(pos=[4, 4], dest=[x, y]))
                 else:
-                    self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                    self.assertFalse(player_1.bool_move_legal(pos=[4, 4], dest=[x, y]))
 
     def test_queen_diagonal_captures(self):
 
         '''
         Tests that queens can capture correctly in diagonal directions.
         '''
-        black_pieces = ['P-C3', 'R-C5', 'N-G2', 'B-G7']
+        black_pieces = ['P-C3', 'R-C5', 'N-G1', 'B-G7']
         game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=black_pieces))
         player_1 = game.p1
         player_2 = game.p2
         for code in black_pieces:
             enemy_pos = player_2.pieces[code].pos
-            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos)[0])
-        self.assertTrue(player_2.move_legal(pos=[7,7], dest=[4,4])[0])
+            self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=enemy_pos))
+        self.assertTrue(player_2.bool_move_legal(pos=[7,7], dest=[4,4]))
         player_1.make_move(pos=[4,4], dest=[7,7])
         self.assertEqual(player_1.pieces['Q-D4'].pos, [7, 7])
         self.assertEqual(len(player_2.pieces), 3)
@@ -770,8 +770,8 @@ class TestPlayerQueenMoves(unittest.TestCase):
         player_2 = game.p2
         for code in black_pieces:
             enemy_pos = player_2.pieces[code].pos
-            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos)[0])
-        self.assertTrue(player_2.move_legal(pos=[4,6], dest=[4,4])[0])
+            self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=enemy_pos))
+        self.assertTrue(player_2.bool_move_legal(pos=[4,6], dest=[4,4]))
         player_1.make_move(pos=[4,4], dest=[4,6])
         self.assertEqual(player_1.pieces['Q-D4'].pos, [4, 6])
         self.assertEqual(len(player_2.pieces), 3)
@@ -788,12 +788,12 @@ class TestPlayerQueenMoves(unittest.TestCase):
         player_1 = game.p1
         player_2 = game.p2
         board = game.board
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[1,4])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,6])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[7,4])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,2])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,4])[0])
-        self.assertFalse(player_2.move_legal(pos=[4,6], dest=[4,4])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[1,4]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,6]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[7,4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[4,2]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[2,4]))
+        self.assertFalse(player_2.bool_move_legal(pos=[4,6], dest=[4,4]))
 
     def test_queen_diagonal_collision(self):
 
@@ -806,11 +806,11 @@ class TestPlayerQueenMoves(unittest.TestCase):
         player_1 = game.p1
         player_2 = game.p2
         board = game.board
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[2,2])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[6,2])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[7,7])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,3])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,6])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[2,2]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[6,2]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[7,7]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[3,3]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[2,6]))
 
     def test_queen_cannot_team_kill(self):
 
@@ -819,8 +819,8 @@ class TestPlayerQueenMoves(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['Q-D4', 'P-D5', 'P-E5']))
         player_1 = game.p1
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,5])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[5,5])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,5]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[5,5]))
 
     def test_queen_can_move_straight_between_collision(self):
 
@@ -831,20 +831,20 @@ class TestPlayerQueenMoves(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-A4', 'P-G4', 'P-D5', 'P-D2']))
         player_1 = game.p1
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,4])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,4])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[1,4])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5,4])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[6,4])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[7,4])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[8,4])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,5])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,3])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[4,2])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,1])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,6])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,7])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,8])[0])
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[3,4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[2,4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[1,4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[5,4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[6,4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[7,4]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[8,4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[4,5]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[4,3]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[4,2]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,1]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,6]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,7]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,8]))
 
     def test_queen_can_move_diagonally_between_collision(self):
 
@@ -855,19 +855,19 @@ class TestPlayerQueenMoves(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-B2', 'P-G7', 'P-B6', 'P-F2']))
         player_1 = game.p1
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,3])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,2])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[1,1])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5,5])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[6,6])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[7,7])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[8,8])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,5])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[2,6])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[1,7])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5,3])[0])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[6,2])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[7,1])[0])
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[3,3]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[2,2]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[1,1]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[5,5]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[6,6]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[7,7]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[8,8]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[3,5]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[2,6]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[1,7]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[5,3]))
+        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[6,2]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[7,1]))
 
     def test_queen_cannot_move_straight_past_collision(self):
 
@@ -878,8 +878,8 @@ class TestPlayerQueenMoves(unittest.TestCase):
         player_1 = game.p1
         bad_values = [1, 2, 6, 7, 8]
         for val in bad_values:
-            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4, val])[0])
-            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[val, 4])[0])
+            self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4, val]))
+            self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[val, 4]))
 
     def test_queen_cannot_move_diagonally_past_collision(self):
 
@@ -890,10 +890,10 @@ class TestPlayerQueenMoves(unittest.TestCase):
         player_1 = game.p1
         bad_values_1 = [1, 2, 6, 7, 8]
         for val in bad_values_1:
-            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[val, val])[0])
+            self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[val, val]))
         bad_values_2 = [1, 2, 6, 7]
         for val in bad_values_2:
-            self.assertFalse(player_1.move_legal(pos=[4,4], dest=[8-val, val])[0])
+            self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[8-val, val]))
 
 
 class TestPlayerKingMoves(unittest.TestCase):
@@ -918,11 +918,11 @@ class TestPlayerKingMoves(unittest.TestCase):
             for j in range(8):
                 x, y = i+1, j+1
                 if x == y == 4:
-                    self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                    self.assertFalse(player_1.bool_move_legal(pos=[4, 4], dest=[x, y]))
                 elif tuple([x, y]) in legal_pos:
-                    self.assertTrue(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                    self.assertTrue(player_1.bool_move_legal(pos=[4, 4], dest=[x, y]))
                 else:
-                    self.assertFalse(player_1.move_legal(pos=[4, 4], dest=[x, y])[0])
+                    self.assertFalse(player_1.bool_move_legal(pos=[4, 4], dest=[x, y]))
 
     def test_king_captures(self):
 
@@ -936,7 +936,7 @@ class TestPlayerKingMoves(unittest.TestCase):
         enemy_pos_list = [[3,4], [3,5], [4,5], [5,5], [5,4], [5,3], [4,3], [3,3]]
         for enemy in player_2.pieces:
             enemy_pos = player_2.pieces[enemy].pos
-            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos)[0])
+            self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=enemy_pos))
         # Now kill all 8 pieces in a spiral
         prev = [4, 4]
         for new_pos in enemy_pos_list:
@@ -952,8 +952,8 @@ class TestPlayerKingMoves(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['K-D4', 'P-D5', 'P-E5']))
         player_1 = game.p1
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[4,5])[0])
-        self.assertFalse(player_1.move_legal(pos=[4,4], dest=[5,5])[0])
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,5]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[5,5]))
 
 class TestGameplayBugcatchers(unittest.TestCase):
     '''
@@ -971,7 +971,7 @@ class TestGameplayBugcatchers(unittest.TestCase):
         with patch('builtins.input', side_effect=input_commands):
             game.start()
         #print(game.board) Affected by terminal clear, we dont want that
-        self.assertTrue(game.p2.move_legal(pos=[5, 8], dest=[6, 8])[0])
+        self.assertTrue(game.p2.move_legal(pos=[5, 8], dest=[6, 8]))
         input_commands = (['e8', 'f8'] + ['PAUSE'])
         with patch('builtins.input', side_effect=input_commands):
             game.start()

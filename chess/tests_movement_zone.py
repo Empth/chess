@@ -174,7 +174,7 @@ class TestBishopZone(unittest.TestCase):
             new_pos = random.choice(new_pos_arr)
             if new_pos[0]-1 not in range(8) or new_pos[1]-1 not in range(8):
                 continue
-            self.assertTrue(player_1.move_legal(pos=[x, y], dest=new_pos))
+            self.assertTrue(player_1.move_legal(pos=[x, y], dest=new_pos)[0])
             player_1.make_move(pos=[x, y], dest=new_pos)
 
         self.assertTrue(len(player_2.pieces), 2)
