@@ -38,7 +38,7 @@ def rook_movement_zone(board, piece):
     '''
     Returns movement zone of given rook piece.
     '''
-    assert(piece.rank == 'ROOK')
+    assert(piece.rank == 'ROOK' or piece.rank == 'QUEEN') # for queen to reuse function.
     cardinals = ['N', 'E', 'S', 'W']
     movement_tiles = []
     for dir in cardinals:
@@ -57,7 +57,7 @@ def bishop_movement_zone(board, piece):
     '''
     Returns movement zone of given bishop piece.
     '''
-    assert(piece.rank == 'BISHOP')
+    assert(piece.rank == 'BISHOP' or piece.rank == 'QUEEN') # for queen to reuse function.
     ordinals = ['NE', 'SE', 'SW', 'NW']
     movement_tiles = []
     for dir in ordinals:
@@ -76,7 +76,7 @@ def queen_movement_zone(board, piece):
     Returns movement zone of given queen piece.
     '''
     assert(piece.rank == 'QUEEN')
-    return []
+    return rook_movement_zone(board, piece) + bishop_movement_zone(board, piece)
 
 def knight_movement_zone(board, piece):
     '''

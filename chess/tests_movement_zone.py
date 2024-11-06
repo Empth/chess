@@ -81,7 +81,6 @@ class TestRookZone(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['R-D4'], black_pieces=['P-A4', 'P-G4', 'P-D5', 'P-D2']))
         board = game.board
-        print(board)
         movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(4,2),(4,3),(4,5),(1,4),(2,4),(3,4),(5,4),(6,4),(7,4)])
         self.assertEqual(movement_zone, expected_zone)
@@ -268,7 +267,7 @@ class TestQueenZone(unittest.TestCase):
                             +[(4,1),(4,2),(4,3),(4,5),(4,6),(4,7),(4,8)])
         self.assertEqual(movement_zone, expected_zone)
 
-    def test_queen_cannot_team_kill(self):
+    def test_queen_cannot_team_kill_zone(self):
 
         '''
         Tests that queens cannot teamkill in straight or diagonal directions.
@@ -278,12 +277,12 @@ class TestQueenZone(unittest.TestCase):
         movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(1,1),(2,2),(3,3)]
                             +[(7,1),(6,2),(5,3),(3,5),(2,6),(1,7)]
-                            +[(1,4),(2,4),(3,4)]
-                            +[(4,1),(4,2),(4,3),(4,5),(4,6),(4,7),(4,8)])
+                            +[(1,4),(2,4),(3,4),(5,4),(6,4),(7,4),(8,4)]
+                            +[(4,1),(4,2),(4,3)])
         self.assertEqual(movement_zone, expected_zone)
 
 
-    def test_queen_can_move_straight_between_collision(self):
+    def test_queen_can_move_straight_between_collision_zone(self):
 
         '''
         Tests that queens can move straight to a position that is
@@ -291,23 +290,14 @@ class TestQueenZone(unittest.TestCase):
         cardinal direction of movement.
         '''
         game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-A4', 'P-G4', 'P-D5', 'P-D2']))
-        player_1 = game.p1
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[3,4]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[2,4]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[1,4]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[5,4]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[6,4]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[7,4]))
-        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[8,4]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[4,5]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[4,3]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[4,2]))
-        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,1]))
-        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,6]))
-        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,7]))
-        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4,8]))
+        board = game.board
+        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        expected_zone = set([(1,4),(2,4),(3,4),(5,4),(6,4),(7,4),(4,2),(4,3),(4,5)]
+                            +[(1,1),(2,2),(3,3),(5,5),(6,6),(7,7),(8,8)]
+                            +[(7,1),(6,2),(5,3),(3,5),(2,6),(1,7)])
+        self.assertEqual(movement_zone, expected_zone)
 
-    def test_queen_can_move_diagonally_between_collision(self):
+    def test_queen_can_move_diagonally_between_collision_zone(self):
 
         '''
         Tests that queens can move diagonally to a position that is
@@ -315,46 +305,60 @@ class TestQueenZone(unittest.TestCase):
         ordinal direction of movement.
         '''
         game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-B2', 'P-G7', 'P-B6', 'P-F2']))
-        player_1 = game.p1
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[3,3]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[2,2]))
-        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[1,1]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[5,5]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[6,6]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[7,7]))
-        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[8,8]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[3,5]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[2,6]))
-        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[1,7]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[5,3]))
-        self.assertTrue(player_1.bool_move_legal(pos=[4,4], dest=[6,2]))
-        self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[7,1]))
+        board = game.board
+        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        expected_zone = set([(2,2),(3,3),(5,5),(6,6),(7,7),(2,6),(3,5),(5,3),(6,2)]
+                            +[(1,4),(2,4),(3,4),(5,4),(6,4),(7,4),(8,4)]
+                            +[(4,1),(4,2),(4,3),(4,5),(4,6),(4,7),(4,8)])
+        self.assertEqual(movement_zone, expected_zone)
 
-    def test_queen_cannot_move_straight_past_collision(self):
+    def test_queen_cannot_move_straight_past_collision_zone(self):
 
         '''
         Tests that a queen can't move straight past a piece that blocks its way.
         '''
         game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-C4', 'P-E4', 'P-D5', 'P-D3']))
-        player_1 = game.p1
-        bad_values = [1, 2, 6, 7, 8]
-        for val in bad_values:
-            self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[4, val]))
-            self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[val, 4]))
+        board = game.board
+        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        expected_zone = set([(3,4),(5,4),(4,3),(4,5)]
+                            +[(1,1),(2,2),(3,3),(5,5),(6,6),(7,7),(8,8)]
+                            +[(7,1),(6,2),(5,3),(3,5),(2,6),(1,7)])
+        self.assertEqual(movement_zone, expected_zone)
 
-    def test_queen_cannot_move_diagonally_past_collision(self):
+    def test_queen_cannot_move_diagonally_past_collision_zone(self):
 
         '''
         Tests that a queen can't move diagonally past a piece that blocks its way.
         '''
         game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-C3', 'P-C5', 'P-E3', 'P-E5']))
-        player_1 = game.p1
-        bad_values_1 = [1, 2, 6, 7, 8]
-        for val in bad_values_1:
-            self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[val, val]))
-        bad_values_2 = [1, 2, 6, 7]
-        for val in bad_values_2:
-            self.assertFalse(player_1.bool_move_legal(pos=[4,4], dest=[8-val, val]))
+        board = game.board
+        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        expected_zone = set([(3,3),(5,5),(3,5),(5,3)]
+                            +[(1,4),(2,4),(3,4),(5,4),(6,4),(7,4),(8,4)]
+                            +[(4,1),(4,2),(4,3),(4,5),(4,6),(4,7),(4,8)])
+        self.assertEqual(movement_zone, expected_zone)
+
+    def test_queen_team_bordered_zone(self):
+
+        '''
+        Tests queen blocked in all directions by team members can not move at all.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['Q-D4']+['P-C4', 'P-E4', 'P-D5', 'P-D3']+['P-C3', 'P-C5', 'P-E3', 'P-E5']))
+        board = game.board
+        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        expected_zone = set([])
+        self.assertEqual(movement_zone, expected_zone)
+
+    def test_queen_enemy_bordered_zone(self):
+
+        '''
+        Tests queen blocked in all directions can only move like a king in that turn.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-C4', 'P-E4', 'P-D5', 'P-D3']+['P-C3', 'P-C5', 'P-E3', 'P-E5']))
+        board = game.board
+        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        expected_zone = set([(3,3),(5,5),(3,5),(5,3)] + [(3,4),(5,4),(4,3),(4,5)])
+        self.assertEqual(movement_zone, expected_zone)
 
 
 if __name__ == '__main__':
