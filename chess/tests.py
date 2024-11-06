@@ -597,9 +597,9 @@ class TestPlayerBishopMoves(unittest.TestCase):
             new_pos_arr = []
             x, y = player_1.pieces['B-D4'].pos
             for d in dirs:
-                new_pos_arr.append([x+d, y+d[1]])
+                new_pos_arr.append([x+d[0], y+d[1]])
             new_pos = random.choice(new_pos_arr)
-            if new_pos-1 not in range(8) or new_pos[1]-1 not in range(8):
+            if new_pos[0]-1 not in range(8) or new_pos[1]-1 not in range(8):
                 continue
             self.assertTrue(player_1.bool_move_legal(pos=[x, y], dest=new_pos))
             player_1.make_move(pos=[x, y], dest=new_pos)
