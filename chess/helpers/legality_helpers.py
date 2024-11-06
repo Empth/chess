@@ -151,20 +151,43 @@ def get_ordinal_collision(board, pos, ordinal):
     Returns None if no such colliding piece exists.
     Required: cardinal is 'NE', 'SE', 'SW', 'NW'
     '''
+    assert(ordinal in set(['NE', 'SE', 'SW', 'NW']))
+    movement_tiles, collider_encountered = get_all_ordinal_tiles_til_collider(board=board, pos=pos,
+                                                                               ordinal=ordinal)
+    if collider_encountered:
+        return movement_tiles[-1] # read documentation of get_all_ordinal_ on why this will work
+    else:
+        return None
+
+def get_all_ordinal_tiles_til_collider(board, pos, ordinal):
+    '''
+    Helper for diagonal movers. Core logic for get_ordinal_collision, bishop_movement_zone.
+    Given pos, ordinal, returns two values. First is an array of all tiles in order 
+    when starting movement out of pos in the ordinal direction,
+    up to and including the first colliding tile in said ordinal direction.
+    For example, for an D4 (pos 4,4) Bishop headed NE, with collider on G7 (pos 7,7), we return
+    [[5,5], [6,6], [7,7]] in that order of tile movement.
+    Second return value is boolean for whether a collider was encountered or not.
+    '''
+    assert(ordinal in set(['NE', 'SE', 'SW', 'NW']))
     dictionary = {'NE': [1, 1], 'SE': [1, -1], 'SW': [-1, -1], 'NW': [-1, 1]} # x_dir, y_dir
     value = dictionary[ordinal]
     x_dir, y_dir = value[0], value[1]
     x, y = pos[0], pos[1]
+    collider_encountered = False
+    movement_tiles = []
 
     while True:
         x += x_dir
         y += y_dir
         if x-1 not in range(8) or y-1 not in range(8):
             break # we went oob
+        movement_tiles.append([x, y])
         if board.piece_exists(pos=[x, y]):
-            return [x, y]
+            collider_encountered = True
+            break
 
-    return None
+    return movement_tiles, collider_encountered
 
 
 def ordinal_dest_between_collider(init_pos, collider_pos, dest, ordinal):

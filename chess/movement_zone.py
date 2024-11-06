@@ -1,4 +1,4 @@
-from helpers.legality_helpers import get_all_cardinal_tiles_til_collider
+from helpers.legality_helpers import get_all_cardinal_tiles_til_collider, get_all_ordinal_tiles_til_collider
 
 '''
 Functions for retrieving the movement zones of all 6 ranks of pieces.
@@ -58,7 +58,18 @@ def bishop_movement_zone(board, piece):
     Returns movement zone of given bishop piece.
     '''
     assert(piece.rank == 'BISHOP')
-    return []
+    ordinals = ['NE', 'SE', 'SW', 'NW']
+    movement_tiles = []
+    for dir in ordinals:
+        dir_movement_tiles, collider_found = get_all_ordinal_tiles_til_collider(board=board,
+                                                                                pos=piece.pos,
+                                                                                ordinal=dir)
+        if collider_found:
+            collider_piece = board.get_piece(pos=dir_movement_tiles[-1])
+            if collider_piece.color == piece.color:
+                dir_movement_tiles.pop()
+        movement_tiles = movement_tiles + dir_movement_tiles
+    return movement_tiles
 
 def queen_movement_zone(board, piece):
     '''
