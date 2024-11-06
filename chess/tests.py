@@ -439,8 +439,8 @@ class TestPlayerRookMoves(unittest.TestCase):
         player_2 = game.p2
         for code in black_pieces:
             enemy_pos = player_2.pieces[code].pos
-            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos))
-        self.assertTrue(player_2.move_legal(pos=[4,6], dest=[4,4]))
+            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos)[0])
+        self.assertTrue(player_2.move_legal(pos=[4,6], dest=[4,4])[0])
         player_1.make_move(pos=[4,4], dest=[4,6])
         self.assertEqual(player_1.pieces['R-D4'].pos, [4, 6])
         self.assertEqual(len(player_2.pieces), 3)
@@ -541,19 +541,18 @@ class TestPlayerBishopMoves(unittest.TestCase):
         '''
         Tests that bishops can capture correctly in diagonal directions.
         '''
-        black_pieces = ['P-C3', 'R-C5', 'N-G2', 'B-G7']
+        black_pieces = ['P-C3', 'R-C5', 'N-G1', 'B-G7']
         game = Game(debug=set_up_debug(white_pieces=['B-D4'], black_pieces=black_pieces))
         player_1 = game.p1
         player_2 = game.p2
         for code in black_pieces:
             enemy_pos = player_2.pieces[code].pos
-            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos))
-        self.assertTrue(player_2.move_legal(pos=[7,7], dest=[4,4]))
+            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos)[0])
+        self.assertTrue(player_2.move_legal(pos=[7,7], dest=[4,4])[0])
         player_1.make_move(pos=[4,4], dest=[7,7])
         self.assertEqual(player_1.pieces['B-D4'].pos, [7, 7])
         self.assertEqual(len(player_2.pieces), 3)
         self.assertTrue('B-G7' not in player_2.pieces)
-
 
     def test_bishop_collision(self):
 
@@ -602,7 +601,7 @@ class TestPlayerBishopMoves(unittest.TestCase):
             new_pos = random.choice(new_pos_arr)
             if new_pos[0]-1 not in range(8) or new_pos[1]-1 not in range(8):
                 continue
-            self.assertTrue(player_1.move_legal(pos=[x, y], dest=new_pos))
+            self.assertTrue(player_1.move_legal(pos=[x, y], dest=new_pos)[0])
             player_1.make_move(pos=[x, y], dest=new_pos)
 
         self.assertTrue(len(player_2.pieces), 2)
@@ -678,7 +677,7 @@ class TestPlayerKnightMoves(unittest.TestCase):
         game = Game(debug=set_up_debug(white_pieces=['N-D4'], black_pieces=['P-E2']))
         player_1 = game.p1
         player_2 = game.p2
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5, 2]))
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5, 2])[0])
         player_1.make_move(pos=[4,4], dest=[5, 2])
         self.assertEqual(player_1.pieces['N-D4'].pos, [5, 2])
         self.assertEqual(len(player_2.pieces), 0)
@@ -694,14 +693,14 @@ class TestPlayerKnightMoves(unittest.TestCase):
                                                      'P-E5', 'P-E4', 'P-E3', 'P-D3']))
         player_1 = game.p1
         player_2 = game.p2
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5, 2]))
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[5, 2])[0])
         player_1.make_move(pos=[4,4], dest=[5, 2])
         self.assertEqual(player_1.pieces['N-D4'].pos, [5, 2])
         self.assertEqual(len(player_2.pieces), 8)
-        self.assertTrue(player_1.move_legal(pos=[5,2], dest=[4,4]))
+        self.assertTrue(player_1.move_legal(pos=[5,2], dest=[4,4])[0])
         player_1.make_move(pos=[5,2], dest=[4,4])
         self.assertEqual(player_1.pieces['N-D4'].pos, [4, 4])
-        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,6]))
+        self.assertTrue(player_1.move_legal(pos=[4,4], dest=[3,6])[0])
         player_1.make_move(pos=[4,4], dest=[3, 6])
         self.assertEqual(len(player_2.pieces), 8)
         self.assertEqual(player_1.pieces['N-D4'].pos, [3,6])
@@ -753,8 +752,8 @@ class TestPlayerQueenMoves(unittest.TestCase):
         player_2 = game.p2
         for code in black_pieces:
             enemy_pos = player_2.pieces[code].pos
-            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos))
-        self.assertTrue(player_2.move_legal(pos=[7,7], dest=[4,4]))
+            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos)[0])
+        self.assertTrue(player_2.move_legal(pos=[7,7], dest=[4,4])[0])
         player_1.make_move(pos=[4,4], dest=[7,7])
         self.assertEqual(player_1.pieces['Q-D4'].pos, [7, 7])
         self.assertEqual(len(player_2.pieces), 3)
@@ -771,8 +770,8 @@ class TestPlayerQueenMoves(unittest.TestCase):
         player_2 = game.p2
         for code in black_pieces:
             enemy_pos = player_2.pieces[code].pos
-            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos))
-        self.assertTrue(player_2.move_legal(pos=[4,6], dest=[4,4]))
+            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos)[0])
+        self.assertTrue(player_2.move_legal(pos=[4,6], dest=[4,4])[0])
         player_1.make_move(pos=[4,4], dest=[4,6])
         self.assertEqual(player_1.pieces['Q-D4'].pos, [4, 6])
         self.assertEqual(len(player_2.pieces), 3)
@@ -937,7 +936,7 @@ class TestPlayerKingMoves(unittest.TestCase):
         enemy_pos_list = [[3,4], [3,5], [4,5], [5,5], [5,4], [5,3], [4,3], [3,3]]
         for enemy in player_2.pieces:
             enemy_pos = player_2.pieces[enemy].pos
-            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos))
+            self.assertTrue(player_1.move_legal(pos=[4,4], dest=enemy_pos)[0])
         # Now kill all 8 pieces in a spiral
         prev = [4, 4]
         for new_pos in enemy_pos_list:
@@ -972,7 +971,7 @@ class TestGameplayBugcatchers(unittest.TestCase):
         with patch('builtins.input', side_effect=input_commands):
             game.start()
         #print(game.board) Affected by terminal clear, we dont want that
-        self.assertTrue(game.p2.move_legal(pos=[5, 8], dest=[6, 8]))
+        self.assertTrue(game.p2.move_legal(pos=[5, 8], dest=[6, 8])[0])
         input_commands = (['e8', 'f8'] + ['PAUSE'])
         with patch('builtins.input', side_effect=input_commands):
             game.start()

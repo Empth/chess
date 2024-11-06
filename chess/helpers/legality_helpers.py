@@ -98,24 +98,50 @@ def get_cardinal_collision(board, pos, cardinal):
     Returns None if no such colliding piece exists.
     Required: cardinal is 'N', 'E', 'S', 'W'
     '''
+    assert(cardinal in set(['N', 'E', 'S', 'W']))
 
+    movement_tiles, collider_encountered = get_all_cardinal_tiles_til_collider(board=board, pos=pos,
+                                                                               cardinal=cardinal)
+    if collider_encountered:
+        return movement_tiles[-1] # read documentation of get_all_cardinal_ on why this will work
+    else:
+        return None
+    
+
+def get_all_cardinal_tiles_til_collider(board, pos, cardinal):
+    '''
+    Helper for straight movers. Core logic for get_cardinal_collision, rook_movement_zone.
+    Given pos, cardinal, returns two values. First is an array of all tiles in order 
+    when starting movement out of pos in the cardinal direction,
+    up to and including the first colliding tile in cardinal direction.
+    For example, for an D4 (pos 4,4) Rook headed North, with collider on D7 (pos 4,7), we return
+    [[4,5], [4,6], [4,7]] in that order of tile movement.
+    Second return value is boolean for whether a collider was encountered or not.
+    '''
+    assert(cardinal in set(['N', 'E', 'S', 'W']))
     dictionary = {'N':['y', 1], 'E':['x', 1], 'S':['y', -1], 'W':['x', -1]} # abs_dir, i, sign
     value = dictionary[cardinal]
     abs_dir, sign = value[0], value[1]  # abs_dir: 'x' or 'y'; movement in x dir or y dir;sign differentiates N vs S, E vs W
     i = pos[0] if abs_dir == 'x' else pos[1]
+    collider_encountered = False
+    movement_tiles = []
 
     while True:
         i += sign
         if i-1 not in range(8):
-            break
+            break # we went out of bounds
         if abs_dir == 'x':
+            movement_tiles.append([i, pos[1]])
             if board.piece_exists(pos=[i, pos[1]]):
-                return [i, pos[1]]
+                collider_encountered = True
+                break
         else:
+            movement_tiles.append([pos[0], i])
             if board.piece_exists(pos=[pos[0], i]):
-                return [pos[0], i]
-    
-    return None
+                collider_encountered = True
+                break
+
+    return movement_tiles, collider_encountered
 
 def get_ordinal_collision(board, pos, ordinal):
     '''

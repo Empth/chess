@@ -1,13 +1,13 @@
-from helpers.legality_helpers import get_cardinal_collision
+from helpers.legality_helpers import get_all_cardinal_tiles_til_collider
 
 '''
 Functions for retrieving the movement zones of all 6 ranks of pieces.
-The return type for these functions will be an array of [x, y], these 
+The return type for these functions will be an undordered array of [x, y], these 
 represent the movement zone of the piece.
 '''
 def get_movement_zone(board, piece):
     '''
-    Gets movement zone of given piece, which is an array of [x, y] which piece
+    Gets movement zone of given piece, which is an unordered array of [x, y] which piece
     can move to.
     '''
     rank = piece.rank
@@ -40,9 +40,18 @@ def rook_movement_zone(board, piece):
     '''
     assert(piece.rank == 'ROOK')
     cardinals = ['N', 'E', 'S', 'W']
+    movement_tiles = []
     for dir in cardinals:
-        cardinal_collision = get_cardinal_collision(board=board, pos=piece.pos, cardinal=dir)
-    return []
+        dir_movement_tiles, collider_found = get_all_cardinal_tiles_til_collider(board=board, 
+                                                                                 pos=piece.pos, 
+                                                                                 cardinal=dir)
+        if collider_found:
+            collider_piece = board.get_piece(pos=dir_movement_tiles[-1])
+            if collider_piece.color == piece.color:
+                dir_movement_tiles.pop()
+        movement_tiles = movement_tiles + dir_movement_tiles
+
+    return movement_tiles
 
 def bishop_movement_zone(board, piece):
     '''
