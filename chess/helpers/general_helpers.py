@@ -112,3 +112,20 @@ def convert_to_movement_set(arr):
     for sub_arr in arr:
         output.add(tuple(sub_arr))
     return output
+
+def get_tiles_from_offset_pos(pos, offsets):
+    '''
+    Calculation logic to pass onto non_collisional_piece_move_legal, and king, knight movement zone methods.
+    Returns an array of all in range [x, y] given position and list of offsets.
+    Note, this does not account for tiles with same color as pos piece, which are not excluded from this output.
+    Those must be handled by the caller.
+    '''
+    movement_tiles = []
+    x, y = pos[0], pos[1]
+    for offset in offsets:
+        new_x, new_y = x+offset[0], y+offset[1]
+        if new_x-1 not in range(8) or new_y-1 not in range(8):
+            continue
+        movement_tiles.append([new_x, new_y])
+            
+    return movement_tiles

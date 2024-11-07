@@ -1,4 +1,4 @@
-from helpers.general_helpers import taxicab_dist, cardinal_direction, ordinal_direction
+from helpers.general_helpers import taxicab_dist, cardinal_direction, ordinal_direction, convert_to_movement_set, get_tiles_from_offset_pos
 from helpers.legality_helpers import (pawn_moving_straight_forward, pawn_moving_diagonal_forward, pawn_starting, 
                               get_cardinal_collision, get_ordinal_collision, cardinal_dest_between_collider, 
                               ordinal_dest_between_collider)
@@ -144,17 +144,17 @@ def non_collisional_piece_move_legal(player, pos, dest, offsets) -> tuple[bool, 
     Movement legality check for noncollisional movers, which are just king and knight.
     Offsets is a list of [+x, +y] offsets corresponding to movement types ie knight is [+1, +2],
     king is [+1, +1] or [+1, +0].
+    Like other piece move checkers, returns legality bool, error message string.
     '''
-    x, y = pos[0], pos[1]
-    for offset in offsets:
-        new_x, new_y = x+offset[0], y+offset[1]
-        if dest == [new_x, new_y]:
-            dest_piece = player.board.get_piece(pos=dest)
-            if dest_piece == None:
-                return True, '' # empty space
-            elif dest_piece.color == player.color:
-                return False, 'You cannot move to an ally location with your '+str(player.board.get_piece(pos=pos).rank)+'!'
-            else:
-                return True, '' # enemy capture
-            
-    return False, 'This is not a valid '+str(player.board.get_piece(pos=pos).rank)+' move!'
+
+    if (tuple(dest) in convert_to_movement_set(get_tiles_from_offset_pos(pos=pos, 
+                                                                          offsets=offsets))):
+        dest_piece = player.board.get_piece(pos=dest)
+        if dest_piece == None:
+            return True, '' # empty space
+        elif dest_piece.color == player.color:
+            return False, 'You cannot move to an ally location with your '+str(player.board.get_piece(pos=pos).rank)+'!'
+        else:
+            return True, '' # enemy capture
+    else:
+        return False, 'This is not a valid '+str(player.board.get_piece(pos=pos).rank)+' move!'

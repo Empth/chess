@@ -8,7 +8,7 @@ import random
 import os
 from tests import set_up_debug
 from movement_zone import get_movement_zone
-from helpers.general_helpers import convert_to_movement_set, algebraic_uniconverter
+from helpers.general_helpers import algebraic_uniconverter
 
 
 class TestRookZone(unittest.TestCase):
@@ -26,7 +26,7 @@ class TestRookZone(unittest.TestCase):
                 true_a, true_b = a+1, b+1
                 game = Game(debug=set_up_debug(white_pieces=['R-'+str(algebraic_uniconverter([true_a,true_b]))]))
                 board = game.board
-                movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([true_a, true_b])))
+                movement_zone = (get_movement_zone(board=board, piece=board.get_piece([true_a, true_b])))
                 for i in range(8):
                     for j in range(8):
                         x, y = i+1, j+1
@@ -45,7 +45,7 @@ class TestRookZone(unittest.TestCase):
         black_pieces = ['P-D3', 'R-D6', 'N-G4', 'Q-A4']
         game = Game(debug=set_up_debug(white_pieces=['R-D4'], black_pieces=black_pieces))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(4, 3), (4, 5), (4, 6), (1, 4), (2, 4), (3, 4), (5, 4), (6, 4), (7, 4)])
         self.assertEqual(movement_zone, expected_zone)
 
@@ -58,7 +58,7 @@ class TestRookZone(unittest.TestCase):
         black_pieces = ['P-D2', 'N-G4', 'Q-A4', 'Q-B4']
         game = Game(debug=set_up_debug(white_pieces=['R-D4']+whites, black_pieces=black_pieces))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(4,2),(4,3),(2,4),(3,4),(5,4)])
         self.assertEqual(movement_zone, expected_zone)
 
@@ -70,7 +70,7 @@ class TestRookZone(unittest.TestCase):
         
         game = Game(debug=set_up_debug(white_pieces=['R-D4', 'P-D5']))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(4,1),(4,2),(4,3),(1,4),(2,4),(3,4),(5,4),(6,4),(7,4),(8,4)])
         self.assertEqual(movement_zone, expected_zone)
 
@@ -81,7 +81,7 @@ class TestRookZone(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['R-D4'], black_pieces=['P-A4', 'P-G4', 'P-D5', 'P-D2']))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(4,2),(4,3),(4,5),(1,4),(2,4),(3,4),(5,4),(6,4),(7,4)])
         self.assertEqual(movement_zone, expected_zone)
 
@@ -101,7 +101,7 @@ class TestBishopZone(unittest.TestCase):
                 true_a, true_b = a+1, b+1
                 game = Game(debug=set_up_debug(white_pieces=['B-'+str(algebraic_uniconverter([true_a,true_b]))]))
                 board = game.board
-                movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([true_a, true_b])))
+                movement_zone = (get_movement_zone(board=board, piece=board.get_piece([true_a, true_b])))
                 for i in range(8):
                     for j in range(8):
                         x, y = i+1, j+1
@@ -122,7 +122,7 @@ class TestBishopZone(unittest.TestCase):
         black_pieces = ['P-C3', 'R-C5', 'N-G1', 'B-G7']
         game = Game(debug=set_up_debug(white_pieces=['B-D4'], black_pieces=black_pieces))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(3,3),(5,5),(6,6),(7,7),(7,1),(6,2),(5,3),(3,5)])
         self.assertEqual(movement_zone, expected_zone)
 
@@ -135,7 +135,7 @@ class TestBishopZone(unittest.TestCase):
         black_pieces = ['P-G7', 'R-F2', 'N-C3', 'Q-B6', 'Q-B2']
         game = Game(debug=set_up_debug(white_pieces=['B-D4']+whites, black_pieces=black_pieces))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(3,3),(3,5),(2,6)])
         self.assertEqual(movement_zone, expected_zone)
 
@@ -146,7 +146,7 @@ class TestBishopZone(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['B-D4', 'P-E5']))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(1,1),(2,2),(3,3),(1,7),(2,6),(3,5),(5,3),(6,2),(7,1)])
         self.assertEqual(movement_zone, expected_zone)
 
@@ -154,7 +154,7 @@ class TestBishopZone(unittest.TestCase):
 
         game = Game(debug=set_up_debug(white_pieces=['B-D4'], black_pieces=['P-B2', 'P-G7', 'P-B6', 'P-F2']))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(2,2),(3,3),(5,5),(6,6),(7,7),(2,6),(3,5),(5,3),(6,2)])
         self.assertEqual(movement_zone, expected_zone)
 
@@ -162,7 +162,7 @@ class TestBishopZone(unittest.TestCase):
 
         game = Game(debug=set_up_debug(white_pieces=['B-D4'], black_pieces=['P-C3', 'P-C5', 'P-E3', 'P-E5']))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(3,3),(5,5),(3,5),(5,3)])
         self.assertEqual(movement_zone, expected_zone)
 
@@ -182,7 +182,7 @@ class TestQueenZone(unittest.TestCase):
                 true_a, true_b = a+1, b+1
                 game = Game(debug=set_up_debug(white_pieces=['Q-'+str(algebraic_uniconverter([true_a,true_b]))]))
                 board = game.board
-                movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([true_a, true_b])))
+                movement_zone = (get_movement_zone(board=board, piece=board.get_piece([true_a, true_b])))
                 for i in range(8):
                     for j in range(8):
                         x, y = i+1, j+1
@@ -205,7 +205,7 @@ class TestQueenZone(unittest.TestCase):
         black_pieces = ['P-C3', 'R-C5', 'N-G1', 'B-G7']
         game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=black_pieces))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(3,3),(5,5),(6,6),(7,7),(7,1),(6,2),(5,3),(3,5)]
                             +[(1,4),(2,4),(3,4),(5,4),(6,4),(7,4),(8,4)]
                             +[(4,1),(4,2),(4,3),(4,5),(4,6),(4,7),(4,8)])
@@ -219,7 +219,7 @@ class TestQueenZone(unittest.TestCase):
         black_pieces = ['P-D3', 'R-D6', 'N-G4', 'Q-A4']
         game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=black_pieces))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(4,3),(4,5),(4,6),(1,4),(2,4),(3,4),(5,4),(6,4),(7,4)]
                             +[(1,1),(2,2),(3,3),(5,5),(6,6),(7,7),(8,8)]
                             +[(7,1),(6,2),(5,3),(3,5),(2,6),(1,7)])
@@ -232,7 +232,7 @@ class TestQueenZone(unittest.TestCase):
         black_pieces = ['P-D3', 'R-D6', 'N-G4', 'Q-A4'] + ['P-C3', 'R-C5', 'N-G1', 'B-G7']
         game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=black_pieces))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(4,3),(4,5),(4,6),(1,4),(2,4),(3,4),(5,4),(6,4),(7,4)] +
                             [(3,3),(5,5),(6,6),(7,7),(7,1),(6,2),(5,3),(3,5)])
         self.assertEqual(movement_zone, expected_zone)
@@ -246,7 +246,7 @@ class TestQueenZone(unittest.TestCase):
         black_pieces = ['P-D2', 'R-D6', 'N-G4', 'Q-A4', 'Q-B4']
         game = Game(debug=set_up_debug(white_pieces=['Q-D4']+whites, black_pieces=black_pieces))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(2,4),(3,4),(4,3),(4,2)]
                             +[(1,1),(2,2),(3,3),(5,5),(6,6),(7,7),(8,8)]
                             +[(7,1),(6,2),(5,3),(3,5),(2,6),(1,7)])
@@ -261,7 +261,7 @@ class TestQueenZone(unittest.TestCase):
         black_pieces = ['P-G7', 'R-F2', 'N-C3', 'Q-B6', 'Q-B2']
         game = Game(debug=set_up_debug(white_pieces=['Q-D4']+whites, black_pieces=black_pieces))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(3,3),(3,5),(2,6)]
                             +[(1,4),(2,4),(3,4),(5,4),(6,4),(7,4),(8,4)]
                             +[(4,1),(4,2),(4,3),(4,5),(4,6),(4,7),(4,8)])
@@ -274,7 +274,7 @@ class TestQueenZone(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['Q-D4', 'P-D5', 'P-E5']))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(1,1),(2,2),(3,3)]
                             +[(7,1),(6,2),(5,3),(3,5),(2,6),(1,7)]
                             +[(1,4),(2,4),(3,4),(5,4),(6,4),(7,4),(8,4)]
@@ -291,7 +291,7 @@ class TestQueenZone(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-A4', 'P-G4', 'P-D5', 'P-D2']))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(1,4),(2,4),(3,4),(5,4),(6,4),(7,4),(4,2),(4,3),(4,5)]
                             +[(1,1),(2,2),(3,3),(5,5),(6,6),(7,7),(8,8)]
                             +[(7,1),(6,2),(5,3),(3,5),(2,6),(1,7)])
@@ -306,7 +306,7 @@ class TestQueenZone(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-B2', 'P-G7', 'P-B6', 'P-F2']))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(2,2),(3,3),(5,5),(6,6),(7,7),(2,6),(3,5),(5,3),(6,2)]
                             +[(1,4),(2,4),(3,4),(5,4),(6,4),(7,4),(8,4)]
                             +[(4,1),(4,2),(4,3),(4,5),(4,6),(4,7),(4,8)])
@@ -319,7 +319,7 @@ class TestQueenZone(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-C4', 'P-E4', 'P-D5', 'P-D3']))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(3,4),(5,4),(4,3),(4,5)]
                             +[(1,1),(2,2),(3,3),(5,5),(6,6),(7,7),(8,8)]
                             +[(7,1),(6,2),(5,3),(3,5),(2,6),(1,7)])
@@ -332,7 +332,7 @@ class TestQueenZone(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-C3', 'P-C5', 'P-E3', 'P-E5']))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(3,3),(5,5),(3,5),(5,3)]
                             +[(1,4),(2,4),(3,4),(5,4),(6,4),(7,4),(8,4)]
                             +[(4,1),(4,2),(4,3),(4,5),(4,6),(4,7),(4,8)])
@@ -345,7 +345,7 @@ class TestQueenZone(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['Q-D4']+['P-C4', 'P-E4', 'P-D5', 'P-D3']+['P-C3', 'P-C5', 'P-E3', 'P-E5']))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([])
         self.assertEqual(movement_zone, expected_zone)
 
@@ -356,10 +356,60 @@ class TestQueenZone(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['Q-D4'], black_pieces=['P-C4', 'P-E4', 'P-D5', 'P-D3']+['P-C3', 'P-C5', 'P-E3', 'P-E5']))
         board = game.board
-        movement_zone = convert_to_movement_set(get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         expected_zone = set([(3,3),(5,5),(3,5),(5,3)] + [(3,4),(5,4),(4,3),(4,5)])
         self.assertEqual(movement_zone, expected_zone)
 
+
+class TestKnightZone(unittest.TestCase):
+
+    def test_knight_vanilla_zone(self):
+
+        '''
+        Tests that knights move precisely in an L shape.
+        '''
+
+        game = Game(debug=set_up_debug(white_pieces=['N-D4']))
+        board = game.board
+        expected_zone = set([(2, 3), (3, 2), (6, 5), (5, 6), (3, 6), (6, 3), (2, 5), (5, 2)])
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        self.assertEqual(movement_zone, expected_zone)
+
+
+    def test_knight_capture_zone(self):
+        '''
+        Superfluous test.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['N-D4'], black_pieces=['P-E2']))
+        board = game.board
+        expected_zone = set([(2, 3), (3, 2), (6, 5), (5, 6), (3, 6), (6, 3), (2, 5), (5, 2)])
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        self.assertEqual(movement_zone, expected_zone)
+
+    def test_knight_jump_zone(self):
+        '''
+        Tests that knights can jump to its destination and bypass all collision.
+        In this test, a square of pieces blocks the knight from making an L move, 
+        but the knight can jump over them anyways.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['N-D4'], 
+                                       black_pieces=['P-E2', 'P-C3', 'P-C4', 'P-C5', 'P-D5',
+                                                     'P-E5', 'P-E4', 'P-E3', 'P-D3']))
+        board = game.board
+        expected_zone = set([(2, 3), (3, 2), (6, 5), (5, 6), (3, 6), (6, 3), (2, 5), (5, 2)])
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        self.assertEqual(movement_zone, expected_zone)
+
+    def test_knight_cannot_team_kill(self):
+
+        '''
+        Tests that knights cannot teamkill.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['N-D4', 'P-E2']))
+        board = game.board
+        expected_zone = set([(2, 3), (3, 2), (6, 5), (5, 6), (3, 6), (6, 3), (2, 5)])
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
+        self.assertEqual(movement_zone, expected_zone)
 
 if __name__ == '__main__':
     unittest.main()
