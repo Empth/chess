@@ -9,8 +9,12 @@ represent the movement zone of the piece.
 def get_movement_zone(board, piece):
     '''
     Gets movement zone of given piece, which is an set of (x, y) which piece
-    can move to.
+    can move to. 
+    Returns empty set if piece is None.
     '''
+    if piece == None:
+        return set()
+
     rank = piece.rank
     if rank == 'PAWN':
         return pawn_movement_zone(board=board, piece=piece)
@@ -32,7 +36,50 @@ def pawn_movement_zone(board, piece):
     Returns movement zone of given pawn piece.
     '''
     assert(piece.rank == 'PAWN')
-    return set()
+    assert(piece.color in ['BLACK', 'WHITE'])
+    movement_tiles = []
+    colored_ordinal = ['NW', 'NE'] if piece.color == 'WHITE' else ['SW', 'SE']
+    colored_cardinal = 'N' if piece.color == 'WHITE' else 'S'
+
+    # first retrieve diagonal tiles in the movement zone.
+    for ord_dir in colored_ordinal:
+        dir_movement_tiles, collider_found = get_all_ordinal_tiles_til_collider(board=board, 
+                                                                                 pos=piece.pos, 
+                                                                                 ordinal=ord_dir)
+        if not collider_found:
+            continue # as this mean there is no piece 1 unit diagonally from this pawn in the ord_dir direction
+        elif len(dir_movement_tiles) == 0:
+            assert(False)
+        elif len(dir_movement_tiles) > 1:
+            continue # this means first collider isn't found 1 unit diagonally from this pawn in ord_dir direction
+        else: # dir_movement_tiles is singleton
+            diag_piece = board.get_piece(pos=dir_movement_tiles[0])
+            if diag_piece.color == piece.color:
+                continue
+            else: # this is a capturable piece
+                movement_tiles.append(dir_movement_tiles[0])
+
+    # next add straight tiles to movement_zone.
+    (straight_movement_tiles, 
+     straight_collider_found) = get_all_cardinal_tiles_til_collider(board=board, 
+                                                                    pos=piece.pos, 
+                                                                    cardinal=colored_cardinal)
+    if straight_collider_found:
+        if len(straight_movement_tiles) >= 3:
+            if not piece.moved:
+                movement_tiles.append(straight_movement_tiles[1]) # ie pawn can move 2 units straight
+            movement_tiles.append(straight_movement_tiles[0])
+        elif len(straight_movement_tiles) == 2:
+            movement_tiles.append(straight_movement_tiles[0])
+    else: # no straight collider
+        if len(straight_movement_tiles) >= 2:
+            if not piece.moved:
+                movement_tiles.append(straight_movement_tiles[1])
+            movement_tiles.append(straight_movement_tiles[0])
+        elif len(straight_movement_tiles) == 1: # might be unreachable, putting it here just in case
+            movement_tiles.append(straight_movement_tiles[0])
+
+    return convert_to_movement_set(movement_tiles)
 
 def rook_movement_zone(board, piece):
     '''

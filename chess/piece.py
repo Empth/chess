@@ -11,7 +11,7 @@ class Piece:
         self.player = player # refers to the Player which this piece belongs to.
         self.visual = get_piece_visual(rank=self.rank, color=self.color) # ♟
         self.moved = False # True when piece moves; ie changes position from init pos.
-        self.check = False # True only for KING if placed into check by opposing piece.
+        # self.check = False # True only for KING if placed into check by opposing piece.
     
     def __str__(self):
         pos = "None" if self.pos == None else str(self.pos[0]) +', '+str(self.pos[1])

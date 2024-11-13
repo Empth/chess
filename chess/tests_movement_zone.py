@@ -11,6 +11,196 @@ from movement_zone import get_movement_zone
 from helpers.general_helpers import algebraic_uniconverter
 
 
+class TestPawnZone(unittest.TestCase):
+    '''
+    Tests Pawn zone of movement.
+    '''
+
+    def test_move_starting_pawn_zone(self):
+        '''
+        Tests that a pawn in its starting position only moves 1 or 2 units straight.
+        '''
+        game = Game() # default game board.
+        board = game.board
+        player_1 = game.p1
+        player_2 = game.p2
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([1, 2])))
+        expected_zone = set([(1,3), (1,4)])
+        self.assertEqual(movement_zone, expected_zone)
+        player_1.make_move(pos=[1,2], dest=[1,3])
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([1, 3])))
+        expected_zone = set([(1,4)])
+        self.assertEqual(movement_zone, expected_zone)
+
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([2, 2])))
+        expected_zone = set([(2,3), (2,4)])
+        self.assertEqual(movement_zone, expected_zone)
+        player_1.make_move(pos=[2,2], dest=[2,4])
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([2, 4])))
+        expected_zone = set([(2,5)])
+        self.assertEqual(movement_zone, expected_zone)
+
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 7])))
+        expected_zone = set([(4,6), (4,5)])
+        self.assertEqual(movement_zone, expected_zone)
+
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([1, 7])))
+        expected_zone = set([(1,6), (1,5)])
+        self.assertEqual(movement_zone, expected_zone)
+        player_2.make_move(pos=[1,7], dest=[1,6])
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([1, 6])))
+        expected_zone = set([(1,5)])
+        self.assertEqual(movement_zone, expected_zone)
+
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([3, 7])))
+        expected_zone = set([(3,6), (3,5)])
+        self.assertEqual(movement_zone, expected_zone)
+
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([2, 7])))
+        expected_zone = set([(2,6), (2,5)])
+        self.assertEqual(movement_zone, expected_zone)
+        player_2.make_move(pos=[2,7], dest=[2,5])
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([2, 5])))
+        expected_zone = set() # white pawn blocks (2, 4)
+        self.assertEqual(movement_zone, expected_zone)
+
+    def test_move_nonstarting_pawn_zone(self):
+        '''
+        Tests that a pawn outside of its starting position only moves 1 straight and not 2.
+        '''
+        game = Game()
+        board = game.board
+        player_1 = game.p1
+        player_2 = game.p2
+        player_1.make_move(pos=[1,2], dest=[1,3])
+        player_1.make_move(pos=[2,2], dest=[2,4])
+        player_2.make_move(pos=[8,7], dest=[8,6])
+        player_2.make_move(pos=[7,7], dest=[7,5])
+
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([1, 3])))
+        expected_zone = set([(1,4)])
+        self.assertEqual(movement_zone, expected_zone)
+
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([2, 4])))
+        expected_zone = set([(2,5)])
+        self.assertEqual(movement_zone, expected_zone)
+
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([8, 6])))
+        expected_zone = set([(8,5)])
+        self.assertEqual(movement_zone, expected_zone)
+
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([7, 5])))
+        expected_zone = set([(7,4)])
+        self.assertEqual(movement_zone, expected_zone)
+
+    def test_cannot_move_blank_space_zone(self):
+        '''
+        Test that we cannot move from a blank position on the board.
+        '''
+        game = Game()
+        board = game.board
+        player_1 = game.p1
+        player_2 = game.p2
+
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([1, 3])))
+        expected_zone = set()
+        self.assertEqual(movement_zone, expected_zone)
+
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([2, 4])))
+        expected_zone = set()
+        self.assertEqual(movement_zone, expected_zone)
+
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([8, 6])))
+        expected_zone = set()
+        self.assertEqual(movement_zone, expected_zone)
+
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([7, 5])))
+        expected_zone = set()
+        self.assertEqual(movement_zone, expected_zone)
+    
+
+    def test_pawn_capture_zone(self):
+        '''
+        Test that a pawn can only capture diagonally forward.
+        '''
+
+        game = Game()
+        board = game.board
+        player_1 = game.p1
+        player_2 = game.p2
+        player_1.make_move(pos=[4,2], dest=[4,4]) 
+        board.move_piece(pos=[5, 5], piece=board.get_piece([1, 8]))
+        board.move_piece(pos=[4, 5], piece=board.get_piece([2, 8]))
+        board.move_piece(pos=[3, 5], piece=board.get_piece([3, 8]))
+        movement_zone = get_movement_zone(board=board, piece=board.get_piece([4, 4]))
+        expected_zone = set([(3,5),(5,5)])
+        self.assertEqual(movement_zone, expected_zone)
+
+        # reset, check black captures "forward"
+        game = Game()
+        board = game.board
+        player_1 = game.p1
+        player_2 = game.p2
+        player_2.make_move(pos=[4,7], dest=[4,5]) 
+        board.move_piece(pos=[5, 4], piece=board.get_piece([1, 2]))
+        board.move_piece(pos=[4, 4], piece=board.get_piece([2, 2]))
+        board.move_piece(pos=[3, 4], piece=board.get_piece([3, 2]))
+        movement_zone = get_movement_zone(board=board, piece=board.get_piece([4, 5]))
+        expected_zone = set([(5,4),(3,4)])
+        self.assertEqual(movement_zone, expected_zone)
+
+    def test_cannot_move_out_of_bounds_zone(self):
+        '''
+        Tests that we cannot move any piece out of bounds.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['P-B8'])) # ignore status of pawn moved.
+        board = game.board
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([2, 8])))
+        expected_zone = set()
+        self.assertEqual(movement_zone, expected_zone)
+
+    def test_pawn_cannot_teamkill_diagonally_zone(self):
+        '''
+        Test that a pawn cannot diagonally team kill its own team member
+        '''
+
+        game = Game(debug=set_up_debug(white_pieces=['P-B2', 'Q-C3']))
+        board = game.board
+        movement_zone = (get_movement_zone(board=board, piece=board.get_piece([2, 2])))
+        expected_zone = set([(2,3),(2,4)])
+        self.assertEqual(movement_zone, expected_zone)
+
+    def test_pawn_collision_zone(self):
+        '''
+        Tests that a pawn cannot proceed if there is collision blocking straight ahead.
+        '''
+        game = Game(debug=set_up_debug(white_pieces=['P-A2', 'P-B2', 'P-C2', 'P-D2'], black_pieces=['Q-A3', 'Q-A4', 'Q-B4', 'Q-C3', 'Q-D4']))
+        player_1 = game.p1
+        player_1.make_move(pos=[4,2], dest=[4,3])
+        self.assertFalse(player_1.bool_move_legal(pos=[1, 2], dest=[1, 3]))
+        self.assertFalse(player_1.bool_move_legal(pos=[1, 2], dest=[1, 4]))
+        self.assertTrue(player_1.bool_move_legal(pos=[2, 2], dest=[2, 3]))
+        self.assertFalse(player_1.bool_move_legal(pos=[2, 2], dest=[2, 4]))
+        self.assertFalse(player_1.bool_move_legal(pos=[3, 2], dest=[3, 3]))
+        self.assertFalse(player_1.bool_move_legal(pos=[3, 2], dest=[3, 4]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4, 3], dest=[4, 4]))
+        self.assertFalse(player_1.bool_move_legal(pos=[4, 3], dest=[4, 5]))
+
+        # Now do the same but with black pawns attacking in reverse direction
+
+        game = Game(debug=set_up_debug(black_pieces=['P-A7', 'P-B7', 'P-C7', 'P-D7'], white_pieces=['Q-A6', 'Q-A5', 'Q-B5', 'Q-C6', 'Q-D5']))
+        player_2 = game.p2
+        player_1.make_move(pos=[4,7], dest=[4,6])
+        self.assertFalse(player_2.bool_move_legal(pos=[1, 7], dest=[1, 6]))
+        self.assertFalse(player_2.bool_move_legal(pos=[1, 7], dest=[1, 5]))
+        self.assertTrue(player_2.bool_move_legal(pos=[2, 7], dest=[2, 6]))
+        self.assertFalse(player_2.bool_move_legal(pos=[2, 7], dest=[2, 5]))
+        self.assertFalse(player_2.bool_move_legal(pos=[3, 7], dest=[3, 6]))
+        self.assertFalse(player_2.bool_move_legal(pos=[3, 7], dest=[3, 5]))
+        self.assertFalse(player_2.bool_move_legal(pos=[4, 6], dest=[4, 5]))
+        self.assertFalse(player_2.bool_move_legal(pos=[4, 6], dest=[4, 4]))
+
+
 class TestRookZone(unittest.TestCase):
     '''
     Tests Rook zone of movement is in straight directions up to (and including) first collision
@@ -31,11 +221,11 @@ class TestRookZone(unittest.TestCase):
                     for j in range(8):
                         x, y = i+1, j+1
                         if x == true_a and y == true_b:
-                            self.assertFalse((x, y) in movement_zone)
+                            self.assertFalse((x, y) in movement_zone) # type: ignore
                         elif x==true_a or y==true_b:
-                            self.assertTrue((x, y) in movement_zone)
+                            self.assertTrue((x, y) in movement_zone) # type: ignore
                         else:
-                            self.assertFalse((x, y) in movement_zone)
+                            self.assertFalse((x, y) in movement_zone) # type: ignore
 
     def test_rook_enemy_collider_zone(self):
 
@@ -400,7 +590,7 @@ class TestKnightZone(unittest.TestCase):
         movement_zone = (get_movement_zone(board=board, piece=board.get_piece([4, 4])))
         self.assertEqual(movement_zone, expected_zone)
 
-    def test_knight_cannot_team_kill(self):
+    def test_knight_cannot_team_kill_zone(self):
 
         '''
         Tests that knights cannot teamkill.

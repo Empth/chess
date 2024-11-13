@@ -46,6 +46,7 @@ def pos_checker(game, pos) -> bool:
 def dest_checker(game, pos, dest) -> bool:
     '''
     Helper for turn in picking the right destination, given pos.
+    Checks legality of move from pos -> dest.
     Also handles the error messages.
     '''
     dest_check, dest_message = well_formed(dest)

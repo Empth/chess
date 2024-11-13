@@ -1,7 +1,7 @@
 from piece import Piece
 from board import Board
 from move_legal import pawn_move_legal, rook_move_legal, bishop_move_legal, knight_move_legal, queen_move_legal, king_move_legal
-from helpers.state_helpers import pawn_promotion
+from helpers.state_helpers import pawn_promotion, update_moved_piece
 from helpers.general_helpers import check_in_bounds, algebraic_uniconverter, convert_letter_to_rank
 
 '''
@@ -52,12 +52,16 @@ class Player:
         '''
         This moves a piece at pos to dest if said move is legal.
         Note, pos, dest are [8]^2 coordinates.
+        Function will handle pawn promotion, and update the 'moved' parameter of
+        the moved piece, if it has moved.
         '''
         legality, message = self.move_legal(pos=pos, dest=dest)
         if legality:
             moving_piece = self.board.get_piece(pos)
             self.board.move_piece(pos=dest, piece=moving_piece)
             pawn_promotion(player=self, dest=dest, piece=moving_piece)
+            assert(moving_piece.pos == dest)
+            update_moved_piece(piece=moving_piece)
         else:
             print(message)
             return

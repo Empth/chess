@@ -13,6 +13,9 @@ def pawn_move_legal(player, pos, dest) -> tuple[bool, str]: # type: ignore
     Helper checks if pawn move is legal.
     '''
 
+    # TODO refactor this to use logic from 'moved' param of piece for 2 tile movement
+    # also need to refactor tests if doing this. 
+
     cur_piece = player.board.get_piece(pos=pos)
     
     taxicab_distance = taxicab_dist(start=pos, dest=dest)
