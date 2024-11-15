@@ -9,18 +9,26 @@ Player who gets to make chess moves.
 '''
 
 class Player:
-    def __init__(self, color: str, board: Board, debug=None):
+    def __init__(self, color: str, board: Board, debug=None, is_clone=False):
+        '''
+        debug: debugging config, for setting initial config of pieces
+        is_clone: Whether created player is a clone, if so, forgos collecting of pieces
+        and setting them on board, to delegate them to client.
+        '''
         self.color = color
         self.pieces = {} # key is Piece name, value is Piece, its a collection of this player's pieces
         self.board = board
-        self.collect_pieces(debug=debug) 
-        self.set_pieces_on_board()
+        if not is_clone:
+            self.collect_pieces(debug=debug) 
+            self.set_pieces_on_board()
+        self.in_check = False # whether Player's king is in check or not. 
 
         
     def collect_pieces(self, debug=None):
         '''
-        Builds piece collection and their positions for this player
+        Builds piece collection and their positions for this player.
         '''
+        
         if debug == None:
             assert(self.color == 'WHITE' or self.color == 'BLACK')
             main_row = ['ROOK', 'KNIGHT', 'BISHOP', 'QUEEN', 'KING', 'BISHOP', 'KNIGHT', 'ROOK']
@@ -69,6 +77,8 @@ class Player:
     def move_legal(self, pos, dest) -> tuple[bool, str]:
         '''
         This checks to see if moving a piece from pos to dest is legal.
+        Some examples of illegal moves include out-of-bounds, out of movement zone, and other misc stuff.
+        Note, moving into check is illegal but is not handled by this method.
         Note, pos, dest are [8]^2 coordinates.
         Returns True, '' or False, error message string.
         '''
@@ -98,8 +108,8 @@ class Player:
             return queen_move_legal(player=self, pos=pos, dest=dest)
         elif rank == 'KING':
             return king_move_legal(player=self, pos=pos, dest=dest)
-                
-        return False, 'Rank of piece at position ' +str(algebraic_uniconverter(pos))+ ' does not match any of the 6 classes.'
+        else:
+            return False, 'Rank of piece at position ' +str(algebraic_uniconverter(pos))+ ' does not match any of the 6 classes.'
     
 
     def misc_checks(self, pos, dest) -> tuple[bool, str]:
@@ -128,3 +138,24 @@ class Player:
         Mainly for use when testing truth values of move legality.
         '''
         return self.move_legal(pos=pos, dest=dest)[0]
+    
+    def clone_player(self, board: Board):
+        '''
+        Returns a deep copy clone of this player, including its pieces and board state.
+        '''
+        clone = Player(color=self.color, board=board, is_clone=True)
+        clone.pieces = self.clone_player_pieces(clone_player=clone)
+        clone.set_pieces_on_board() # updates board param for clone, which is also board param for higher up Game.
+        clone.in_check = self.in_check
+        return clone
+    
+    def clone_player_pieces(self, clone_player):
+        '''
+        Returns a deep copy clone of the collection of pieces for this (non-clone) player.
+        Each cloned piece is a deep copy of the original piece.
+        '''
+        cloned_collection = {}
+        for piece in self.pieces.values():
+            clone_piece = piece.clone_piece(player=clone_player)
+            cloned_collection[clone_piece.name] = clone_piece
+        return cloned_collection

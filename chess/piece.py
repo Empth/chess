@@ -2,6 +2,9 @@ from helpers.general_helpers import algebraic_uniconverter, get_piece_visual
 
 class Piece:
     def __init__(self, color: str, rank: str, player, pos=None):
+        '''
+        is_clone: Whether the piece is a clone of an existing piece or made from scratch.
+        '''
         self.color = color # 'WHITE' or 'BLACK'
         self.rank = rank # 'PAWN', 'ROOK', 'QUEEN', etc
         self.pos = pos # is ordered pair from [8]x[8], and [1, 2] <-> A2
@@ -11,7 +14,6 @@ class Piece:
         self.player = player # refers to the Player which this piece belongs to.
         self.visual = get_piece_visual(rank=self.rank, color=self.color) # ♟
         self.moved = False # True when piece moves; ie changes position from init pos.
-        # self.check = False # True only for KING if placed into check by opposing piece.
     
     def __str__(self):
         pos = "None" if self.pos == None else str(self.pos[0]) +', '+str(self.pos[1])
@@ -24,3 +26,13 @@ class Piece:
         return (self.name == other.name and self.color == other.color 
                 and self.rank == other.rank and self.pos == other.pos
                 and self.player == other.player)
+    
+    def clone_piece(self, player):
+        '''
+        Given this piece, returns a deep copy clone of that piece.
+        '''
+        clone = Piece(color=self.color, rank=self.rank, player=player, pos=self.pos)
+        clone.name = self.name
+        clone.visual = self.visual
+        clone.moved = self.moved
+        return clone

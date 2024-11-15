@@ -30,14 +30,15 @@ def pos_checker(game, pos) -> bool:
     '''
     pos_check, pos_message = well_formed(pos)
     if not pos_check:
-        game.set_error_message(pos_message)
+        set_error_message(game, pos_message)
         return False
     pos = pos[0].upper()+pos[1]
     if not game.board.piece_exists(algebraic_uniconverter(pos)):
-        game.set_error_message('Piece needs to exist at position '+str(pos)+'!')
+        set_error_message(game, 'Piece needs to exist at position '+str(pos)+'!')
         return False
     elif game.board.get_piece(algebraic_uniconverter(pos)).color != game.turn:
-        game.set_error_message('The ' +str(game.board.get_piece(algebraic_uniconverter(pos)).rank) +' at position '+str(pos)+' is not your own color of '+str(game.turn)+'!')
+        set_error_message(game, ('The ' +str(game.board.get_piece(algebraic_uniconverter(pos)).rank) 
+                          +' at position '+str(pos)+' is not your own color of '+str(game.turn)+'!'))
         return False
     
     return True
@@ -46,19 +47,19 @@ def pos_checker(game, pos) -> bool:
 def dest_checker(game, pos, dest) -> bool:
     '''
     Helper for turn in picking the right destination, given pos.
-    Checks legality of move from pos -> dest.
+    Checks legality of move from pos -> dest via move_legal.
     Also handles the error messages.
     '''
     dest_check, dest_message = well_formed(dest)
     if not dest_check:
-        game.set_error_message(dest_message)
+        set_error_message(game, dest_message)
         return False
     dest = dest[0].upper()+dest[1]
     cur_player = convert_color_to_player(game=game, color=game.turn)
     move_legal, move_legal_message = cur_player.move_legal(pos=algebraic_uniconverter(pos), 
                                                             dest=algebraic_uniconverter(dest))
     if not move_legal:
-        game.set_error_message(move_legal_message)
+        set_error_message(game, move_legal_message)
         return False
     return True
     
@@ -75,14 +76,14 @@ def convert_color_to_player(game, color):
     
 def set_error_message(game, message):
     '''
-    Sets error message from error_message, and set error_message on
+    Sets error message from error_message, and set show_error on.
     '''
     game.error_message = message
     game.show_error = True
 
 def get_error_message(game):
     '''
-    Shows error message from error_message, resets error message, and set error_message off
+    Prints error message from error_message, resets error message, and set show_error off.
     '''
     print(game.error_message)
     game.error_message = ''
@@ -90,7 +91,9 @@ def get_error_message(game):
 
 def set_special_command(game, command):
     '''
-    Sets special command from special_command, and set special command detection on
+    Sets special command from special_command, and set special command detection on.
+    A hacky rule of thumb is command is all caps for actions (pause, forfeit, etc)
+    and is lowercase for engine decisions (ie checkmate).
     '''
     game.special_command = command
     game.exists_command = True
@@ -98,16 +101,16 @@ def set_special_command(game, command):
 def get_special_command(game) -> str:
     '''
     Returns special command from special_command, and resets special command field for game
-    and set special command detection off
+    and set special command detection off.
     '''
     command = game.special_command
     game.special_command = ''
     game.show_error = False
     return command
 
-
 def check_winner_king_condition(game) -> bool:
     '''
+    DEPRECATED
     Checks if a player is missing their king. If so, then the other player is
     declared the winner of the match, by updating winner. At least one player should have their king.
     Boolean is if winner was found (True) or not.

@@ -6,6 +6,7 @@ Functions for retrieving the movement zones of all 6 ranks of pieces.
 The return type for these functions will be a set of of (x, y), these 
 represent the movement zone of the piece.
 '''
+
 def get_movement_zone(board, piece):
     '''
     Gets movement zone of given piece, which is an set of (x, y) which piece
@@ -157,3 +158,11 @@ def movement_zone_given_offset(board, piece, offsets):
     movement_tiles_set = convert_to_movement_set(movement_tiles)
     return movement_tiles_set.difference(discard_set)
 
+def mass_movement_zone(board, player):
+    '''
+    Given a Player, returns the union of movement zones of all of its current pieces.
+    '''
+    movement_tiles = set()
+    for piece in player.pieces.values():
+        movement_tiles = movement_tiles.union(get_movement_zone(board=board, piece=piece))
+    return movement_tiles

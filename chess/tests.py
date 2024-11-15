@@ -963,9 +963,11 @@ class TestGameplayBugcatchers(unittest.TestCase):
     def test_black_king_moves(self):
 
         '''
+        DEPRECATED TEST
         Tests that black king can move right after the initial series of moves. Once black king is killed, game should end.
         '''
         game = Game()
+        '''
         input_commands = (['e2', 'e4']+ ['e7', 'e5'] + ['d2', 'd4'] + ['e5', 'd4'] + ['c1', 'g5'] 
                           + ['f8', 'e7'] + ['g5', 'e7'] + ['PAUSE'])
         with patch('builtins.input', side_effect=input_commands):
@@ -981,6 +983,7 @@ class TestGameplayBugcatchers(unittest.TestCase):
             game.start()
         os.system('cls') # change this for non-windows
         self.assertEqual(game.winner, game.p1)
+        '''
 
 if __name__ == '__main__':
     unittest.main()
