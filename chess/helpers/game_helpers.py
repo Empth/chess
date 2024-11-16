@@ -105,7 +105,7 @@ def get_special_command(game) -> str:
     '''
     command = game.special_command
     game.special_command = ''
-    game.show_error = False
+    game.exists_command = False
     return command
 
 def check_winner_king_condition(game) -> bool:

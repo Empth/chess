@@ -41,12 +41,12 @@ class Game:
 
         clear_terminal()
         while self.winner == None:
+            print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT')
             if self.show_error: 
                 get_error_message(game=self)
                 print('\n')
             else:
-                print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT')
-                print('\n')
+                print('\n\n')
             print(str(self.board))
             turn_success = self.make_turn()
             win_con = (self.special_command in mate_special_command_set) 
@@ -76,6 +76,7 @@ class Game:
                     break
                 if command == 'FORFEIT':
                     self.winner = 'BLACK' if self.turn == 'WHITE' else 'WHITE'
+                    set_special_command(self, "forfeited") # hack for forfeit win message
                     break
                 if command == 'RESELECT':
                     clear_terminal()
@@ -86,10 +87,17 @@ class Game:
 
 
         clear_terminal() # clear terminal at end
+
+        print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT') # boilerplate
+        print('\n\n')
+
         if self.winner != None:
             print(str(self.board)) # Present the final board
             if self.winner == 'DRAW':
                 print('Game has ended in a draw through '+str(get_special_command(game=self))) # TODO assumes get special command wont clear.
+            elif get_special_command(self) == 'forfeited':
+                forfeiter = 'BLACK' if self.winner == 'WHITE' else 'WHITE'
+                print(str(forfeiter) +' forfeits. '+ str(self.winner)+' wins!')
             else:
                 print('Checkmate! '+str(self.winner)+' wins!')
 
