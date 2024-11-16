@@ -1,5 +1,6 @@
 from piece import Piece
 from board import Board
+from misc.constants import *
 from move_legal import pawn_move_legal, rook_move_legal, bishop_move_legal, knight_move_legal, queen_move_legal, king_move_legal
 from helpers.state_helpers import pawn_promotion, update_moved_piece
 from helpers.general_helpers import check_in_bounds, algebraic_uniconverter, convert_letter_to_rank
@@ -30,10 +31,10 @@ class Player:
         '''
         
         if debug == None:
-            assert(self.color == 'WHITE' or self.color == 'BLACK')
+            assert(self.color in BWSET)
             main_row = ['ROOK', 'KNIGHT', 'BISHOP', 'QUEEN', 'KING', 'BISHOP', 'KNIGHT', 'ROOK']
-            main_row_pos = 1 if self.color == 'WHITE' else 8
-            pawn_row_pos = 2 if self.color == 'WHITE' else 7
+            main_row_pos = 1 if self.color == WHITE else 8
+            pawn_row_pos = 2 if self.color == WHITE else 7
             for i in range(8):
                 pawn_piece = Piece(color=self.color, rank='PAWN', pos=[i+1, pawn_row_pos], player=self)
                 self.pieces[pawn_piece.name] = pawn_piece

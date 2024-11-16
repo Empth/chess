@@ -1,10 +1,11 @@
 from player import Player
 from board import Board
 from debug import Debug
-from helpers.general_helpers import algebraic_uniconverter
+from helpers.general_helpers import algebraic_uniconverter, swap_colors
 from helpers.game_helpers import (clear_terminal, get_error_message, get_special_command, set_error_message, set_special_command, 
                           check_winner_king_condition, pos_checker, dest_checker, convert_color_to_player)
 from helpers.state_helpers import update_players_check, move_puts_player_in_check, move_locks_opponent
+from misc.constants import *
 
 '''File contains The Game logic.'''
 
@@ -19,8 +20,8 @@ class Game:
         '''
 
         self.board = Board()
-        self.p1 = Player(color='WHITE', board=self.board, debug=debug)
-        self.p2 = Player(color='BLACK', board=self.board, debug=debug)
+        self.p1 = Player(color=WHITE, board=self.board, debug=debug)
+        self.p2 = Player(color=BLACK, board=self.board, debug=debug)
         self.turn = self.p1.color  # 'WHITE' or 'BLACK'
         self.winner = None # Should be either 'WHITE', 'BLACK', or 'DRAW'
         self.error_message = ''
@@ -53,7 +54,7 @@ class Game:
             # ^ probably bad to not use the getter... but I don't want special_cmd reset
             if turn_success and not win_con:
                 # ie mate_special... means not checkmate or stalemate.
-                self.turn = 'BLACK' if self.turn == 'WHITE' else 'WHITE'
+                self.turn = swap_colors(self.turn) # swaps turn to the next color.
 
             '''
             # comment this out for now in favor of checkmate win condition
@@ -75,7 +76,7 @@ class Game:
                     self.reset()
                     break
                 if command == 'FORFEIT':
-                    self.winner = 'BLACK' if self.turn == 'WHITE' else 'WHITE'
+                    self.winner = swap_colors(self.turn) # as opposing player color wins
                     set_special_command(self, "forfeited") # hack for forfeit win message
                     break
                 if command == 'RESELECT':
@@ -96,7 +97,7 @@ class Game:
             if self.winner == 'DRAW':
                 print('Game has ended in a draw through '+str(get_special_command(game=self))) # TODO assumes get special command wont clear.
             elif get_special_command(self) == 'forfeited':
-                forfeiter = 'BLACK' if self.winner == 'WHITE' else 'WHITE'
+                forfeiter = swap_colors(self.winner)
                 print(str(forfeiter) +' forfeits. '+ str(self.winner)+' wins!')
             else:
                 print('Checkmate! '+str(self.winner)+' wins!')
@@ -109,8 +110,8 @@ class Game:
         deals with complaining after an illegal move.
         Returns True if turn executes successful move (move legal and not moving into check), otherwise returns False.
         '''
-        pos_example = 'E2 or e2' if self.turn == 'WHITE' else 'E7 or e7'
-        dest_example = 'E4 or e4' if self.turn == 'WHITE' else 'E5 or e5'
+        pos_example = 'E2 or e2' if self.turn == WHITE else 'E7 or e7'
+        dest_example = 'E4 or e4' if self.turn == WHITE else 'E5 or e5'
         pos = input('['+str(self.turn)+"\'S TURN] Select piece\'s position (e.g. "+str(pos_example)+"): ")
         if pos.upper() in special_command_set:
             set_special_command(game=self, command=pos.upper())
@@ -128,7 +129,7 @@ class Game:
         # So we see pos -> dest is in the movement zone.
         cur_player_color = self.turn
         cur_player = convert_color_to_player(game=self, color=cur_player_color)
-        opponent_color = 'WHITE' if self.turn == 'BLACK' else 'BLACK'
+        opponent_color = swap_colors(self.turn)
         opponent = convert_color_to_player(game=self, color=opponent_color)
 
         # Now, we update pos, dest into [x, y] form instead of string.

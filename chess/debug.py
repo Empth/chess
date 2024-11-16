@@ -1,4 +1,4 @@
-
+from misc.constants import *
 
 class Debug:
     def __init__(self, board_state={}, turn_state=None):
@@ -13,7 +13,7 @@ class Debug:
         '''
 
         for key in board_state:
-            assert(key in ['WHITE', 'BLACK'])
+            assert(key in BWSET)
 
         self.board_state = board_state
         self.turn_state = turn_state

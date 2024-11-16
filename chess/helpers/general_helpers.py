@@ -1,3 +1,5 @@
+from misc.constants import *
+
 '''
 General helper functions for positional math, will generally not require Player state.
 '''
@@ -97,8 +99,8 @@ def convert_letter_to_rank(letter):
 def get_piece_visual(rank, color):
     white_map = {'PAWN':'♟', 'ROOK':'♜', 'KNIGHT':'♞', 'BISHOP':'♝', 'QUEEN':'♛', 'KING':'♚'}
     black_map = {'PAWN':'♙', 'ROOK':'♖', 'KNIGHT':'♘', 'BISHOP':'♗', 'QUEEN':'♕', 'KING':'♔'}
-    assert(color in ['BLACK', 'WHITE'])
-    if color == 'WHITE':
+    assert(color in BWSET)
+    if color == WHITE:
         return white_map[rank]
     else:
         return black_map[rank]
@@ -129,3 +131,14 @@ def get_tiles_from_offset_pos(pos, offsets):
         movement_tiles.append([new_x, new_y])
             
     return movement_tiles
+
+def swap_colors(color):
+    '''
+    Given color, which must be either 'BLACK' or 'WHITE',
+    if color is 'BLACK', return 'WHITE, otherwise return 'BLACK'.
+    Basically a function for ternary statement swapping colors, which happens
+    a lot more than expected.
+    '''
+    assert(color in BWSET)
+    return_color = WHITE if color == BLACK else BLACK
+    return return_color

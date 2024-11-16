@@ -1,3 +1,4 @@
+from misc.constants import *
 from helpers.legality_helpers import get_all_cardinal_tiles_til_collider, get_all_ordinal_tiles_til_collider
 from helpers.general_helpers import get_tiles_from_offset_pos, convert_to_movement_set
 
@@ -37,10 +38,10 @@ def pawn_movement_zone(board, piece):
     Returns movement zone of given pawn piece.
     '''
     assert(piece.rank == 'PAWN')
-    assert(piece.color in ['BLACK', 'WHITE'])
+    assert(piece.color in BWSET)
     movement_tiles = []
-    colored_ordinal = ['NW', 'NE'] if piece.color == 'WHITE' else ['SW', 'SE']
-    colored_cardinal = 'N' if piece.color == 'WHITE' else 'S'
+    colored_ordinal = ['NW', 'NE'] if piece.color == WHITE else ['SW', 'SE']
+    colored_cardinal = 'N' if piece.color == WHITE else 'S'
 
     # first retrieve diagonal tiles in the movement zone.
     for ord_dir in colored_ordinal:

@@ -1,6 +1,7 @@
-from .general_helpers import get_piece_visual
+from .general_helpers import get_piece_visual, swap_colors
 from movement_zone import get_movement_zone, mass_movement_zone # os.getcwd is Desktop\Chess  ...
 from .game_helpers import convert_color_to_player
+from misc.constants import *
 
 '''
 For things like pawn promotion status, piece has moved, king in check, move places player in check, etc
@@ -10,7 +11,7 @@ def pawn_promotion(player, dest, piece):
     '''Given a piece that moved to dest, checks whether it is a pawn that reached its "end",
     in which case we promote it to QUEEN. Otherwise, does nothing.'''
     # TODO Implement underpromotion to lower than queen 
-    end = 8 if player.color == 'WHITE' else 1
+    end = 8 if player.color == WHITE else 1
     if piece.rank == 'PAWN' and dest[1] == end:
         piece.rank = 'QUEEN'
         piece.visual = get_piece_visual(rank=piece.rank, color=piece.color)
@@ -35,11 +36,11 @@ def player_in_check(player, opponent) -> bool:
     For current player, returns whether they are in check by given opponent.
     '''
     # NOTE King code doesn't work with debug configs...
-    assert(player.color in ['WHITE', 'BLACK'] and opponent.color in ['WHITE', 'BLACK'])
+    assert(player.color in BWSET and opponent.color in BWSET)
     assert(player.color != opponent.color)
     #print(player.pieces.keys())
     #print(opponent.pieces.keys())
-    player_king_code = 'K-E1' if player.color == 'WHITE' else 'K-E8'
+    player_king_code = 'K-E1' if player.color == WHITE else 'K-E8'
     player_king_position = player.pieces[player_king_code].pos
     return (tuple(player_king_position) in mass_movement_zone(player.board, opponent))
 
@@ -80,14 +81,13 @@ def clone_game_and_get_game_state_based_on_move(game, pos, dest):
     Returns (in order): the cloned Game, the cloned Player which made the pos->dest move,
     the opposing cloned opponent Player, and the cloned Board.
     '''
-    # TODO variable names for 'BLACK', 'WHITE' which is used too often...
     game.clone_game()
     game_clone = game.game_clone
     board_clone = game_clone.board
     cur_player_color = board_clone.get_piece(pos=pos).color
-    opponent_color = 'WHITE' if cur_player_color == 'BLACK' else 'BLACK'
+    opponent_color = swap_colors(cur_player_color)
     assert(game_clone.p1.color != game_clone.p2.color)
-    assert(cur_player_color in ['WHITE', 'BLACK'] and opponent_color in ['WHITE', 'BLACK'])
+    assert(cur_player_color in BWSET and opponent_color in BWSET)
     assert(cur_player_color != opponent_color)
     cur_player_clone = convert_color_to_player(game=game_clone, color=cur_player_color)
     opponent_clone = convert_color_to_player(game=game_clone, color=opponent_color)

@@ -1,3 +1,4 @@
+from misc.constants import *
 
 '''
 Helper functions for move legality and error message handling flow.
@@ -11,10 +12,10 @@ def pawn_starting(player: 'Player', piece): # type: ignore
     if piece.rank != 'PAWN':
         raise Exception("Piece needs to be a pawn")
     
-    if piece.color == 'WHITE':
+    if piece.color == WHITE:
         if piece.pos[1] == 2:
             return True
-    elif piece.color == 'BLACK':
+    elif piece.color == BLACK:
         if piece.pos[1] == 7:
             return True
     else:
@@ -31,10 +32,10 @@ def pawn_moving_straight_forward(player, piece, dest):
     if piece.rank != 'PAWN':
         raise Exception("Piece needs to be a pawn")
     
-    if piece.color == 'WHITE':
+    if piece.color == WHITE:
         if piece.pos[0] == dest[0] and piece.pos[1] < dest[1]:
             return True
-    elif piece.color == 'BLACK':
+    elif piece.color == BLACK:
         if piece.pos[0] == dest[0] and piece.pos[1] > dest[1]:
             return True
     else:
@@ -52,10 +53,10 @@ def pawn_moving_diagonal_forward(player, piece, dest):
     
     diagonal_check = (abs(piece.pos[0] - dest[0]) == abs(piece.pos[1] - dest[1])) # same x, y distances
 
-    if piece.color == 'WHITE':
+    if piece.color == WHITE:
         if piece.pos[1] < dest[1] and diagonal_check:
             return True
-    elif piece.color == 'BLACK':
+    elif piece.color == BLACK:
         if piece.pos[1] > dest[1] and diagonal_check:
             return True
     else:
