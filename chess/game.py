@@ -5,6 +5,7 @@ from helpers.general_helpers import algebraic_uniconverter, swap_colors
 from helpers.game_helpers import (clear_terminal, get_error_message, get_special_command, set_error_message, set_special_command, 
                           get_color_in_check, pos_checker, dest_checker, convert_color_to_player)
 from helpers.state_helpers import update_players_check, move_puts_player_in_check, move_locks_opponent
+from movement_zone import get_movement_zone
 from misc.constants import *
 
 '''File contains The Game logic.'''
@@ -102,46 +103,54 @@ class Game:
         if self.winner != None:
             self.render(render_below_board=False)
             if self.winner == 'DRAW':
-                print('Game has ended in a draw through '+str(get_special_command(game=self))) 
+                print('Game has ended in a draw through '+str(get_special_command(game=self))+'.\n') 
                 # assumes get special command was set above as stalemate.
             elif get_special_command(self) == 'forfeited':
                 forfeiter = swap_colors(self.winner)
-                print(str(forfeiter) +' forfeits. '+ str(self.winner)+' wins!')
+                print(str(forfeiter) +' forfeits. '+ str(self.winner)+' wins!\n')
             else:
-                print('Checkmate! '+str(self.winner)+' wins!')
+                print('Checkmate! '+str(self.winner)+' wins!\n')
 
 
-    def make_turn(self) -> bool:
+    def make_turn(self, executing_move=None) -> bool:
         '''
         Method executes the move if its fully legal (in movement zone, and not leaving the movementer in check)
         and after move executation, will update the check status. Also, deals with checkmate/stalemate conditions, and 
         deals with complaining after an illegal move.
         Returns True if turn executes successful move (move legal and not moving into check), otherwise returns False.
+        executing_move: [[x_0, y_0], [x_1, y_1]] which tells make_turn to execute x_0, y_0 -> x_1, y_1 
+        as a move. Said move MUST be movement zone legal (ie found in movement zones, check notwithstanding).
+        Is None otherwise if player move is derived from user input.
         '''
-        pos_example = 'E2 or e2' if self.turn == WHITE else 'E7 or e7'
-        dest_example = 'E4 or e4' if self.turn == WHITE else 'E5 or e5'
-        pos = input('['+str(self.turn)+"\'S TURN] Select piece\'s position (e.g. "+str(pos_example)+"): ")
-        if pos.upper() in special_command_set:
-            set_special_command(game=self, command=pos.upper())
-            return False
-        if not pos_checker(game=self, pos=pos): return False
-        pos = pos[0].upper()+pos[1] # to support lowercase
-        dest = input('['+str(self.turn)+"\'S TURN] Select the destination for "+
-                     str(self.board.get_piece(pos=algebraic_uniconverter(pos)).rank)
-                     +" at "+str(pos)+" (e.g. "+str(dest_example)+"): ")
-        if dest.upper() in special_command_set:
-            set_special_command(game=self, command=dest.upper())
-            return False
-        if not dest_checker(game=self, pos=pos, dest=dest): return False
-        dest = dest[0].upper()+dest[1] # to support lowercase
+        pos, dest = [], [] # temp
+        if executing_move == None:
+            pos_example = 'E2 or e2' if self.turn == WHITE else 'E7 or e7'
+            dest_example = 'E4 or e4' if self.turn == WHITE else 'E5 or e5'
+            pos = input('['+str(self.turn)+"\'S TURN] Select piece\'s position (e.g. "+str(pos_example)+"): ")
+            if pos.upper() in special_command_set:
+                set_special_command(game=self, command=pos.upper())
+                return False
+            if not pos_checker(game=self, pos=pos): return False
+            pos = pos[0].upper()+pos[1] # to support lowercase
+            dest = input('['+str(self.turn)+"\'S TURN] Select the destination for "+
+                        str(self.board.get_piece(pos=algebraic_uniconverter(pos)).rank)
+                        +" at "+str(pos)+" (e.g. "+str(dest_example)+"): ")
+            if dest.upper() in special_command_set:
+                set_special_command(game=self, command=dest.upper())
+                return False
+            if not dest_checker(game=self, pos=pos, dest=dest): return False
+            dest = dest[0].upper()+dest[1] # to support lowercase
+
+            # Now, we update pos, dest into [x, y] form instead of string.
+            pos, dest = algebraic_uniconverter(pos[0].upper()+pos[1]), algebraic_uniconverter(dest[0].upper()+dest[1])
+        else:
+            pos, dest = executing_move[0], executing_move[1] # ie move is given by some nonuser agent.
+
         # So we see pos -> dest is in the movement zone.
         cur_player_color = self.turn
         cur_player = convert_color_to_player(game=self, color=cur_player_color)
         opponent_color = swap_colors(self.turn)
         opponent = convert_color_to_player(game=self, color=opponent_color)
-
-        # Now, we update pos, dest into [x, y] form instead of string.
-        pos, dest = algebraic_uniconverter(pos[0].upper()+pos[1]), algebraic_uniconverter(dest[0].upper()+dest[1])
 
         cur_piece = self.board.get_piece(pos)
         assert(cur_piece != None)
@@ -202,6 +211,17 @@ class Game:
         clone.winner = self.winner # now its okay sine its not a player
         # We don't store any other information about error message state, or special command state.
         self.game_clone = clone
+
+
+    def make_random_move(self):
+        '''
+        Given a game state where it is PLAYER's turn, makes a 
+        randomized move for PLAYER, where moves are drawn
+        from set of all movement zone tiles of PLAYER's pieces. 
+        The move distribution is uniform.
+        '''
+        all_player_moves = set()
+        cur_player = convert_color_to_player(game=self, color=self.turn)
 
 
 

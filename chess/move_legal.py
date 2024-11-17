@@ -46,7 +46,7 @@ def pawn_move_legal(player, pos, dest) -> tuple[bool, str]: # type: ignore
         assert(taxicab_distance == 2)
         diag_piece = player.board.get_piece(pos=dest)
         if diag_piece == None:
-            return False, 'We can only move '+str(player.board.get_piece(pos=pos).rank)+' diagonally via capture!'
+            return False, 'You can only move '+str(player.board.get_piece(pos=pos).rank)+' diagonally via capture!'
         if diag_piece.color == cur_piece.color:
             return False, 'You cannot move to an ally location with your '+str(player.board.get_piece(pos=pos).rank)+'!'
         # Now we know this is a 1 unit diagonally capture of an opposing piece.

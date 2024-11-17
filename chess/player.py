@@ -4,6 +4,7 @@ from misc.constants import *
 from move_legal import pawn_move_legal, rook_move_legal, bishop_move_legal, knight_move_legal, queen_move_legal, king_move_legal
 from helpers.state_helpers import pawn_promotion, update_moved_piece
 from helpers.general_helpers import check_in_bounds, algebraic_uniconverter, convert_letter_to_rank
+from movement_zone import get_movement_zone
 
 '''
 Player who gets to make chess moves.
@@ -160,3 +161,21 @@ class Player:
             clone_piece = piece.clone_piece(player=clone_player)
             cloned_collection[clone_piece.name] = clone_piece
         return cloned_collection
+    
+    def get_all_player_move_options(self):
+        '''
+        Given this Player, returns the list of all legal moves
+        said player can make with its pieces, where legal moves are represented by
+        [[x_0, y_0], [x_1, y_1]] objects, which refer to a legal move 
+        x_0, y_0 -> x_1, y_1
+        '''
+        all_player_moves = []
+
+        for piece in self.pieces.values(): # opponent piece
+            piece_pos = piece.pos # recall this is [x, y] in [1-8, 1-8]
+            piece_movement_zone = get_movement_zone(board=self.board, piece=piece) # recall this is set of ordered pair tuples.
+            for piece_dest in piece_movement_zone:
+                arr_piece_dest = list(piece_dest) # this converts dest into [x, y]
+                all_player_moves.append([piece_pos, arr_piece_dest])
+
+        return all_player_moves

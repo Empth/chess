@@ -61,16 +61,13 @@ def move_locks_opponent(game, pos, dest) -> bool:
     '''
     # These cloned states have made the pos->dest move by cur_player
     (game_clone, _, 
-     opponent_clone, board_clone) = clone_game_and_get_game_state_based_on_move(game, pos, dest)
-    for op_piece in opponent_clone.pieces.values(): # opponent piece
-        arr_op_piece_pos = op_piece.pos # recall this is [x, y] in [1-8, 1-8]
-        op_piece_movement_zone = get_movement_zone(board=board_clone, piece=op_piece) # recall this is set of ordered pair tuples.
-        for op_piece_dest in op_piece_movement_zone:
-            arr_op_piece_dest = list(op_piece_dest) # this converts dest into [x, y]
-            assert(opponent_clone.move_legal(arr_op_piece_pos, arr_op_piece_dest))
-            if not move_puts_player_in_check(game_clone, arr_op_piece_pos, arr_op_piece_dest): 
-                # ^ this method puts a clone inside of the clone, so it doesn't modify clone's state.
-                return False
+     opponent_clone, _) = clone_game_and_get_game_state_based_on_move(game, pos, dest)
+    for legal_move in opponent_clone.get_all_player_move_options(): # Note legal_move is [[x_0, y_0], [x_1, y_1]]
+        op_pos, op_dest = legal_move[0], legal_move[1]
+        assert(opponent_clone.move_legal(op_pos, op_dest))
+        if not move_puts_player_in_check(game_clone, op_pos, op_dest): 
+            # ^ this method puts a clone inside of the clone, so it doesn't modify this clone's state.
+            return False
     return True
 
 def clone_game_and_get_game_state_based_on_move(game, pos, dest):
@@ -96,6 +93,7 @@ def clone_game_and_get_game_state_based_on_move(game, pos, dest):
     cur_player_clone.make_move(pos, dest)
 
     return game_clone, cur_player_clone, opponent_clone, board_clone
+
 
 
 
