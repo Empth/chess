@@ -89,7 +89,7 @@ def get_error_message(game):
     '''
     Prints error message from error_message, resets error message, and set show_error off.
     '''
-    print(game.error_message)
+    print(str(game.error_message)+'\n')
     game.error_message = ''
     game.show_error = False
 
@@ -112,28 +112,18 @@ def get_special_command(game) -> str:
     game.exists_command = False
     return command
 
-def check_winner_king_condition(game) -> bool:
+def get_color_in_check(game) -> str:
     '''
-    DEPRECATED
-    Checks if a player is missing their king. If so, then the other player is
-    declared the winner of the match, by updating winner. At least one player should have their king.
-    Boolean is if winner was found (True) or not.
+    If one of the players is in check, returns the color of player
+    that is in check. If no player is in check, return ''.
+    It should not be possible for both players to be in check.
+    (as this means prev player did not leave check)
     '''
-    p1_has_king = False
-    p2_has_king = False
-    p1_collection = game.p1.pieces
-    p2_collection = game.p2.pieces
-    for key in p1_collection:
-        if p1_collection[key].rank == 'KING':
-            p1_has_king = True
-    for key in p2_collection:
-        if p2_collection[key].rank == 'KING':
-            p2_has_king = True
-    assert(p1_has_king or p2_has_king)
-    if not p1_has_king:
-        game.winner = game.p2
-        return True
-    if not p2_has_king:
-        game.winner = game.p1
-        return True
-    return False
+    p1_check = game.p1.in_check
+    p2_check = game.p2.in_check
+    assert(not (p1_check and p2_check))
+    if p1_check:
+        return game.p1.color
+    if p2_check:
+        return game.p2.color
+    return ''

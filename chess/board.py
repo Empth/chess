@@ -110,7 +110,7 @@ class Board:
                     cur_string += '[' + cur_piece.visual + ' ] '
             cur_string += '\n\n'
             string += cur_string
-        string += '    Aa   Bb   Cc   Dd   Ee   Ff   Gg   Hh   \n\n'
+        string += '    Aa   Bb   Cc   Dd   Ee   Ff   Gg   Hh   \n'
         return string
 
 

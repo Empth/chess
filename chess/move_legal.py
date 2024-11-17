@@ -22,9 +22,9 @@ def pawn_move_legal(player, pos, dest) -> tuple[bool, str]: # type: ignore
 
     if pawn_moving_straight_forward(player=player, piece=cur_piece, dest=dest):
         if taxicab_distance > 2:
-            return False, str(player.board.get_piece(pos=pos).rank)+' is moving too far straight'
+            return False, str(player.board.get_piece(pos=pos).rank)+' is moving too far straight!'
         if taxicab_distance == 2 and not pawn_starting(player=player, piece=cur_piece):
-            return False, 'Cannot move a nonstarting '+str(player.board.get_piece(pos=pos).rank)+' 2 units forward'
+            return False, 'Cannot move a nonstarting '+str(player.board.get_piece(pos=pos).rank)+' 2 units forward!'
         
         # Now pawn must be moving either 2 units forward at starting
         # or 1 unit forward generally

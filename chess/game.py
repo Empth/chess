@@ -3,7 +3,7 @@ from board import Board
 from debug import Debug
 from helpers.general_helpers import algebraic_uniconverter, swap_colors
 from helpers.game_helpers import (clear_terminal, get_error_message, get_special_command, set_error_message, set_special_command, 
-                          check_winner_king_condition, pos_checker, dest_checker, convert_color_to_player)
+                          get_color_in_check, pos_checker, dest_checker, convert_color_to_player)
 from helpers.state_helpers import update_players_check, move_puts_player_in_check, move_locks_opponent
 from misc.constants import *
 
@@ -45,10 +45,14 @@ class Game:
             print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT')
             if self.show_error: 
                 get_error_message(game=self)
-                print('\n')
             else:
-                print('\n\n')
+                print('\n')
+            color_in_check = get_color_in_check(self)
             print(str(self.board))
+            if color_in_check in BWSET: # some player is in check
+                print(str(color_in_check)+' is in check!\n')
+            else:
+                print('No player is in check.\n')
             turn_success = self.make_turn()
             win_con = (self.special_command in mate_special_command_set) 
             # ^ probably bad to not use the getter... but I don't want special_cmd reset
@@ -68,13 +72,15 @@ class Game:
                     self.winner = self.turn
                     break
                 if command == 'stalemate':
+                    set_special_command(self, "stalemate")
                     self.winner = 'DRAW'
                     break
                 if command == 'PAUSE':
-                    break
+                    break # TODO not implemented
                 if command == 'EXIT':
                     self.reset()
-                    break
+                    clear_terminal()
+                    return
                 if command == 'FORFEIT':
                     self.winner = swap_colors(self.turn) # as opposing player color wins
                     set_special_command(self, "forfeited") # hack for forfeit win message
@@ -89,13 +95,13 @@ class Game:
 
         clear_terminal() # clear terminal at end
 
-        print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT') # boilerplate
-        print('\n\n')
-
+        print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT') # boilerplate again
+        print('\n')
         if self.winner != None:
             print(str(self.board)) # Present the final board
             if self.winner == 'DRAW':
-                print('Game has ended in a draw through '+str(get_special_command(game=self))) # TODO assumes get special command wont clear.
+                print('Game has ended in a draw through '+str(get_special_command(game=self))) 
+                # assumes get special command was set above as stalemate.
             elif get_special_command(self) == 'forfeited':
                 forfeiter = swap_colors(self.winner)
                 print(str(forfeiter) +' forfeits. '+ str(self.winner)+' wins!')
@@ -135,6 +141,24 @@ class Game:
         # Now, we update pos, dest into [x, y] form instead of string.
         pos, dest = algebraic_uniconverter(pos[0].upper()+pos[1]), algebraic_uniconverter(dest[0].upper()+dest[1])
 
+        cur_piece = self.board.get_piece(pos)
+        assert(cur_piece != None)
+
+        # Now checking if pos -> dest places said movementer's king in check
+        # (and thus would be invalid). Perfect time to use __clone_game!
+        puts_cur_player_in_check = move_puts_player_in_check(game=self, 
+                                                             pos=pos, 
+                                                             dest=dest) # only modifies self's game_clone param.
+        if puts_cur_player_in_check:
+            if cur_player.in_check:
+                if cur_piece.rank == 'KING': # our move into check move is moving king, while king is already in check
+                    set_error_message(game=self, message='This move is not legal as your KING would still be in check!')
+                else:
+                    set_error_message(game=self, message='This move is not legal as it leaves your KING in check!')
+            else:
+                set_error_message(game=self, message='This move is not legal as it puts your KING into check!')
+            return False
+        
         # Now we check to see if this pos->dest move places the opponent into checkmate or stalemate,
         # in that all of the opponent's subsequent possible moves leads to their king's capture.
 
@@ -152,17 +176,8 @@ class Game:
             else:
                 set_special_command(game=self, command='stalemate')
                 return True
-
-        # Now checking if pos -> dest places said movementer's king in check 
-        # (and thus is invalid). Perfect time to use __clone_game!
-        puts_cur_player_in_check = move_puts_player_in_check(game=self, 
-                                                             pos=pos, 
-                                                             dest=dest) # only modifies self's game_clone param.
-        if puts_cur_player_in_check:
-            set_error_message(game=self, message='This move puts your KING into check!')
-            return False
         
-        # Move of pos -> dest is legal, now make the move
+        # Move of pos -> dest is fully legal (albeit doesn't terminate the game), now make the move
         cur_player.make_move(pos, dest)
         update_players_check(game=self)
         return True

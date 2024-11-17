@@ -10,7 +10,7 @@ def pawn_starting(player: 'Player', piece): # type: ignore
     '''
 
     if piece.rank != 'PAWN':
-        raise Exception("Piece needs to be a pawn")
+        raise Exception("Piece needs to be a pawn!")
     
     if piece.color == WHITE:
         if piece.pos[1] == 2:
@@ -19,7 +19,7 @@ def pawn_starting(player: 'Player', piece): # type: ignore
         if piece.pos[1] == 7:
             return True
     else:
-        raise Exception("Piece needs to have a B/W color")
+        raise Exception("Piece needs to have a B/W color!")
 
     return False
 
@@ -30,7 +30,7 @@ def pawn_moving_straight_forward(player, piece, dest):
     '''
 
     if piece.rank != 'PAWN':
-        raise Exception("Piece needs to be a pawn")
+        raise Exception("Piece needs to be a pawn!")
     
     if piece.color == WHITE:
         if piece.pos[0] == dest[0] and piece.pos[1] < dest[1]:
@@ -39,7 +39,7 @@ def pawn_moving_straight_forward(player, piece, dest):
         if piece.pos[0] == dest[0] and piece.pos[1] > dest[1]:
             return True
     else:
-        raise Exception("Piece needs to have a B/W color")
+        raise Exception("Piece needs to have a B/W color!")
 
     return False
 
@@ -49,7 +49,7 @@ def pawn_moving_diagonal_forward(player, piece, dest):
     '''
 
     if piece.rank != 'PAWN':
-        raise Exception("Piece needs to be a pawn")
+        raise Exception("Piece needs to be a pawn!")
     
     diagonal_check = (abs(piece.pos[0] - dest[0]) == abs(piece.pos[1] - dest[1])) # same x, y distances
 
@@ -60,7 +60,7 @@ def pawn_moving_diagonal_forward(player, piece, dest):
         if piece.pos[1] > dest[1] and diagonal_check:
             return True
     else:
-        raise Exception("Piece needs to have a B/W color")
+        raise Exception("Piece needs to have a B/W color!")
 
     return False
 
