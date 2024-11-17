@@ -1,3 +1,4 @@
+import random
 from player import Player
 from board import Board
 from debug import Debug
@@ -10,7 +11,7 @@ from misc.constants import *
 
 '''File contains The Game logic.'''
 
-special_command_set = set(['PAUSE', 'EXIT', 'RESELECT', 'FORFEIT'])
+special_command_set = set(['PAUSE', 'EXIT', 'RESELECT', 'FORFEIT', 'RANDOM', 'R'])
 mate_special_command_set = set(['checkmate', 'stalemate'])
 
 class Game:
@@ -48,7 +49,7 @@ class Game:
         render_below_board: If we render in_check below board.
         '''
         clear_terminal()
-        print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT')
+        print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT, RANDOM (or R)')
         if self.show_error: 
             get_error_message(game=self)
         else:
@@ -64,7 +65,7 @@ class Game:
 
     def start(self):
         '''
-        Starts a new game, or continues an existing game if it was paused. TODO I didn't do pause
+        Starts a new game, or continues an existing game if it was paused. TODO I didn't implement pause
         '''
 
         while self.winner == None:
@@ -73,7 +74,7 @@ class Game:
             win_con = (self.special_command in mate_special_command_set) 
             # ^ probably bad to not use the getter... but I don't want special_cmd reset
             if turn_success and not win_con:
-                # ie mate_special... means not checkmate or stalemate.
+                # not win_con means its not checkmate or stalemate.
                 self.turn = swap_colors(self.turn) # swaps turn to the next color.
 
             if self.exists_command:
@@ -97,6 +98,9 @@ class Game:
                     break
                 if command == 'RESELECT':
                     clear_terminal()
+                    continue
+                if command == 'RANDOM' or command == 'R':
+                    self.make_random_move()
                     continue
 
 
@@ -218,10 +222,30 @@ class Game:
         Given a game state where it is PLAYER's turn, makes a 
         randomized move for PLAYER, where moves are drawn
         from set of all movement zone tiles of PLAYER's pieces. 
-        The move distribution is uniform.
+        The move distribution is uniform. 
+        This method will take up PLAYER's turn.
         '''
         all_player_moves = set()
         cur_player = convert_color_to_player(game=self, color=self.turn)
+        all_player_moves = cur_player.get_all_player_move_options()
+        n = len(all_player_moves)
+        indices = list(range(n)) # indices to be shuffled
+        random.shuffle(indices)
+        for idx in indices:
+            executing_move = all_player_moves[idx]
+            move_taken = self.make_turn(executing_move) # may or may not be valid (based on check conditions)
+            if move_taken:
+                set_error_message(game=self, message='')
+                get_error_message(self) # hopefully this resets error messaging popping up due to using make_turn
+                self.turn = swap_colors(self.turn) # Successful move hence switch turns.
+                return
+            
+
+        assert(False) # we shouldn't be able to reach here, as this implies cur_player has no possible moves left that
+                    # takes it out of check, but this means cur_player should be in stalemate or checkmate.
+
+
+
 
 
 

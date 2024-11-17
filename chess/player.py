@@ -172,10 +172,11 @@ class Player:
         all_player_moves = []
 
         for piece in self.pieces.values(): # opponent piece
-            piece_pos = piece.pos # recall this is [x, y] in [1-8, 1-8]
+            piece_pos_arr = piece.pos # recall this is [x, y] in [1-8, 1-8]
             piece_movement_zone = get_movement_zone(board=self.board, piece=piece) # recall this is set of ordered pair tuples.
             for piece_dest in piece_movement_zone:
-                arr_piece_dest = list(piece_dest) # this converts dest into [x, y]
-                all_player_moves.append([piece_pos, arr_piece_dest])
+                piece_dest_arr = list(piece_dest) # this converts dest into [x, y]
+                assert(self.move_legal(piece_pos_arr, piece_dest_arr)) # type: ignore TODO how do they know its always true?
+                all_player_moves.append([piece_pos_arr, piece_dest_arr])
 
         return all_player_moves
