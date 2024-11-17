@@ -32,27 +32,42 @@ class Game:
 
 
     def reset(self):
+        '''
+        Resets game state to a blank slate.
+        '''
         self.__init__()
 
 
-    def start(self):
+    def render(self, render_below_board=True):
         '''
-        Starts a new game, or continues an existing game if it was paused.
+        Renders the game visuals, minus input text which must be handled outside.
+        All previous rendered visuals in the terminal are erased.
+        In order: Special Command shortcut list, error message slot, board, 
+        (and optionally) in_check message slot, based off if render below_board is True
+        render_below_board: If we render in_check below board.
         '''
-
         clear_terminal()
-        while self.winner == None:
-            print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT')
-            if self.show_error: 
-                get_error_message(game=self)
-            else:
-                print('\n')
+        print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT')
+        if self.show_error: 
+            get_error_message(game=self)
+        else:
+            print('\n')
+        print(str(self.board))
+        if render_below_board:
             color_in_check = get_color_in_check(self)
-            print(str(self.board))
             if color_in_check in BWSET: # some player is in check
                 print(str(color_in_check)+' is in check!\n')
             else:
                 print('No player is in check.\n')
+
+
+    def start(self):
+        '''
+        Starts a new game, or continues an existing game if it was paused. TODO I didn't do pause
+        '''
+
+        while self.winner == None:
+            self.render()
             turn_success = self.make_turn()
             win_con = (self.special_command in mate_special_command_set) 
             # ^ probably bad to not use the getter... but I don't want special_cmd reset
@@ -60,12 +75,6 @@ class Game:
                 # ie mate_special... means not checkmate or stalemate.
                 self.turn = swap_colors(self.turn) # swaps turn to the next color.
 
-            '''
-            # comment this out for now in favor of checkmate win condition
-            winner_found = check_winner_king_condition(game=self)
-            if not winner_found:
-                clear_terminal()
-            '''
             if self.exists_command:
                 command = get_special_command(game=self)
                 if command == 'checkmate':
@@ -89,16 +98,9 @@ class Game:
                     clear_terminal()
                     continue
 
-            clear_terminal()
-            # and loop repeats
 
-
-        clear_terminal() # clear terminal at end
-
-        print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT') # boilerplate again
-        print('\n')
         if self.winner != None:
-            print(str(self.board)) # Present the final board
+            self.render(render_below_board=False)
             if self.winner == 'DRAW':
                 print('Game has ended in a draw through '+str(get_special_command(game=self))) 
                 # assumes get special command was set above as stalemate.
