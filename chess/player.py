@@ -24,6 +24,7 @@ class Player:
             self.collect_pieces(debug=debug) 
             self.set_pieces_on_board()
         self.in_check = False # whether Player's king is in check or not. 
+        self.king = self.get_king() # points towards a player's singular king object, or None if it doesn't exist on player init.
 
         
     def collect_pieces(self, debug=None):
@@ -56,6 +57,16 @@ class Player:
         '''
         for piece in self.pieces.values():
             self.board.add_or_replace_piece(pos=piece.pos, piece=piece)
+
+
+    def get_king(self):
+        '''
+        Retrieves KING piece of this player to return.
+        '''
+        for piece in self.pieces.values():
+            if piece.rank == 'KING':
+                return piece
+        return None
 
 
     def make_move(self, pos, dest):
@@ -144,11 +155,15 @@ class Player:
     def clone_player(self, board: Board):
         '''
         Returns a deep copy clone of this player, including its pieces and board state.
+        Required that both players have their kings.
         '''
         clone = Player(color=self.color, board=board, is_clone=True)
         clone.pieces = self.clone_player_pieces(clone_player=clone)
         clone.set_pieces_on_board() # updates board param for clone, which is also board param for higher up Game.
         clone.in_check = self.in_check
+        clone.king = clone.get_king()
+        assert(clone.king != None)
+        assert(clone.king.rank == 'KING')
         return clone
     
     def clone_player_pieces(self, clone_player):

@@ -40,9 +40,10 @@ def player_in_check(player, opponent) -> bool:
     assert(player.color != opponent.color)
     #print(player.pieces.keys())
     #print(opponent.pieces.keys())
-    player_king_code = 'K-E1' if player.color == WHITE else 'K-E8'
-    player_king_position = player.pieces[player_king_code].pos
-    return (tuple(player_king_position) in mass_movement_zone(player.board, opponent))
+    player_king = player.king
+    if player_king == None:
+        return False # There is no king, hence there is no check condition. Mainly for tests with debug state.
+    return (tuple(player_king.pos) in mass_movement_zone(player.board, opponent))
 
 def move_puts_player_in_check(game, pos, dest) -> bool:
     '''
