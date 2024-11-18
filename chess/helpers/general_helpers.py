@@ -142,3 +142,25 @@ def swap_colors(color):
     assert(color in BWSET)
     return_color = WHITE if color == BLACK else BLACK
     return return_color
+
+
+def in_between_hori_tiles(pos_1, pos_2, exclude_left=True, exclude_right=True):
+    '''
+    Given two tiles pos_1, pos_2, which must be vertically aligned, 
+    returns an unordered array of all [x, y] (in [1-8, 1-8]) positions which
+    are horizontally between pos_1, pos_2. 
+    This returned collection excludes the l/r endpoint tiles of pos_1, pos_2 by default.
+    '''
+    assert(pos_1[1] == pos_2[1])
+    y = pos_1[1]
+    end_pts = sorted([pos_1[0], pos_2[0]])
+    a, b = end_pts[0], end_pts[1] # a <= b
+    return_arr = []
+    for i in range(a+1, b):
+        return_arr.append([i, y])
+    if not exclude_left:
+        return_arr.append([a, y])
+    if not exclude_right:
+        return_arr.append([b, y])
+    return return_arr
+

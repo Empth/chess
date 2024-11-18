@@ -48,7 +48,7 @@ def player_in_check(player, opponent) -> bool:
 def move_puts_player_in_check(game, pos, dest) -> bool:
     '''
     For player with piece on pos, returns boolean on whether its own pos->dest
-    (must be movement zone legal) move puts its king into check.
+    (must be movement zone legal) move will have its king in check or not.
     Updates game's game_clone state with the hypothetical game.
     '''
     _, cur_player_clone, opponent_clone, _ = clone_game_and_get_game_state_based_on_move(game, pos, dest)
@@ -92,9 +92,57 @@ def clone_game_and_get_game_state_based_on_move(game, pos, dest):
     assert(cur_player_clone.color == cur_player_color and opponent_clone.color == opponent_color)
     assert(cur_player_clone.move_legal(pos, dest))
     cur_player_clone.make_move(pos, dest)
+    update_players_check(game_clone) 
+    # FIXME ^ smells because we have to update player's check outside of make_move() being called every time, which
+    # will lead to bugs. Refactor this please, maybe the fix is having Players refer to game..., due to make_move()
+    # being called from Player, this has its own can of worms however...
 
     return game_clone, cur_player_clone, opponent_clone, board_clone
 
+
+def castle_locks_opponent(game, player, opponent, side) -> bool:
+    '''
+    Returns True if the castling move made by a player locks its opponent into a
+    position where any subsequent move it takes leads to its king being captured. False otherwise.
+    Modifies game's game_clone state with all of the hypothetical states.
+    side: 'QUEEN' or 'KING'
+    '''
+    assert(side in ['KING', 'QUEEN'])
+    (game_clone, _, 
+     opponent_clone, _) = clone_game_and_get_game_state_based_on_castle(game, player, side)
+    for legal_move in opponent_clone.get_all_player_move_options(): # Note legal_move is [[x_0, y_0], [x_1, y_1]]
+        op_pos, op_dest = legal_move[0], legal_move[1]
+        assert(opponent_clone.move_legal(op_pos, op_dest))
+        if not move_puts_player_in_check(game_clone, op_pos, op_dest): 
+            # ^ this method puts a clone inside of the clone, so it doesn't modify this clone's state.
+            return False
+    return True
+
+
+def clone_game_and_get_game_state_based_on_castle(game, player, side):
+    '''
+    Like clone_game_and_get_game_state_based_on_move but we do a castle instead.
+    '''
+    assert(side in ['KING', 'QUEEN'])
+    game.clone_game()
+    game_clone = game.game_clone
+    board_clone = game_clone.board
+    cur_player_color = player.color
+    opponent_color = swap_colors(cur_player_color)
+    assert(game_clone.p1.color != game_clone.p2.color)
+    assert(cur_player_color in BWSET and opponent_color in BWSET)
+    assert(cur_player_color != opponent_color)
+    cur_player_clone = convert_color_to_player(game=game_clone, color=cur_player_color)
+    opponent_clone = convert_color_to_player(game=game_clone, color=opponent_color)
+    assert(cur_player_clone.color == cur_player_color and opponent_clone.color == opponent_color)
+    assert(cur_player_clone.castle_legal(side, opponent_clone))
+    cur_player_clone.castle(side, opponent_clone)
+    update_players_check(game_clone) 
+    # FIXME ^ smells because we have to update player's check outside of make_move() being called every time, which
+    # will lead to bugs. Refactor this please, maybe the fix is having Players refer to game..., due to make_move()
+    # being called from Player, this has its own can of worms however...
+
+    return game_clone, cur_player_clone, opponent_clone, board_clone
 
 
 

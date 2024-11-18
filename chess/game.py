@@ -5,13 +5,13 @@ from debug import Debug
 from helpers.general_helpers import algebraic_uniconverter, swap_colors
 from helpers.game_helpers import (clear_terminal, get_error_message, get_special_command, set_error_message, set_special_command, 
                           get_color_in_check, pos_checker, dest_checker, convert_color_to_player)
-from helpers.state_helpers import update_players_check, move_puts_player_in_check, move_locks_opponent
+from helpers.state_helpers import update_players_check, move_puts_player_in_check, move_locks_opponent, castle_locks_opponent
 from movement_zone import get_movement_zone
 from misc.constants import *
 
 '''File contains The Game logic.'''
 
-special_command_set = set(['PAUSE', 'EXIT', 'RESELECT', 'FORFEIT', 'RANDOM', 'R'])
+special_command_set = set(['PAUSE', 'EXIT', 'RESELECT', 'FORFEIT', 'RANDOM', 'R', 'KC', 'QC'])
 mate_special_command_set = set(['checkmate', 'stalemate'])
 
 class Game:
@@ -49,7 +49,7 @@ class Game:
         render_below_board: If we render in_check below board.
         '''
         clear_terminal()
-        print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT, RANDOM (or R)')
+        print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT, RANDOM (or R), QC or KC (to castle)')
         if self.show_error: 
             get_error_message(game=self)
         else:
@@ -72,7 +72,7 @@ class Game:
             self.render()
             turn_success = self.make_turn()
             win_con = (self.special_command in mate_special_command_set) 
-            # ^ probably bad to not use the getter... but I don't want special_cmd reset
+            # ^ big god variable antipattern. I need to refactor this whole damn thing.
             if turn_success and not win_con:
                 # not win_con means its not checkmate or stalemate.
                 self.turn = swap_colors(self.turn) # swaps turn to the next color.
@@ -102,6 +102,10 @@ class Game:
                 if command == 'RANDOM' or command == 'R':
                     self.make_random_move()
                     continue
+                if command == 'KC' or command == 'QC':
+                    side = 'KING' if command[0] == 'K' else 'QUEEN'
+                    self.make_castle_move(side=side)
+                    print('hi')
 
 
         if self.winner != None:
@@ -177,8 +181,8 @@ class Game:
         # Now we check to see if this pos->dest move places the opponent into checkmate or stalemate,
         # in that all of the opponent's subsequent possible moves leads to their king's capture.
 
-        locks_opponent = move_locks_opponent(game=self, pos=pos, dest=dest)
-        if locks_opponent:
+        locks_opponent = move_locks_opponent(game=self, pos=pos, dest=dest) # TODO make into its own method
+        if locks_opponent: 
             # now need to check if this lock leads to checkmate or stalemate.
             # its okay to make pos->dest move now since the game is basically over.
             cur_player.make_move(pos, dest)
@@ -197,13 +201,52 @@ class Game:
         update_players_check(game=self)
         return True
     
+    def make_castle_move(self, side) -> bool:
+        '''
+        Like make_turn, but for castling on 'side' and doesn't ask for user input. 
+        Will return True and execute if the 'side' castle is legal for the current player's turn,
+        otherwise will return False and throw the appropriate error message.
+        side: 'KING' or 'QUEEN'
+        '''
+        cur_player_color = self.turn
+        cur_player = convert_color_to_player(game=self, color=cur_player_color)
+        opponent_color = swap_colors(self.turn)
+        opponent = convert_color_to_player(game=self, color=opponent_color)
+        castle_legal, error_message = cur_player.castle_legal(side, opponent)
+        if not castle_legal:
+            set_error_message(game=self, message=error_message)
+            return False
+        # castle on this side is legal. Perform the castle.
+        # Case to check if this leads to checkmate or stalemate # TODO make into its own method
+        locks_opponent = castle_locks_opponent(game=self, player=cur_player, 
+                                               opponent=opponent, side=side)
+        if locks_opponent:
+            # now need to check if this lock leads to checkmate or stalemate.
+            # its okay to make pos->dest move now since the game is basically over.
+            cur_player.castle(side, opponent)
+            update_players_check(game=self) # FIXME This update_check always being coupling with execute_move but being handled outside seems to smell
+            if opponent.in_check:
+                # setting nonuppercased special commands is a hack to overload the win/draw conditions
+                # into these existing special command methods.
+                set_special_command(game=self, command='checkmate')
+                return True
+            else:
+                set_special_command(game=self, command='stalemate')
+                return True
+        cur_player.castle(side, opponent)
+        update_players_check(game=self)
+        self.turn = swap_colors(self.turn) # FIXME, that I have to call this everytime may make maintenance a pain
+                                            # ^ Refactor this to execute in the main game loop.
+        return True
+    
 
     def clone_game(self):
         '''
         Creates an seperate deep copy of this game instance, and has game_clone param point to
         the deep copy. In the game clone, any modification of player, board, piece state 
         should not effect the state of this current game.
-        This method should not be used outside of internal logic, ie in_check methods and tree search. 
+        This method should not be used outside of internal logic, ie 
+        only should be used for in_check or similar methods and tree search. 
         '''
         clone = Game()
         clone.board = Board()
@@ -234,6 +277,10 @@ class Game:
         for idx in indices:
             executing_move = all_player_moves[idx]
             move_taken = self.make_turn(executing_move) # may or may not be valid (based on check conditions)
+            # FIXME There seems to be a bug where upon reaching checkmate, make_turn() from this function doesn't deliver the
+            # checkmate special message. This leads to the assert(False) at the bottom being reached, which should not be
+            # possible. Try debugging this through loading the snipped game config before the error, but just before the queen 
+            # moves adjacent to the black king.
             if move_taken:
                 set_error_message(game=self, message='')
                 get_error_message(self) # hopefully this resets error messaging popping up due to using make_turn
@@ -243,6 +290,8 @@ class Game:
 
         assert(False) # we shouldn't be able to reach here, as this implies cur_player has no possible moves left that
                     # takes it out of check, but this means cur_player should be in stalemate or checkmate.
+
+        # TODO Also try castling as an option.
 
 
 

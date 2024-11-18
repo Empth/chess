@@ -3,8 +3,9 @@ from board import Board
 from misc.constants import *
 from move_legal import pawn_move_legal, rook_move_legal, bishop_move_legal, knight_move_legal, queen_move_legal, king_move_legal
 from helpers.state_helpers import pawn_promotion, update_moved_piece
-from helpers.general_helpers import check_in_bounds, algebraic_uniconverter, convert_letter_to_rank
-from movement_zone import get_movement_zone
+from helpers.general_helpers import check_in_bounds, algebraic_uniconverter, convert_letter_to_rank, in_between_hori_tiles, swap_colors
+from helpers.game_helpers import convert_color_to_player
+from movement_zone import get_movement_zone, mass_movement_zone
 
 '''
 Player who gets to make chess moves.
@@ -76,7 +77,7 @@ class Player:
         Function will handle pawn promotion, and update the 'moved' parameter of
         the moved piece, if it has moved.
         '''
-        legality, message = self.move_legal(pos=pos, dest=dest)
+        legality, _ = self.move_legal(pos=pos, dest=dest)
         if legality:
             moving_piece = self.board.get_piece(pos)
             self.board.move_piece(pos=dest, piece=moving_piece)
@@ -84,7 +85,6 @@ class Player:
             assert(moving_piece.pos == dest)
             update_moved_piece(piece=moving_piece)
         else:
-            print(message)
             return
 
     def move_legal(self, pos, dest) -> tuple[bool, str]:
@@ -195,3 +195,88 @@ class Player:
                 all_player_moves.append([piece_pos_arr, piece_dest_arr])
 
         return all_player_moves
+    
+
+    def castle_legal(self, side, opponent) -> tuple[bool, str]:
+        '''
+        Returns boolean value, error message on if castle on king/queen's side for this player
+        is legal.
+        side: 'KING' or 'QUEEN'
+        opponent: Player that opposes current player.
+
+        Right now doesn't work outside of standard position chess.
+        Thus, its required for this method that all pieces are in their standard positions, 
+        and espeicially the case that Rooks go by their key code names (eg R-A1, R-H1 for WHITE).
+        Also required that KING exists for this player.
+        '''
+        assert(side in ['KING', 'QUEEN'])
+        assert(self.king != None)
+        if self.king.moved:
+            return False, 'Cannot castle as KING has already moved!'
+        rook_code = 'R-A' if side == 'QUEEN' else 'R-H'
+        rook_code = rook_code + str(self.king.pos[1])
+        if rook_code not in self.pieces:
+            return False, 'Cannot castle on '+str(side)+'-side as this side\'s ROOK does not exist!'
+        rook = self.pieces[rook_code]
+        assert(rook != None)
+        if rook.moved:
+            return False, 'Cannot castle here as the '+str(side)+'-side ROOK has already moved!'
+        assert(self.king.pos[1] == rook.pos[1]) # must hold for standard position chess where king, rook haven't moved
+        in_between_tiles = in_between_hori_tiles(pos_1=self.king.pos, pos_2=rook.pos) # exclude king, rook endpoints
+        # ^ is [[x, y],...]
+        for tile in in_between_tiles:
+            if self.board.piece_exists(tile):
+                return False, 'Cannot castle on '+str(side)+'-side as piece(s) exist between your KING and ROOK!'
+        if self.in_check:
+            return False, 'Cannot castle when your KING is in check!'
+        
+        enemy_movement_zone = mass_movement_zone(self.board, opponent) # enemy mass movement zone, recall, it's set of (x, y)
+        unit_offset = 1 if side == 'KING' else -1
+        tile_to_land_on = [self.king.pos[0]+2*unit_offset, self.king.pos[1]] # KING would land on it from castling
+        if tuple(tile_to_land_on) in enemy_movement_zone:
+            return False, ('Cannot castle on '+str(side)+'-side as you would be landing on tile \n'
+                           +str(tile_to_land_on)+', which is in attack by an enemy piece, and thus put yourself in check!')
+        tile_to_cross_over = [self.king.pos[0]+unit_offset, self.king.pos[1]]
+        if tuple(tile_to_cross_over) in enemy_movement_zone:
+            return False, ('Cannot castle on '+str(side)+'-side as you would be crossing over tile \n'
+                           +str(tile_to_cross_over)+', which is in attack by an enemy piece!')
+        
+        # Now castling is probably legal
+        
+        return True, ''
+    
+
+    def castle(self, side, opponent):
+        '''
+        This makes the player perform a castle on KING/QUEEN side,
+        if castling on that side is legal.
+        This function will update the 'moved' parameter of
+        the moved KING and ROOK, if castling is performed.
+        side: 'KING' or 'QUEEN'
+        opponent: Player that opposes current player.
+        '''
+        assert(side in ['KING', 'QUEEN'])
+        legality, _ = self.castle_legal(side, opponent)
+        if legality:
+
+            # move KING first
+            king = self.king
+            assert(king != None)
+            base_row = king.pos[1] # generally 1 if player is WHITE, 8 if BLACK
+            unit_offset = 1 if side == 'KING' else -1
+            tile_to_land_on = [king.pos[0]+2*unit_offset, base_row] # KING moves two units in 'side' dir
+            crossed_tile = [king.pos[0]+unit_offset, base_row] # Tile that KING will cross, 
+                                                            # must set this before king moves
+            self.board.move_piece(pos=tile_to_land_on, piece=king)
+            update_moved_piece(piece=king)
+            # FIXME ^ Also maybe too coupled but always executed only outside smell
+
+            # Next move ROOK to the tile that KING crossed over.
+            rook_code = 'R-A' if side == 'QUEEN' else 'R-H'
+            rook_code = rook_code + str(base_row)
+            # this rook on 'side' must exist as legality is True
+            rook = self.pieces[rook_code]
+            self.board.move_piece(pos=crossed_tile, piece=rook)
+            update_moved_piece(piece=rook)
+        else:
+            return
