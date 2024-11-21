@@ -57,7 +57,7 @@ def dest_checker(game, pos, dest) -> bool:
         return False
     dest = dest[0].upper()+dest[1]
     cur_player = convert_color_to_player(game=game, color=game.turn)
-    move_legal, move_legal_message = cur_player.move_legal(pos=algebraic_uniconverter(pos), 
+    move_legal, move_legal_message = cur_player.non_bool_move_legal(pos=algebraic_uniconverter(pos), 
                                                             dest=algebraic_uniconverter(dest))
     if not move_legal:
         set_error_message(game, move_legal_message)

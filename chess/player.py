@@ -77,7 +77,7 @@ class Player:
         Function will handle pawn promotion, and update the 'moved' parameter of
         the moved piece, if it has moved.
         '''
-        legality, _ = self.move_legal(pos=pos, dest=dest)
+        legality, _ = self.non_bool_move_legal(pos=pos, dest=dest)
         if legality:
             moving_piece = self.board.get_piece(pos)
             self.board.move_piece(pos=dest, piece=moving_piece)
@@ -87,13 +87,15 @@ class Player:
         else:
             return
 
-    def move_legal(self, pos, dest) -> tuple[bool, str]:
+    def non_bool_move_legal(self, pos, dest) -> tuple[bool, str]:
         '''
         This checks to see if moving a piece from pos to dest is legal.
         Some examples of illegal moves include out-of-bounds, out of movement zone, and other misc stuff.
         Note, moving into check is illegal but is not handled by this method.
         Note, pos, dest are [8]^2 coordinates.
         Returns True, '' or False, error message string.
+        Note: NOT to be used as a boolean value, the non_bool prefix specifies this, so as to not mistake
+        move_legal as a boolean value.
         '''
 
         misc_check = self.misc_checks(pos=pos, dest=dest) # helper
@@ -150,7 +152,7 @@ class Player:
         Returns boolean value of move_legal's tuple output.
         Mainly for use when testing truth values of move legality.
         '''
-        return self.move_legal(pos=pos, dest=dest)[0]
+        return self.non_bool_move_legal(pos=pos, dest=dest)[0]
     
     def clone_player(self, board: Board):
         '''
