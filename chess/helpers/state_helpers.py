@@ -51,6 +51,8 @@ def move_puts_player_in_check(game, pos, dest) -> bool:
     (must be movement zone legal) move will have its king in check or not.
     Updates game's game_clone state with the hypothetical game.
     '''
+    cur_player = game.board.get_piece(pos).player
+    assert(cur_player.bool_move_legal(pos, dest))
     _, cur_player_clone, opponent_clone, _ = clone_game_and_get_game_state_based_on_move(game, pos, dest)
     return player_in_check(player=cur_player_clone, opponent=opponent_clone)
 
@@ -65,7 +67,7 @@ def move_locks_opponent(game, pos, dest) -> bool:
      opponent_clone, _) = clone_game_and_get_game_state_based_on_move(game, pos, dest)
     for legal_move in opponent_clone.get_all_player_move_options(): # Note legal_move is [[x_0, y_0], [x_1, y_1]]
         op_pos, op_dest = legal_move[0], legal_move[1]
-        assert(opponent_clone.move_legal(op_pos, op_dest))
+        assert(opponent_clone.bool_move_legal(op_pos, op_dest))
         if not move_puts_player_in_check(game_clone, op_pos, op_dest): 
             # ^ this method puts a clone inside of the clone, so it doesn't modify this clone's state.
             return False
@@ -90,7 +92,7 @@ def clone_game_and_get_game_state_based_on_move(game, pos, dest):
     cur_player_clone = convert_color_to_player(game=game_clone, color=cur_player_color)
     opponent_clone = convert_color_to_player(game=game_clone, color=opponent_color)
     assert(cur_player_clone.color == cur_player_color and opponent_clone.color == opponent_color)
-    assert(cur_player_clone.move_legal(pos, dest))
+    assert(cur_player_clone.bool_move_legal(pos, dest))
     cur_player_clone.make_move(pos, dest)
     update_players_check(game_clone) 
     # FIXME ^ smells because we have to update player's check outside of make_move() being called every time, which

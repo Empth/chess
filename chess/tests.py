@@ -973,7 +973,7 @@ class TestGameplayBugcatchers(unittest.TestCase):
         with patch('builtins.input', side_effect=input_commands):
             game.start()
         #print(game.board) Affected by terminal clear, we dont want that
-        self.assertTrue(game.p2.move_legal(pos=[5, 8], dest=[6, 8]))
+        self.assertTrue(game.p2.bool_move_legal(pos=[5, 8], dest=[6, 8]))
         input_commands = (['e8', 'f8'] + ['PAUSE'])
         with patch('builtins.input', side_effect=input_commands):
             game.start()

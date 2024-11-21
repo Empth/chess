@@ -191,7 +191,7 @@ class Player:
             piece_movement_zone = get_movement_zone(board=self.board, piece=piece) # recall this is set of ordered pair tuples.
             for piece_dest in piece_movement_zone:
                 piece_dest_arr = list(piece_dest) # this converts dest into [x, y]
-                assert(self.move_legal(piece_pos_arr, piece_dest_arr)) # type: ignore TODO how do they know its always true?
+                assert(self.bool_move_legal(piece_pos_arr, piece_dest_arr)) # type: ignore TODO how do they know its always true?
                 all_player_moves.append([piece_pos_arr, piece_dest_arr])
 
         return all_player_moves

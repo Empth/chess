@@ -105,7 +105,6 @@ class Game:
                 if command == 'KC' or command == 'QC':
                     side = 'KING' if command[0] == 'K' else 'QUEEN'
                     self.make_castle_move(side=side)
-                    print('hi')
 
 
         if self.winner != None:
