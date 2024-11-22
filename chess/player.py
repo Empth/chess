@@ -172,6 +172,7 @@ class Player:
         '''
         Returns a deep copy clone of the collection of pieces for this (non-clone) player.
         Each cloned piece is a deep copy of the original piece.
+        The map uses the same keys as the original player.
         '''
         cloned_collection = {}
         for piece in self.pieces.values():
@@ -193,7 +194,13 @@ class Player:
             piece_movement_zone = get_movement_zone(board=self.board, piece=piece) # recall this is set of ordered pair tuples.
             for piece_dest in piece_movement_zone:
                 piece_dest_arr = list(piece_dest) # this converts dest into [x, y]
-                assert(self.bool_move_legal(piece_pos_arr, piece_dest_arr)) # type: ignore TODO how do they know its always true?
+                if (not self.bool_move_legal(piece_pos_arr, piece_dest_arr)):
+                    '''
+                    # Reenable for debugging purposes
+                    print(self.board)
+                    print('Pos: '+str(piece_pos_arr)+' and dest: '+str(piece_dest_arr))
+                    '''
+                    assert(self.bool_move_legal(piece_pos_arr, piece_dest_arr)) # type: ignore TODO how do they know its always true?
                 all_player_moves.append([piece_pos_arr, piece_dest_arr])
 
         return all_player_moves

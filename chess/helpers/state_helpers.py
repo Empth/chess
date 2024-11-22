@@ -61,6 +61,7 @@ def move_locks_opponent(game, pos, dest) -> bool:
     Returns True if the pos->dest move made by a player locks its opponent into a
     position where any subsequent move it takes leads to its king being captured. False otherwise.
     Modifies game's game_clone state with all of the hypothetical states.
+    Note pos->dest move must be movement zone legal.
     '''
     # These cloned states have made the pos->dest move by cur_player
     (game_clone, _, 
@@ -81,6 +82,8 @@ def clone_game_and_get_game_state_based_on_move(game, pos, dest):
     Returns (in order): the cloned Game, the cloned Player which made the pos->dest move,
     the opposing cloned opponent Player, and the cloned Board.
     '''
+    cur_player = game.board.get_piece(pos=pos).player
+    assert(cur_player.bool_move_legal(pos, dest)) # hinges on promise that this is a pure viewer with no modifications to game's state
     game.clone_game()
     game_clone = game.game_clone
     board_clone = game_clone.board
@@ -102,7 +105,7 @@ def clone_game_and_get_game_state_based_on_move(game, pos, dest):
     return game_clone, cur_player_clone, opponent_clone, board_clone
 
 
-def castle_locks_opponent(game, player, opponent, side) -> bool:
+def castle_locks_opponent(game, player, side) -> bool:
     '''
     Returns True if the castling move made by a player locks its opponent into a
     position where any subsequent move it takes leads to its king being captured. False otherwise.

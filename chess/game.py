@@ -70,9 +70,11 @@ class Game:
 
         while self.winner == None:
             self.render()
-            turn_success = self.make_turn()
+            if not self.exists_command: # FIXME Big antipattern adding this on, it exists to pivot to checkmate branch from random() checkmate, but it sucks...
+                # FIXME Everything in game.py needs refactoring!
+                turn_success = self.make_turn()
             win_con = (self.special_command in mate_special_command_set) 
-            # ^ big god variable antipattern. I need to refactor this whole damn thing.
+            # FIXME ^ big god variable antipattern. I need to refactor this whole damn thing.
             if turn_success and not win_con:
                 # not win_con means its not checkmate or stalemate.
                 self.turn = swap_colors(self.turn) # swaps turn to the next color.
@@ -218,7 +220,7 @@ class Game:
         # castle on this side is legal. Perform the castle.
         # Case to check if this leads to checkmate or stalemate # TODO make into its own method
         locks_opponent = castle_locks_opponent(game=self, player=cur_player, 
-                                               opponent=opponent, side=side)
+                                               side=side)
         if locks_opponent:
             # now need to check if this lock leads to checkmate or stalemate.
             # its okay to make pos->dest move now since the game is basically over.
@@ -280,6 +282,9 @@ class Game:
             # checkmate special message. This leads to the assert(False) at the bottom being reached, which should not be
             # possible. Try debugging this through loading the snipped game config before the error, but just before the queen 
             # moves adjacent to the black king.
+            if self.special_command != '':
+                # Then its checkmate or stalemate.
+                return
             if move_taken:
                 set_error_message(game=self, message='')
                 get_error_message(self) # hopefully this resets error messaging popping up due to using make_turn
