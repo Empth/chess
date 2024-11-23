@@ -73,16 +73,12 @@ class Game:
             if not self.exists_command: # FIXME Big antipattern adding this on, it exists to pivot to checkmate branch from random() checkmate, but it sucks...
                 # FIXME Everything in game.py needs refactoring!
                 turn_success = self.make_turn()
-            win_con = (self.special_command in mate_special_command_set) 
-            # FIXME ^ big god variable antipattern. I need to refactor this whole damn thing.
-            if turn_success and not win_con:
-                # not win_con means its not checkmate or stalemate.
-                self.turn = swap_colors(self.turn) # swaps turn to the next color.
 
             if self.exists_command:
                 command = get_special_command(game=self)
                 if command == 'checkmate':
-                    self.winner = self.turn
+                    self.winner = swap_colors(self.turn) 
+                    # ^ Need this because color swapping is default handled by player move functions
                     break
                 if command == 'stalemate':
                     set_special_command(self, "stalemate")
@@ -187,7 +183,6 @@ class Game:
             # now need to check if this lock leads to checkmate or stalemate.
             # its okay to make pos->dest move now since the game is basically over.
             cur_player.make_move(pos, dest)
-            #update_players_check(game=self)
             if opponent.in_check:
                 # setting nonuppercased special commands is a hack to overload the win/draw conditions
                 # into these existing special command methods.
@@ -199,7 +194,6 @@ class Game:
         
         # Move of pos -> dest is fully legal (albeit doesn't terminate the game), now make the move
         cur_player.make_move(pos, dest)
-        #update_players_check(game=self)
         return True
     
     def make_castle_move(self, side) -> bool:
@@ -225,7 +219,6 @@ class Game:
             # now need to check if this lock leads to checkmate or stalemate.
             # its okay to make pos->dest move now since the game is basically over.
             cur_player.castle(side, opponent)
-            #update_players_check(game=self) # FIXME This update_check always being coupling with execute_move but being handled outside seems to smell
             if opponent.in_check:
                 # setting nonuppercased special commands is a hack to overload the win/draw conditions
                 # into these existing special command methods.
@@ -235,9 +228,6 @@ class Game:
                 set_special_command(game=self, command='stalemate')
                 return True
         cur_player.castle(side, opponent)
-        #update_players_check(game=self)
-        self.turn = swap_colors(self.turn) # FIXME, that I have to call this everytime may make maintenance a pain
-                                            # ^ Refactor this to execute in the main game loop.
         return True
     
 
@@ -261,7 +251,7 @@ class Game:
                                                             # Blame the Player <-> Piece <-> Board spaghetti.
         clone.p2 = self.p2.clone_player(board=clone.board, clone_game=clone) # ^ same for p2
         clone.turn = self.turn
-        clone.winner = self.winner # now its okay sine its not a player
+        clone.winner = self.winner # now its okay since field is not a player
         # We don't store any other information about error message state, or special command state.
         self.game_clone = clone
         return self.game_clone
@@ -284,17 +274,12 @@ class Game:
         for idx in indices:
             executing_move = all_player_moves[idx]
             move_taken = self.make_turn(executing_move) # may or may not be valid (based on check conditions)
-            # FIXME There seems to be a bug where upon reaching checkmate, make_turn() from this function doesn't deliver the
-            # checkmate special message. This leads to the assert(False) at the bottom being reached, which should not be
-            # possible. Try debugging this through loading the snipped game config before the error, but just before the queen 
-            # moves adjacent to the black king.
             if self.special_command != '':
                 # Then its checkmate or stalemate.
                 return
             if move_taken:
                 set_error_message(game=self, message='')
                 get_error_message(self) # hopefully this resets error messaging popping up due to using make_turn
-                self.turn = swap_colors(self.turn) # Successful move hence switch turns.
                 return
             
 

@@ -97,10 +97,6 @@ def clone_game_and_get_game_state_based_on_move(game, pos, dest):
     assert(cur_player_clone.color == cur_player_color and opponent_clone.color == opponent_color)
     assert(cur_player_clone.bool_move_legal(pos, dest))
     cur_player_clone.make_move(pos, dest)
-    #update_players_check(game_clone) 
-    # FIXME ^ smells because we have to update player's check outside of make_move() being called every time, which
-    # will lead to bugs. Refactor this please, maybe the fix is having Players refer to game..., due to make_move()
-    # being called from Player, this has its own can of worms however...
 
     return game_clone, cur_player_clone, opponent_clone, board_clone
 
@@ -142,10 +138,6 @@ def clone_game_and_get_game_state_based_on_castle(game, player, side):
     assert(cur_player_clone.color == cur_player_color and opponent_clone.color == opponent_color)
     assert(cur_player_clone.castle_legal(side, opponent_clone))
     cur_player_clone.castle(side, opponent_clone)
-    #update_players_check(game_clone) 
-    # FIXME ^ smells because we have to update player's check outside of make_move() being called every time, which
-    # will lead to bugs. Refactor this please, maybe the fix is having Players refer to game..., due to make_move()
-    # being called from Player, this has its own can of worms however...
 
     return game_clone, cur_player_clone, opponent_clone, board_clone
 

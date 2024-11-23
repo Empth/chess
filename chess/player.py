@@ -86,6 +86,7 @@ class Player:
             assert(moving_piece.pos == dest)
             update_moved_piece(piece=moving_piece)
             update_players_check(self.game)
+            self.game.turn = swap_colors(self.game.turn)
         else:
             return
 
@@ -290,5 +291,6 @@ class Player:
             self.board.move_piece(pos=crossed_tile, piece=rook)
             update_moved_piece(piece=rook)
             update_players_check(self.game)
+            self.game.turn = swap_colors(self.game.turn)
         else:
             return
