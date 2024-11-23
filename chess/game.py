@@ -246,8 +246,11 @@ class Game:
         Creates an seperate deep copy of this game instance, and has game_clone param point to
         the deep copy. In the game clone, any modification of player, board, piece state 
         should not effect the state of this current game.
+
+        Returns: The cloned game in game_clone param
+
         This method should not be used outside of internal logic, ie 
-        only should be used for in_check or similar methods and tree search. 
+        only should be used for in_check or similar methods and tree search.
         '''
         clone = Game()
         clone.board = Board()
@@ -259,6 +262,7 @@ class Game:
         clone.winner = self.winner # now its okay sine its not a player
         # We don't store any other information about error message state, or special command state.
         self.game_clone = clone
+        return self.game_clone
 
 
     def make_random_move(self):
@@ -296,17 +300,4 @@ class Game:
                     # takes it out of check, but this means cur_player should be in stalemate or checkmate.
 
         # TODO Also try castling as an option.
-
-
-
-
-
-
-
-
-        
-    
-
-
-
 

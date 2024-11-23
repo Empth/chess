@@ -358,7 +358,205 @@ class TestRandomMove(unittest.TestCase):
         self.assertEqual(board.get_piece([2, 7]).rank, 'PAWN')
         self.assertTrue('Q-B7' not in p2.pieces) # BLACK QUEEN was captured.
         self.assertEqual(game.winner, 'WHITE') # WHITE should win by checkmate.
-        clear_terminal()
+        # clear_terminal() # dont
+
+
+class TestCheckmateInGames(unittest.TestCase):
+
+    '''
+    Test a variety of moves in which checkmate is delivered.
+    '''
+    def test_fools_mate(self):
+        '''
+        Test fool's mate checkmate in 2 moves.
+        '''
+        game = Game()
+        self.assertEqual(game.turn, 'WHITE')
+        input_commands = (['f2', 'f3']+['e7', 'e5']+['g2', 'g4']+['d8', 'h4'])
+        with patch('builtins.input', side_effect=input_commands):
+            game.start()
+        self.assertEqual(game.winner, 'BLACK')
+
+
+class TestCastling(unittest.TestCase):
+
+    '''
+    Tests functionality of castling.
+    '''
+
+    def test_castle_custom_gap_config(self):
+        '''
+        Tests castling where kings <-> rooks have gaps between them
+        in a custom board config. Checks that the castle is legal, 
+        then tests the two sides of castling for each player, and verifies that 
+        kings and rooks land in the correct positions.
+        '''
+        white_pieces = (['P-A2', 'P-B2', 'P-C2', 'P-D2', 'P-E2', 'P-F2', 'P-G2', 'P-H2']+
+            ['R-A1', 'K-E1', 'R-H1'])
+        black_pieces = (['P-A7', 'P-B7', 'P-C7', 'P-D7', 'P-E7', 'P-F7', 'P-G7', 'P-H7']+
+            ['R-A8', 'K-E8', 'R-H8'])
+        debug = set_up_debug(white_pieces=white_pieces, black_pieces=black_pieces)
+        game = Game(debug)
+        board = game.board
+        p1 = game.p1
+        p2 = game.p2
+        game_clone = game.clone_game() # backup to get back to later,
+        game.turn = 'WHITE'
+        # w/o having to reconfigure game repeatedly
+        self.assertTrue(p1.castle_legal('KING', p2))
+        self.assertTrue(p1.castle_legal('QUEEN', p2))
+        self.assertTrue(p1.castle_legal('KING', p1))
+        self.assertTrue(p1.castle_legal('QUEEN', p1))
+        # Now perform castling on clone:
+        # p1 kingside
+        with patch('builtins.input', side_effect=['kc', 'pause']):
+            game.start()
+
+        self.assertIsNone(board.get_piece([2, 1]))
+        self.assertIsNone(board.get_piece([3, 1]))
+        self.assertIsNone(board.get_piece([4, 1]))
+
+        self.assertIsNone(board.get_piece([5, 1]))
+        self.assertIsNone(board.get_piece([8, 1]))
+
+        self.assertEqual(board.get_piece([6,1]).rank, 'ROOK')
+        self.assertEqual(board.get_piece([6,1]).color, 'WHITE')
+        self.assertEqual(board.get_piece([6,1]).name, 'R-H1')
+        self.assertEqual(board.get_piece([7,1]).color, 'WHITE')
+        self.assertEqual(board.get_piece([7,1]).rank, 'KING')
+        self.assertEqual(board.get_piece([7,1]).name, 'K-E1')
+
+        self.assertEqual(board.get_piece([1,1]).rank, 'ROOK')
+        self.assertEqual(board.get_piece([1,1]).color, 'WHITE')
+        self.assertEqual(board.get_piece([1,1]).name, 'R-A1')
+
+        # now work on clone
+        game = game_clone
+        board = game.board
+        p1 = game.p1
+        p2 = game.p2
+        game_clone = game.clone_game() # backup to get back to later,
+        game.turn = 'WHITE'
+
+        # p1 queenside
+        with patch('builtins.input', side_effect=['qc', 'pause']):
+            game.start()
+            
+        self.assertIsNone(board.get_piece([1, 1]))
+        self.assertIsNone(board.get_piece([2, 1]))
+
+        self.assertIsNone(board.get_piece([5, 1]))
+        self.assertIsNone(board.get_piece([6, 1]))
+        self.assertIsNone(board.get_piece([7, 1]))
+
+        self.assertEqual(board.get_piece([4,1]).rank, 'ROOK')
+        self.assertEqual(board.get_piece([4,1]).color, 'WHITE')
+        self.assertEqual(board.get_piece([4,1]).name, 'R-A1')
+        self.assertEqual(board.get_piece([3,1]).color, 'WHITE')
+        self.assertEqual(board.get_piece([3,1]).rank, 'KING')
+        self.assertEqual(board.get_piece([3,1]).name, 'K-E1')
+
+        self.assertEqual(board.get_piece([8,1]).rank, 'ROOK')
+        self.assertEqual(board.get_piece([8,1]).color, 'WHITE')
+        self.assertEqual(board.get_piece([8,1]).name, 'R-H1')
+
+
+        game = game_clone
+        board = game.board
+        p1 = game.p1
+        p2 = game.p2
+        game_clone = game.clone_game() # backup to get back to later,
+        game.turn = 'BLACK'
+
+        # p2 kingside
+        with patch('builtins.input', side_effect=['kc', 'pause']):
+            game.start()
+
+        self.assertIsNone(board.get_piece([2, 8]))
+        self.assertIsNone(board.get_piece([3, 8]))
+        self.assertIsNone(board.get_piece([4, 8]))
+
+        self.assertIsNone(board.get_piece([5, 8]))
+        self.assertIsNone(board.get_piece([8, 8]))
+
+        self.assertEqual(board.get_piece([6,8]).rank, 'ROOK')
+        self.assertEqual(board.get_piece([6,8]).color, 'BLACK')
+        self.assertEqual(board.get_piece([6,8]).name, 'R-H8')
+        self.assertEqual(board.get_piece([7,8]).color, 'BLACK')
+        self.assertEqual(board.get_piece([7,8]).rank, 'KING')
+        self.assertEqual(board.get_piece([7,8]).name, 'K-E8')
+
+        self.assertEqual(board.get_piece([1,8]).rank, 'ROOK')
+        self.assertEqual(board.get_piece([1,8]).color, 'BLACK')
+        self.assertEqual(board.get_piece([1,8]).name, 'R-A8')
+
+        game = game_clone
+        board = game.board
+        p1 = game.p1
+        p2 = game.p2
+        game_clone = game.clone_game() 
+        game.turn = 'BLACK'
+
+        # p2 queenside
+        with patch('builtins.input', side_effect=['qc', 'pause']):
+            game.start()
+            
+        self.assertIsNone(board.get_piece([1, 8]))
+        self.assertIsNone(board.get_piece([2, 8]))
+
+        self.assertIsNone(board.get_piece([5, 8]))
+        self.assertIsNone(board.get_piece([6, 8]))
+        self.assertIsNone(board.get_piece([7, 8]))
+
+        self.assertEqual(board.get_piece([4,8]).rank, 'ROOK')
+        self.assertEqual(board.get_piece([4,8]).color, 'BLACK')
+        self.assertEqual(board.get_piece([4,8]).name, 'R-A8')
+        self.assertEqual(board.get_piece([3,8]).color, 'BLACK')
+        self.assertEqual(board.get_piece([3,8]).rank, 'KING')
+        self.assertEqual(board.get_piece([3,8]).name, 'K-E8')
+
+        self.assertEqual(board.get_piece([8,8]).rank, 'ROOK')
+        self.assertEqual(board.get_piece([8,8]).color, 'BLACK')
+        self.assertEqual(board.get_piece([8,8]).name, 'R-H8')
+
+
+    def test_castle_can_checkmate(self):
+        '''
+        Tests that player can checkmate from castling.
+        '''
+        white_pieces = ['K-E1', 'R-E2', 'R-H1', 'Q-G3']
+        black_pieces = ['K-F5']
+        debug = set_up_debug(white_pieces=white_pieces, black_pieces=black_pieces)
+        game = Game(debug)
+        board = game.board
+        p1 = game.p1
+        p2 = game.p2
+        self.assertTrue(p1.castle_legal('KING', p2))
+        game.turn = 'WHITE'
+        with patch('builtins.input', side_effect=['kc', 'pause']):
+            game.start()
+
+        self.assertEqual(game.winner, 'WHITE')
+
+
+    def test_castle_can_stalemate(self):
+        '''
+        Tests that player can stalemate from castling.
+        '''
+        white_pieces = ['K-E1', 'R-H1', 'Q-H3']
+        black_pieces = ['K-G5', 'P-H4', 'P-H5', 'P-H6', 'P-G6']
+        debug = set_up_debug(white_pieces=white_pieces, black_pieces=black_pieces)
+        game = Game(debug)
+        board = game.board
+        p1 = game.p1
+        p2 = game.p2
+        self.assertTrue(p1.castle_legal('KING', p2))
+        game.turn = 'WHITE'
+        with patch('builtins.input', side_effect=['kc', 'pause']):
+            game.start()
+
+        self.assertEqual(game.winner, 'DRAW')
+
 
 
 if __name__ == '__main__':
