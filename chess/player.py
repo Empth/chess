@@ -2,7 +2,7 @@ from piece import Piece
 from board import Board
 from misc.constants import *
 from move_legal import pawn_move_legal, rook_move_legal, bishop_move_legal, knight_move_legal, queen_move_legal, king_move_legal
-from helpers.state_helpers import pawn_promotion, update_moved_piece
+from helpers.state_helpers import pawn_promotion, update_moved_piece, update_players_check
 from helpers.general_helpers import check_in_bounds, algebraic_uniconverter, convert_letter_to_rank, in_between_hori_tiles, swap_colors
 from helpers.game_helpers import convert_color_to_player
 from movement_zone import get_movement_zone, mass_movement_zone
@@ -12,7 +12,7 @@ Player who gets to make chess moves.
 '''
 
 class Player:
-    def __init__(self, color: str, board: Board, debug=None, is_clone=False):
+    def __init__(self, color: str, board: Board, game, debug=None, is_clone=False):
         '''
         debug: debugging config, for setting initial config of pieces
         is_clone: Whether created player is a clone, if so, forgos collecting of pieces
@@ -26,6 +26,7 @@ class Player:
             self.set_pieces_on_board()
         self.in_check = False # whether Player's king is in check or not. 
         self.king = self.get_king() # points towards a player's singular king object, or None if it doesn't exist on player init.
+        self.game = game
 
         
     def collect_pieces(self, debug=None):
@@ -84,6 +85,7 @@ class Player:
             pawn_promotion(player=self, dest=dest, piece=moving_piece)
             assert(moving_piece.pos == dest)
             update_moved_piece(piece=moving_piece)
+            update_players_check(self.game)
         else:
             return
 
@@ -154,12 +156,12 @@ class Player:
         '''
         return self.non_bool_move_legal(pos=pos, dest=dest)[0]
     
-    def clone_player(self, board: Board):
+    def clone_player(self, board: Board, clone_game):
         '''
         Returns a deep copy clone of this player, including its pieces and board state.
         Required that both players have their kings.
         '''
-        clone = Player(color=self.color, board=board, is_clone=True)
+        clone = Player(color=self.color, board=board, game=clone_game, is_clone=True)
         clone.pieces = self.clone_player_pieces(clone_player=clone)
         clone.set_pieces_on_board() # updates board param for clone, which is also board param for higher up Game.
         clone.in_check = self.in_check
@@ -287,5 +289,6 @@ class Player:
             rook = self.pieces[rook_code]
             self.board.move_piece(pos=crossed_tile, piece=rook)
             update_moved_piece(piece=rook)
+            update_players_check(self.game)
         else:
             return

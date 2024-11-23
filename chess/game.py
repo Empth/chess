@@ -22,8 +22,8 @@ class Game:
         '''
 
         self.board = Board()
-        self.p1 = Player(color=WHITE, board=self.board, debug=debug)
-        self.p2 = Player(color=BLACK, board=self.board, debug=debug)
+        self.p1 = Player(color=WHITE, board=self.board, game=self, debug=debug)
+        self.p2 = Player(color=BLACK, board=self.board, game=self, debug=debug)
         self.turn = self.p1.color  # 'WHITE' or 'BLACK'
         self.winner = None # Should be either 'WHITE', 'BLACK', or 'DRAW'
         self.error_message = ''
@@ -187,7 +187,7 @@ class Game:
             # now need to check if this lock leads to checkmate or stalemate.
             # its okay to make pos->dest move now since the game is basically over.
             cur_player.make_move(pos, dest)
-            update_players_check(game=self)
+            #update_players_check(game=self)
             if opponent.in_check:
                 # setting nonuppercased special commands is a hack to overload the win/draw conditions
                 # into these existing special command methods.
@@ -199,7 +199,7 @@ class Game:
         
         # Move of pos -> dest is fully legal (albeit doesn't terminate the game), now make the move
         cur_player.make_move(pos, dest)
-        update_players_check(game=self)
+        #update_players_check(game=self)
         return True
     
     def make_castle_move(self, side) -> bool:
@@ -225,7 +225,7 @@ class Game:
             # now need to check if this lock leads to checkmate or stalemate.
             # its okay to make pos->dest move now since the game is basically over.
             cur_player.castle(side, opponent)
-            update_players_check(game=self) # FIXME This update_check always being coupling with execute_move but being handled outside seems to smell
+            #update_players_check(game=self) # FIXME This update_check always being coupling with execute_move but being handled outside seems to smell
             if opponent.in_check:
                 # setting nonuppercased special commands is a hack to overload the win/draw conditions
                 # into these existing special command methods.
@@ -235,7 +235,7 @@ class Game:
                 set_special_command(game=self, command='stalemate')
                 return True
         cur_player.castle(side, opponent)
-        update_players_check(game=self)
+        #update_players_check(game=self)
         self.turn = swap_colors(self.turn) # FIXME, that I have to call this everytime may make maintenance a pain
                                             # ^ Refactor this to execute in the main game loop.
         return True
@@ -254,10 +254,12 @@ class Game:
         '''
         clone = Game()
         clone.board = Board()
-        clone.p1 = self.p1.clone_player(board=clone.board) # note, this will also update clone.board's state to have this
+        clone.p1 = None # this just in case ensures that there are no shenanigans with clone_player() 
+        clone.p2 = None
+        clone.p1 = self.p1.clone_player(board=clone.board, clone_game=clone) # note, this will also update clone.board's state to have this
                                                             # player's pieces, not just return a player 1 deep clone.
                                                             # Blame the Player <-> Piece <-> Board spaghetti.
-        clone.p2 = self.p2.clone_player(board=clone.board) # ^ same for p2
+        clone.p2 = self.p2.clone_player(board=clone.board, clone_game=clone) # ^ same for p2
         clone.turn = self.turn
         clone.winner = self.winner # now its okay sine its not a player
         # We don't store any other information about error message state, or special command state.
