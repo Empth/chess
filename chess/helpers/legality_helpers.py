@@ -4,25 +4,6 @@ from misc.constants import *
 Helper functions for move legality and error message handling flow.
 '''
 
-def pawn_starting(player: 'Player', piece): # type: ignore
-    '''
-    Checks to see if 'piece', which must be a pawn, is in a starting position.
-    '''
-
-    if piece.rank != 'PAWN':
-        raise Exception("Piece needs to be a pawn!")
-    
-    if piece.color == WHITE:
-        if piece.pos[1] == 2:
-            return True
-    elif piece.color == BLACK:
-        if piece.pos[1] == 7:
-            return True
-    else:
-        raise Exception("Piece needs to have a B/W color!")
-
-    return False
-
 def pawn_moving_straight_forward(player, piece, dest):
 
     '''

@@ -557,7 +557,21 @@ class TestCastling(unittest.TestCase):
 
         self.assertEqual(game.winner, 'DRAW')
 
+class TestEnPassant(unittest.TestCase):
 
+    '''
+    Tests en passant moves.
+    '''
+
+    def test_en_passant_custom_config(self):
+        '''
+        Tests en passant on custom board config on
+        cases where it should work vs cases where it should fail.
+        '''
+        white_pieces = ['K-A1', 'P-D2']
+        black_pieces = ['K-A8', 'P-E4', 'P-C4']
+        debug = set_up_debug(white_pieces=white_pieces, black_pieces=black_pieces)
+        game = Game(debug)
 
 if __name__ == '__main__':
     unittest.main()

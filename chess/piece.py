@@ -14,6 +14,8 @@ class Piece:
         self.player = player # refers to the Player which this piece belongs to.
         self.visual = get_piece_visual(rank=self.rank, color=self.color) # ♟
         self.moved = False # True when piece moves; ie changes position from init pos.
+        self.pawn_two_leap_on_prev_turn = False # True if this piece if PAWN, it moved on previous turn, and 
+                                                # went two squares forward on said previous turn.
     
     def __str__(self):
         pos = "None" if self.pos == None else str(self.pos[0]) +', '+str(self.pos[1])

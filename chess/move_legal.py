@@ -1,5 +1,5 @@
 from helpers.general_helpers import taxicab_dist, cardinal_direction, ordinal_direction, convert_to_movement_set, get_tiles_from_offset_pos
-from helpers.legality_helpers import (pawn_moving_straight_forward, pawn_moving_diagonal_forward, pawn_starting, 
+from helpers.legality_helpers import (pawn_moving_straight_forward, pawn_moving_diagonal_forward,
                               get_cardinal_collision, get_ordinal_collision, cardinal_dest_between_collider, 
                               ordinal_dest_between_collider)
 
@@ -23,7 +23,7 @@ def pawn_move_legal(player, pos, dest) -> tuple[bool, str]: # type: ignore
     if pawn_moving_straight_forward(player=player, piece=cur_piece, dest=dest):
         if taxicab_distance > 2:
             return False, str(player.board.get_piece(pos=pos).rank)+' is moving too far straight!'
-        if taxicab_distance == 2 and not pawn_starting(player=player, piece=cur_piece):
+        if taxicab_distance == 2 and cur_piece.moved:
             return False, 'Cannot move a nonstarting '+str(player.board.get_piece(pos=pos).rank)+' 2 units forward!'
         
         # Now pawn must be moving either 2 units forward at starting
