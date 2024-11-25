@@ -5,7 +5,7 @@ from debug import Debug
 from helpers.general_helpers import algebraic_uniconverter, swap_colors
 from helpers.game_helpers import (clear_terminal, get_error_message, get_special_command, set_error_message, set_special_command, 
                           get_color_in_check, pos_checker, dest_checker, convert_color_to_player)
-from helpers.state_helpers import update_players_check, move_puts_player_in_check, move_locks_opponent, castle_locks_opponent
+from helpers.state_helpers import update_players_check, move_puts_player_in_check, move_locks_opponent
 from movement_zone import get_movement_zone
 from misc.constants import *
 
@@ -213,8 +213,7 @@ class Game:
             return False
         # castle on this side is legal. Perform the castle.
         # Case to check if this leads to checkmate or stalemate # TODO make into its own method
-        locks_opponent = castle_locks_opponent(game=self, player=cur_player, 
-                                               side=side)
+        locks_opponent = move_locks_opponent(game=self, castle_side_color = [side, cur_player.color])
         if locks_opponent:
             # now need to check if this lock leads to checkmate or stalemate.
             # its okay to make pos->dest move now since the game is basically over.

@@ -56,16 +56,31 @@ def move_puts_player_in_check(game, pos, dest) -> bool:
     _, cur_player_clone, opponent_clone, _ = clone_game_and_get_game_state_based_on_move(game, pos, dest)
     return player_in_check(player=cur_player_clone, opponent=opponent_clone)
 
-def move_locks_opponent(game, pos, dest) -> bool:
+def move_locks_opponent(game, pos=None, dest=None, castle_side_color=[]) -> bool:
     '''
-    Returns True if the pos->dest move made by a player locks its opponent into a
+    Returns True if the move (either pos->dest or castle) made by a player locks its opponent into a
     position where any subsequent move it takes leads to its king being captured. False otherwise.
     Modifies game's game_clone state with all of the hypothetical states.
-    Note pos->dest move must be movement zone legal.
+    Note the pos->dest move must be movement zone legal and the castle move must generally be legal.
+    pos: position [x_0, y_0]
+    dest: destination [x_1, y_1]
+    castle_side_color: Empty array by default. Otherwise, is size two array
+    where first elt is string 'KING' or 'QUEEN' (side) and second elt is string
+    'BLACK' or 'WHITE' (color initiating castle).
     '''
-    # These cloned states have made the pos->dest move by cur_player
-    (game_clone, _, 
-     opponent_clone, _) = clone_game_and_get_game_state_based_on_move(game, pos, dest)
+    game_clone, opponent_clone = None, None
+
+    if castle_side_color == []: # its a pos->dest move
+        (game_clone, _, 
+        opponent_clone, _) = clone_game_and_get_game_state_based_on_move(game, pos, dest)
+    else: # its a castle
+        assert(len(castle_side_color) == 2)
+        assert(castle_side_color[0] in ['KING', 'QUEEN'])
+        assert(castle_side_color[1] in BWSET)
+        (game_clone, _, 
+        opponent_clone, _) = clone_game_and_get_game_state_based_on_move(game, None, None, castle_side_color)
+     # ^ These cloned states have made the move by the current player
+
     for legal_move in opponent_clone.get_all_player_move_options(): # Note legal_move is [[x_0, y_0], [x_1, y_1]]
         op_pos, op_dest = legal_move[0], legal_move[1]
         assert(opponent_clone.bool_move_legal(op_pos, op_dest))
@@ -74,72 +89,59 @@ def move_locks_opponent(game, pos, dest) -> bool:
             return False
     return True
 
-def clone_game_and_get_game_state_based_on_move(game, pos, dest):
+def clone_game_and_get_game_state_based_on_move(game, pos=None, dest=None, castle_side_color=[]):
     '''
-    Given a movement zone legal pos->dest move by some player, makes a clone of the board state after doing that pos->dest
-    move. Updates this game's game_clone param with that cloned game which made the pos->dest move. 
+    Given a movement zone legal pos->dest (or a legal castle) 
+    move by some player, makes a clone of the board state after doing that pos->dest (or castle)
+    move. Updates this game's game_clone param with that cloned game which made the pos->dest 
+    (or castle) move. 
+
+    castle_side_color: Empty array by default. Otherwise, is size two array
+    where first elt is string 'KING' or 'QUEEN' (side) and second elt is string
+    'BLACK' or 'WHITE' (color initiating castle).
     
-    Returns (in order): the cloned Game, the cloned Player which made the pos->dest move,
+    Returns (in order): the cloned Game, the cloned Player which made the move,
     the opposing cloned opponent Player, and the cloned Board.
     '''
-    cur_player = game.board.get_piece(pos=pos).player
-    assert(cur_player.bool_move_legal(pos, dest)) # hinges on promise that this is a pure viewer with no modifications to game's state
+    cur_player, cur_player_color, opponent_color = None, None, None
+
+    if castle_side_color == []: # its a pos->dest move
+        cur_player = game.board.get_piece(pos=pos).player
+        cur_player_color = cur_player.color
+        opponent_color = swap_colors(cur_player_color)
+        assert(cur_player.bool_move_legal(pos, dest)) 
+        # ^ hinges on promise that this is a pure viewer with no modifications to game's state
+    else: # its a castle
+        assert(len(castle_side_color) == 2)
+        assert(castle_side_color[0] in ['KING', 'QUEEN'])
+        assert(castle_side_color[1] in BWSET)
+        side = castle_side_color[0]
+        cur_player_color = castle_side_color[1]
+        cur_player = convert_color_to_player(game, cur_player_color)
+        opponent_color = swap_colors(cur_player_color)
+        opponent = convert_color_to_player(game, opponent_color)
+        assert(cur_player.castle_legal(side, opponent)) 
+        # ^ hinges on promise that this is a pure viewer with no modifications to game's state
+
     game.clone_game()
     game_clone = game.game_clone
     board_clone = game_clone.board
-    cur_player_color = board_clone.get_piece(pos=pos).color
-    opponent_color = swap_colors(cur_player_color)
     assert(game_clone.p1.color != game_clone.p2.color)
     assert(cur_player_color in BWSET and opponent_color in BWSET)
     assert(cur_player_color != opponent_color)
     cur_player_clone = convert_color_to_player(game=game_clone, color=cur_player_color)
     opponent_clone = convert_color_to_player(game=game_clone, color=opponent_color)
     assert(cur_player_clone.color == cur_player_color and opponent_clone.color == opponent_color)
-    assert(cur_player_clone.bool_move_legal(pos, dest))
-    cur_player_clone.make_move(pos, dest)
+
+    if castle_side_color == []: # its a pos->dest move
+        assert(cur_player_clone.bool_move_legal(pos, dest))
+        cur_player_clone.make_move(pos, dest)
+    else: # its a castle
+        assert(cur_player_clone.castle_legal(side, opponent_clone))
+        cur_player_clone.castle(side, opponent_clone)
 
     return game_clone, cur_player_clone, opponent_clone, board_clone
 
-
-def castle_locks_opponent(game, player, side) -> bool:
-    '''
-    Returns True if the castling move made by a player locks its opponent into a
-    position where any subsequent move it takes leads to its king being captured. False otherwise.
-    Modifies game's game_clone state with all of the hypothetical states.
-    side: 'QUEEN' or 'KING'
-    '''
-    assert(side in ['KING', 'QUEEN'])
-    (game_clone, _, 
-     opponent_clone, _) = clone_game_and_get_game_state_based_on_castle(game, player, side)
-    for legal_move in opponent_clone.get_all_player_move_options(): # Note legal_move is [[x_0, y_0], [x_1, y_1]]
-        op_pos, op_dest = legal_move[0], legal_move[1]
-        assert(opponent_clone.bool_move_legal(op_pos, op_dest))
-        if not move_puts_player_in_check(game_clone, op_pos, op_dest): 
-            # ^ this method puts a clone inside of the clone, so it doesn't modify this clone's state.
-            return False
-    return True
-
-
-def clone_game_and_get_game_state_based_on_castle(game, player, side):
-    '''
-    Like clone_game_and_get_game_state_based_on_move but we do a castle instead.
-    '''
-    assert(side in ['KING', 'QUEEN'])
-    game.clone_game()
-    game_clone = game.game_clone
-    board_clone = game_clone.board
-    cur_player_color = player.color
-    opponent_color = swap_colors(cur_player_color)
-    assert(game_clone.p1.color != game_clone.p2.color)
-    assert(cur_player_color in BWSET and opponent_color in BWSET)
-    assert(cur_player_color != opponent_color)
-    cur_player_clone = convert_color_to_player(game=game_clone, color=cur_player_color)
-    opponent_clone = convert_color_to_player(game=game_clone, color=opponent_color)
-    assert(cur_player_clone.color == cur_player_color and opponent_clone.color == opponent_color)
-    assert(cur_player_clone.castle_legal(side, opponent_clone))
-    cur_player_clone.castle(side, opponent_clone)
-
-    return game_clone, cur_player_clone, opponent_clone, board_clone
 
 
 
