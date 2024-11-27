@@ -6,7 +6,9 @@ Currently only supports PvP on the same computer.
 Feature TODO list:
 * Minimax AI bot implementation
 * Online network multiplayer
-* Speed Chess 
+* Speed Chess
+* 50 move draw
+* 3-fold repetition (maybe?)
 
 Finished features taken out of TODO list:
 * En passant - Finished 11/27
