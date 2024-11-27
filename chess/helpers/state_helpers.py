@@ -143,6 +143,32 @@ def clone_game_and_get_game_state_based_on_move(game, pos=None, dest=None, castl
     return game_clone, cur_player_clone, opponent_clone, board_clone
 
 
+def update_player_pawns_leap_status(player, moved_piece=None, prev_pos=None, cur_pos=None, castled=False):
+    '''
+    Function that goes through the player's pieces, and updates the
+    pieces' pawn_two_leap_on_prev_turn param, both activating and deactivating.
+    Should be used after make_move() or castle() type methods.
+    player: Player
+    moved_piece: Piece that was moved from make_move(). Must not be None if player hasn't castled.
+    prev_pos: previous position of moved_piece. Must not be None if player hasn't castled.
+    cur_pos: current position of moved_piece. Must not be None if player hasn't castled.
+    castled: Whether player's move was castle or a traditional move.
+    '''
+        
+    for piece in player.pieces.values():
+        # global reset first
+        piece.pawn_two_leap_on_prev_turn = False
+
+    if not castled: # ie traditional move used
+        assert(moved_piece != None)
+        assert(prev_pos != None)
+        assert(cur_pos != None)
+        # find a two leaped pawn if it exists, set its param to True.
+        if (moved_piece.rank == 'PAWN' and abs(prev_pos[1] - cur_pos[1]) == 2
+            and prev_pos[0] == cur_pos[0]):
+            player.pieces[moved_piece.name].pawn_two_leap_on_prev_turn = True
+
+
 
 
 

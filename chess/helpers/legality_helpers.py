@@ -1,4 +1,5 @@
 from misc.constants import *
+from .general_helpers import ordinal_direction
 
 '''
 Helper functions for move legality and error message handling flow.
@@ -196,3 +197,47 @@ def ordinal_dest_between_collider(init_pos, collider_pos, dest, ordinal):
         return collider_pos[0] <= dest[0] <= init_pos[0]
     else:
         raise Exception('Wrong ordinal input!')
+    
+
+def non_bool_en_passant_legal(piece, dest, player) -> tuple[bool, str]:
+    '''
+    Method checks if attempted piece to dest en passant move is legal.
+    player: Player of pawn initiating en passant.
+    Required: Piece on pos is PAWN, pos->dest move is 1 diagonal unit in color's forward direction,
+    dest is an in range tile, board at dest is empty. If one of these fails, an assertion error is given.
+    Returns: Legality boolean, error message string OR special command 'EN PASSANT' if legal.
+    The special command 'EN PASSANT' tells the caller to initiate an en passant move.
+    '''
+    assert(player.color in BWSET)
+    assert(piece.rank == 'PAWN')
+    assert(pawn_moving_diagonal_forward(player, piece, dest))
+    assert(not player.board.piece_exists(dest))
+    pos = piece.pos
+    ord_dir = ordinal_direction(pos, dest)
+    look = ord_dir[1] # 'E' or 'W' in absolute cardinal direction, white bottom, black top.
+                        # look here to check if 1) Opposite colored Pawn exists
+                        # 2) that they 2 leaped the previous turn before.
+                        # If so, you can return True.
+    assert(look in set(['E', 'W']))
+    offset = 1 if look == 'E' else -1
+    assert(pos[0]+offset == dest[0]) # sanity checks
+    assert(dest[0]-1 in range(8) and dest[1]-1 in range(8))
+    looked_at_piece = player.board.get_piece([pos[0]+offset, pos[1]])
+    if looked_at_piece == None:
+        return (False, 'You can only move '+str(player.board.get_piece(pos=pos).rank)+
+                ' diagonally via capture or en passant!') # same as before
+    if looked_at_piece.rank != 'PAWN' or looked_at_piece.color == player.color:
+        return (False, 'You can only move '+str(player.board.get_piece(pos=pos).rank)
+                +' diagonally via capture or en passant!')
+    else: # looked_at_piece is pawn and opponent color. 1) is cleared.
+        if not looked_at_piece.pawn_two_leap_on_prev_turn:
+            return (False, 'Cannot en passant here as opposing PAWN did not move two '
+                    +'tiles forward on the previous turn!')
+        else:
+            return True, 'EN PASSANT'
+
+
+def bool_en_passant_legal(piece, dest, player) -> bool:
+    return non_bool_en_passant_legal(piece, dest, player)[0]
+
+    

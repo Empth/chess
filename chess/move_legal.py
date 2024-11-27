@@ -1,7 +1,7 @@
 from helpers.general_helpers import taxicab_dist, cardinal_direction, ordinal_direction, convert_to_movement_set, get_tiles_from_offset_pos
 from helpers.legality_helpers import (pawn_moving_straight_forward, pawn_moving_diagonal_forward,
                               get_cardinal_collision, get_ordinal_collision, cardinal_dest_between_collider, 
-                              ordinal_dest_between_collider)
+                              ordinal_dest_between_collider, non_bool_en_passant_legal)
 
 '''
 Piece legality checker for the 6 ranks of pieces.
@@ -45,8 +45,8 @@ def pawn_move_legal(player, pos, dest) -> tuple[bool, str]: # type: ignore
         # Now pawn is 1 unit diagonally forward
         assert(taxicab_distance == 2)
         diag_piece = player.board.get_piece(pos=dest)
-        if diag_piece == None:
-            return False, 'You can only move '+str(player.board.get_piece(pos=pos).rank)+' diagonally via capture!'
+        if diag_piece == None: # attempt an en passant first in this case.
+            return non_bool_en_passant_legal(cur_piece, dest, player) # This function deals with the standard error message if its not en passant.
         if diag_piece.color == cur_piece.color:
             return False, 'You cannot move to an ally location with your '+str(player.board.get_piece(pos=pos).rank)+'!'
         # Now we know this is a 1 unit diagonally capture of an opposing piece.

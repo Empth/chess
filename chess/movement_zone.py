@@ -1,5 +1,5 @@
 from misc.constants import *
-from helpers.legality_helpers import get_all_cardinal_tiles_til_collider, get_all_ordinal_tiles_til_collider
+from helpers.legality_helpers import get_all_cardinal_tiles_til_collider, get_all_ordinal_tiles_til_collider, bool_en_passant_legal
 from helpers.general_helpers import get_tiles_from_offset_pos, convert_to_movement_set
 
 '''
@@ -42,6 +42,21 @@ def pawn_movement_zone(board, piece):
     movement_tiles = []
     colored_ordinal = ['NW', 'NE'] if piece.color == WHITE else ['SW', 'SE']
     colored_cardinal = 'N' if piece.color == WHITE else 'S'
+
+    # add en passant tiles first if they are permissible.
+    player = piece.player
+    assert(player != None)
+    pos = piece.pos
+    forward_offset = 1 if piece.color == WHITE else -1
+    for side_offset in [-1, 1]:
+        dest_x, dest_y = pos[0]+side_offset, pos[1]+forward_offset
+        if dest_x-1 not in range(8) or dest_y-1 not in range(8):
+            continue
+        dest = [dest_x, dest_y]
+        if board.get_piece(dest) != None:
+            continue
+        if bool_en_passant_legal(piece, dest, player):
+            movement_tiles.append(dest)
 
     # first retrieve diagonal tiles in the movement zone.
     for ord_dir in colored_ordinal:

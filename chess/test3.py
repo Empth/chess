@@ -11,7 +11,7 @@ from tests import set_up_debug
 from helpers.state_helpers import (update_players_check, move_puts_player_in_check, move_locks_opponent, 
                                    clone_game_and_get_game_state_based_on_move)
 from helpers.game_helpers import clear_terminal
-from movement_zone import mass_movement_zone
+from movement_zone import mass_movement_zone, get_movement_zone
 
 '''
 Tests methods implemented from clone onwards, ie clone, checkmate methods, random, castling methods, etc.
@@ -563,15 +563,129 @@ class TestEnPassant(unittest.TestCase):
     Tests en passant moves.
     '''
 
-    def test_en_passant_custom_config(self):
+    def test_en_passant_custom_config_true_positive(self):
         '''
         Tests en passant on custom board config on
-        cases where it should work vs cases where it should fail.
+        cases where it should work.
         '''
         white_pieces = ['K-A1', 'P-D2']
         black_pieces = ['K-A8', 'P-E4', 'P-C4']
         debug = set_up_debug(white_pieces=white_pieces, black_pieces=black_pieces)
         game = Game(debug)
+        p1 = game.p1
+        p2 = game.p2
+        p1.make_move([4,2], [4,4])
+        self.assertTrue(p2.bool_move_legal([5, 4], [4, 3]))
+        self.assertTrue(p2.bool_move_legal([3, 4], [4, 3]))
+        backup_game = game.clone_game()
+        p2.make_move([5, 4], [4, 3])
+        self.assertEqual(p2.pieces['P-E4'].pos, [4, 3])
+        self.assertTrue('P-D2' not in p1.pieces)
+        self.assertEqual(len(p1.pieces), 1)
+
+        game = backup_game
+        p1 = game.p1
+        p2 = game.p2
+        p2.make_move([3, 4], [4, 3])
+        self.assertEqual(p2.pieces['P-C4'].pos, [4, 3])
+        self.assertTrue('P-D2' not in p1.pieces)
+        self.assertEqual(len(p1.pieces), 1)
+        
+        # Now test en passant against opposing black color.
+
+        white_pieces = ['K-A1', 'P-E5', 'P-C5']
+        black_pieces = ['K-A8', 'P-D7']
+        debug = set_up_debug(white_pieces=white_pieces, black_pieces=black_pieces)
+        game = Game(debug)
+        p1 = game.p1
+        p2 = game.p2
+        p2.make_move([4,7], [4,5])
+        self.assertTrue(p1.bool_move_legal([5, 5], [4, 6]))
+        self.assertTrue(p1.bool_move_legal([3, 5], [4, 6]))
+        backup_game = game.clone_game()
+        p1.make_move([5, 5], [4, 6])
+        self.assertEqual(p1.pieces['P-E5'].pos, [4, 6])
+        self.assertTrue('P-D7' not in p2.pieces)
+        self.assertEqual(len(p2.pieces), 1)
+
+        game = backup_game
+        p1 = game.p1
+        p2 = game.p2
+        p1.make_move([3, 5], [4, 6])
+        self.assertEqual(p1.pieces['P-C5'].pos, [4, 6])
+        self.assertTrue('P-D7' not in p2.pieces)
+        self.assertEqual(len(p2.pieces), 1)
+
+    def test_en_passant_custom_config_true_negative_1(self):
+        '''
+        Test if black pawn starts with 2 tile forward, then white makes some different move, then
+        white shouldn't be able to en passant capture on the second turn.
+        '''
+        game = Game()
+        p1 = game.p1
+        p2 = game.p2
+        p1.make_move([4,2],[4,4])
+        p2.make_move([1,7],[1,6])
+        p1.make_move([4,4],[4,5])
+        p2.make_move([5,7],[5,5])
+        self.assertTrue(p1.bool_move_legal([4,5],[5,6]))
+        p1.make_move([1,2],[1,3])
+        p2.make_move([1,6],[1,5])
+        self.assertFalse(p1.bool_move_legal([4,5],[5,6]))
+
+    def test_en_passant_custom_config_true_negative_2(self):
+        '''
+        White can't en passant capture if Black starts with single tile forward.
+        '''
+        game = Game()
+        p1 = game.p1
+        p2 = game.p2
+        p1.make_move([4,2],[4,4])
+        p2.make_move([1,7],[1,6])
+        p1.make_move([4,4],[4,5])
+        p2.make_move([1,6],[1,5])
+        p1.make_move([4,5],[4,6])
+        p2.make_move([5,7],[5,6])
+        self.assertFalse(p1.bool_move_legal([4,6],[5,7]))
+
+    def test_en_passant_movement_zone(self):
+        '''
+        Tests movement zone for en passant displays correctly if it should or should not exist.
+        '''
+
+        white_pieces = ['K-A1', 'P-D2']
+        black_pieces = ['K-A8', 'P-E4', 'P-C4']
+        debug = set_up_debug(white_pieces=white_pieces, black_pieces=black_pieces)
+        game = Game(debug)
+        board = game.board
+        p1 = game.p1
+        p2 = game.p2
+        p1.make_move([4,2], [4,4])
+        self.assertTrue((4, 3) in get_movement_zone(board, board.get_piece([5,4])))
+        self.assertTrue((4, 3) in get_movement_zone(board, board.get_piece([3,4])))
+        p2.make_move([1,8], [1,7])
+        p1.make_move([1,1], [1,2])
+        # no more en passant
+        self.assertFalse((4, 3) in get_movement_zone(board, board.get_piece([5,4])))
+        self.assertFalse((4, 3) in get_movement_zone(board, board.get_piece([3,4])))
+        
+        # Now test en passant against opposing black color.
+
+        white_pieces = ['K-A1', 'P-E5', 'P-C5']
+        black_pieces = ['K-A8', 'P-D7']
+        debug = set_up_debug(white_pieces=white_pieces, black_pieces=black_pieces)
+        game = Game(debug)
+        board = game.board
+        p1 = game.p1
+        p2 = game.p2
+        p2.make_move([4,7], [4,5])
+        self.assertTrue((4, 6) in get_movement_zone(board, board.get_piece([5,5])))
+        self.assertTrue((4, 6) in get_movement_zone(board, board.get_piece([3,5])))
+        p1.make_move([1,1], [1,2])
+        p2.make_move([1,8], [1,7])
+        self.assertFalse((4, 6) in get_movement_zone(board, board.get_piece([5,5])))
+        self.assertFalse((4, 6) in get_movement_zone(board, board.get_piece([3,5])))
+
 
 if __name__ == '__main__':
     unittest.main()

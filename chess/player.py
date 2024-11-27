@@ -2,8 +2,8 @@ from piece import Piece
 from board import Board
 from misc.constants import *
 from move_legal import pawn_move_legal, rook_move_legal, bishop_move_legal, knight_move_legal, queen_move_legal, king_move_legal
-from helpers.state_helpers import pawn_promotion, update_moved_piece, update_players_check
-from helpers.general_helpers import check_in_bounds, algebraic_uniconverter, convert_letter_to_rank, in_between_hori_tiles, swap_colors
+from helpers.state_helpers import pawn_promotion, update_moved_piece, update_players_check, update_player_pawns_leap_status
+from helpers.general_helpers import check_in_bounds, algebraic_uniconverter, convert_letter_to_rank, in_between_hori_tiles, swap_colors, ordinal_direction
 from helpers.game_helpers import convert_color_to_player
 from movement_zone import get_movement_zone, mass_movement_zone
 
@@ -78,14 +78,30 @@ class Player:
         Function will handle pawn promotion, and update the 'moved' parameter of
         the moved piece, if it has moved.
         '''
-        legality, _ = self.non_bool_move_legal(pos=pos, dest=dest)
+        legality, special_message = self.non_bool_move_legal(pos=pos, dest=dest)
+        # special message is an error (ignored), blank '' (ignored), or 'EN PASSANT' command string (important)
         if legality:
             moving_piece = self.board.get_piece(pos)
-            self.board.move_piece(pos=dest, piece=moving_piece)
+            assert(moving_piece.color in BWSET)
+            if special_message == 'EN PASSANT':
+                assert(moving_piece.rank == 'PAWN')
+                ord_dir = ordinal_direction(pos, dest)
+                look = ord_dir[1] 
+                assert(look in set(['E', 'W']))
+                offset = 1 if look == 'E' else -1
+                self.board.move_piece(pos=dest, piece=moving_piece)
+                removed_pawn = self.board.remove_piece([pos[0]+offset, pos[1]])
+                assert(removed_pawn != None)
+                assert(removed_pawn.color in BWSET)
+                assert(removed_pawn.color != moving_piece.color)
+                assert(removed_pawn.rank == 'PAWN')
+            else:
+                self.board.move_piece(pos=dest, piece=moving_piece)
             pawn_promotion(player=self, dest=dest, piece=moving_piece)
             assert(moving_piece.pos == dest)
             update_moved_piece(piece=moving_piece)
             update_players_check(self.game)
+            update_player_pawns_leap_status(self, moving_piece, pos, dest)
             self.game.turn = swap_colors(self.game.turn)
         else:
             return
@@ -179,7 +195,7 @@ class Player:
         '''
         cloned_collection = {}
         for piece in self.pieces.values():
-            clone_piece = piece.clone_piece(player=clone_player)
+            clone_piece = piece.clone_piece(clone_player)
             cloned_collection[clone_piece.name] = clone_piece
         return cloned_collection
     
@@ -291,6 +307,7 @@ class Player:
             self.board.move_piece(pos=crossed_tile, piece=rook)
             update_moved_piece(piece=rook)
             update_players_check(self.game)
+            update_player_pawns_leap_status(self, castled=True)
             self.game.turn = swap_colors(self.game.turn)
         else:
             return
