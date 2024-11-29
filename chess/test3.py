@@ -403,10 +403,10 @@ class TestCastling(unittest.TestCase):
         game_clone = game.clone_game() # backup to get back to later,
         game.turn = 'WHITE'
         # w/o having to reconfigure game repeatedly
-        self.assertTrue(p1.castle_legal('KING', p2))
-        self.assertTrue(p1.castle_legal('QUEEN', p2))
-        self.assertTrue(p1.castle_legal('KING', p1))
-        self.assertTrue(p1.castle_legal('QUEEN', p1))
+        self.assertTrue(p1.bool_castle_legal('KING', p2))
+        self.assertTrue(p1.bool_castle_legal('QUEEN', p2))
+        self.assertTrue(p2.bool_castle_legal('KING', p1))
+        self.assertTrue(p2.bool_castle_legal('QUEEN', p1))
         # Now perform castling on clone:
         # p1 kingside
         with patch('builtins.input', side_effect=['kc', 'pause']):
@@ -531,7 +531,7 @@ class TestCastling(unittest.TestCase):
         board = game.board
         p1 = game.p1
         p2 = game.p2
-        self.assertTrue(p1.castle_legal('KING', p2))
+        self.assertTrue(p1.bool_castle_legal('KING', p2))
         game.turn = 'WHITE'
         with patch('builtins.input', side_effect=['kc', 'pause']):
             game.start()
@@ -550,7 +550,7 @@ class TestCastling(unittest.TestCase):
         board = game.board
         p1 = game.p1
         p2 = game.p2
-        self.assertTrue(p1.castle_legal('KING', p2))
+        self.assertTrue(p1.bool_castle_legal('KING', p2))
         game.turn = 'WHITE'
         with patch('builtins.input', side_effect=['kc', 'pause']):
             game.start()

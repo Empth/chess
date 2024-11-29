@@ -207,7 +207,7 @@ class Game:
         cur_player = convert_color_to_player(game=self, color=cur_player_color)
         opponent_color = swap_colors(self.turn)
         opponent = convert_color_to_player(game=self, color=opponent_color)
-        castle_legal, error_message = cur_player.castle_legal(side, opponent)
+        castle_legal, error_message = cur_player.non_bool_castle_legal(side, opponent)
         if not castle_legal:
             set_error_message(game=self, message=error_message)
             return False

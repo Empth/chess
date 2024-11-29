@@ -120,7 +120,7 @@ def clone_game_and_get_game_state_based_on_move(game, pos=None, dest=None, castl
         cur_player = convert_color_to_player(game, cur_player_color)
         opponent_color = swap_colors(cur_player_color)
         opponent = convert_color_to_player(game, opponent_color)
-        assert(cur_player.castle_legal(side, opponent)) 
+        assert(cur_player.bool_castle_legal(side, opponent)) 
         # ^ hinges on promise that this is a pure viewer with no modifications to game's state
 
     game.clone_game()
@@ -137,7 +137,7 @@ def clone_game_and_get_game_state_based_on_move(game, pos=None, dest=None, castl
         assert(cur_player_clone.bool_move_legal(pos, dest))
         cur_player_clone.make_move(pos, dest)
     else: # its a castle
-        assert(cur_player_clone.castle_legal(side, opponent_clone))
+        assert(cur_player_clone.bool_castle_legal(side, opponent_clone))
         cur_player_clone.castle(side, opponent_clone)
 
     return game_clone, cur_player_clone, opponent_clone, board_clone

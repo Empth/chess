@@ -225,7 +225,7 @@ class Player:
         return all_player_moves
     
 
-    def castle_legal(self, side, opponent) -> tuple[bool, str]:
+    def non_bool_castle_legal(self, side, opponent) -> tuple[bool, str]:
         '''
         Returns boolean value, error message on if castle on king/queen's side for this player
         is legal.
@@ -274,6 +274,13 @@ class Player:
         return True, ''
     
 
+    def bool_castle_legal(self, side, opponent) -> bool:
+        '''
+        Returns boolean value on if castling with side and opponent is legal.
+        '''
+        return self.non_bool_castle_legal(side, opponent)[0]
+    
+
     def castle(self, side, opponent):
         '''
         This makes the player perform a castle on KING/QUEEN side,
@@ -284,7 +291,7 @@ class Player:
         opponent: Player that opposes current player.
         '''
         assert(side in ['KING', 'QUEEN'])
-        legality, _ = self.castle_legal(side, opponent)
+        legality, _ = self.non_bool_castle_legal(side, opponent)
         if legality:
 
             # move KING first
