@@ -1,11 +1,16 @@
 A Windows terminal chess application, developed using Python.
 Currently only supports PvP on the same computer.
 
-![image](https://github.com/user-attachments/assets/4f865eb3-d194-4f32-97b8-d6a40ff045b3)
+![image](https://github.com/user-attachments/assets/0bc4f2f3-ae5c-4faa-b624-97cb213f8c87)
 
 Feature TODO list:
 * Minimax AI bot implementation
-* En passant
-* Castling
-* Checkmate win condition
 * Online network multiplayer
+* Speed Chess
+* 50 move draw
+* 3-fold repetition (maybe?)
+
+Finished features taken out of TODO list:
+* En passant - Finished 11/27
+* Castling - Finished 11/18
+* Checkmate - Finished 11/15
