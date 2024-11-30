@@ -8,10 +8,11 @@ from helpers.game_helpers import (clear_terminal, get_error_message, get_special
 from helpers.state_helpers import update_players_check, move_puts_player_in_check, move_locks_opponent, get_all_truly_legal_player_moves
 from movement_zone import get_movement_zone
 from misc.constants import *
+from minimax import evaluate_minimax_of_move
 
 '''File contains The Game logic.'''
 
-special_command_set = set(['PAUSE', 'EXIT', 'RESELECT', 'FORFEIT', 'RANDOM', 'R', 'KC', 'QC'])
+special_command_set = set(['PAUSE', 'EXIT', 'RESELECT', 'FORFEIT', 'RANDOM', 'R', 'KC', 'QC', 'B'])
 mate_special_command_set = set(['checkmate', 'stalemate'])
 
 class Game:
@@ -49,7 +50,7 @@ class Game:
         render_below_board: If we render in_check below board.
         '''
         clear_terminal()
-        print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT, RANDOM (or R), QC or KC (to castle)')
+        print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT, RANDOM (or R), QC or KC (to castle), B (best move)')
         if self.show_error: 
             get_error_message(game=self)
         else:
@@ -99,6 +100,9 @@ class Game:
                     continue
                 if command == 'RANDOM' or command == 'R':
                     self.make_random_move()
+                    continue
+                if command == 'B':
+                    self.make_best_move()
                     continue
                 if command == 'KC' or command == 'QC':
                     side = 'KING' if command[0] == 'K' else 'QUEEN'
@@ -260,7 +264,7 @@ class Game:
         '''
         Given a game state where it is PLAYER's turn, makes a 
         randomized move for PLAYER, where moves are drawn
-        from set of all movement zone tiles of PLAYER's pieces. 
+        from set of all possible legal moves. 
         The move distribution is uniform. 
         This method will take up PLAYER's turn.
         '''
@@ -288,5 +292,51 @@ class Game:
                 set_error_message(game=self, message='')
                 get_error_message(self) # hopefully this resets error messaging popping up due to using make_turn
                 return
+            
+    def make_best_move(self, depth=2):
+        '''
+        Given a game state where it is PLAYER's turn, makes the
+        best move for PLAYER, based on minimax search 'depth' levels deep.
+        If PLAYER is WHITE, PLAYER is a maximizing player, otherwise PLAYER
+        is a minimizing player.
+        This method will take up PLAYER's turn.
+        depth: Deepness of minimax search, integer greater than 0.
+        '''
+        assert(type(depth) == int)
+        assert(depth > 0)
+        cur_player = convert_color_to_player(game=self, color=self.turn)
+        all_truly_legal_player_moves = get_all_truly_legal_player_moves(self, cur_player)
+        n = len(all_truly_legal_player_moves)
+        assert(n > 0) # n == 0 shouldn't be possible.
+        is_maximizing_player = True if cur_player.color == WHITE else False
+        player_polarity = 1 if cur_player.color == WHITE else -1 # min or max criterion cleverness
+        best_score = -1 * player_polarity * float('inf') # worst score is inf if cur_player is minimizer
+                                                        # o/w worst is -inf for cur_player as maximizer.
+        best_move = None
+        for move in all_truly_legal_player_moves:
+            move_score = evaluate_minimax_of_move(self, move, cur_player, depth-1, is_maximizing_player)
+            if player_polarity * move_score > player_polarity * best_score: # cleverness deals with max vs min concisely
+                best_score = move_score
+                best_move = move
+
+        assert(best_move != None)
+
+        # TODO repeated code, make into its own method?
+        if type(best_move) == str:
+                side_code = 'KING' if best_move == 'KC' else 'QUEEN'
+                move_taken = self.make_castle_move(side_code) # must be completely valid.
+        else:
+            assert(len(best_move) == 2 and len(best_move[0]) == 2 and len(best_move[1]) == 2)
+            move_taken = self.make_turn(best_move) # must be completely valid.
+        assert(move_taken)
+        if self.special_command != '':
+            # Then its checkmate or stalemate.
+            return
+        else:
+            set_error_message(game=self, message='')
+            get_error_message(self) # hopefully this resets error messaging popping up due to using make_turn
+            return
+
+
             
 

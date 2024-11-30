@@ -144,6 +144,8 @@ class Player:
             return king_move_legal(player=self, pos=pos, dest=dest)
         else:
             return False, 'Rank of piece at position ' +str(algebraic_uniconverter(pos))+ ' does not match any of the 6 classes.'
+        
+        # TODO integrate move_puts_player in check into this legality check???
     
 
     def misc_checks(self, pos, dest) -> tuple[bool, str]:

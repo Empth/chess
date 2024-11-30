@@ -1,8 +1,9 @@
-from helpers.state_helpers import clone_game_and_get_game_state_based_on_move
+from helpers.state_helpers import (clone_game_and_get_game_state_based_on_move, move_puts_player_in_check,
+                                   player_is_locked, get_all_truly_legal_player_moves)
 from helpers.game_helpers import convert_color_to_player
 from helpers.general_helpers import swap_colors
 
-def evaluate_minimax_after_move(game, move, cur_player, depth, is_maximizing_player=False) -> float:
+def evaluate_minimax_of_move(game, move, cur_player, depth, is_maximizing_player=False) -> float:
     '''
     Minimax value returns the minimax value after 'move' is used
     by 'cur_player' on 'game', with search performed 'depth' levels deep.
@@ -24,36 +25,10 @@ def evaluate_minimax_after_move(game, move, cur_player, depth, is_maximizing_pla
 
     Returns: minimax value of move by cur_player.
     '''
-    cloned_game_after_move, cloned_player = None, None
-    if type(move) == str:
-        if move == 'QC':
-            assert(cur_player.bool_castle_legal(side='QUEEN', 
-                                           opponent=convert_color_to_player(game, 
-                                            color=swap_colors(cur_player.color))))
-            (cloned_game_after_move, 
-             cloned_player, 
-             cloned_opponent, _) = clone_game_and_get_game_state_based_on_move(game, 
-                                                                                castle_side_color=['QUEEN', 
-                                                                                cur_player.color])
-        elif move == 'KC':
-            assert(cur_player.bool_castle_legal(side='KING', 
-                                           opponent=convert_color_to_player(game, 
-                                            color=swap_colors(cur_player.color))))
-            (cloned_game_after_move, 
-             cloned_player, 
-             cloned_opponent, _) = clone_game_and_get_game_state_based_on_move(game, 
-                                                                                castle_side_color=['KING', 
-                                                                                cur_player.color])
-        else:
-            assert(False)
-    else:
-        assert(len(move) == 2)
-        assert(cur_player.bool_move_legal(pos=move[0], dest=move[1]))
-        (cloned_game_after_move, 
-        cloned_player, 
-        cloned_opponent, _) = clone_game_and_get_game_state_based_on_move(game, 
-                                                                           pos=move[0], 
-                                                                           dest=move[1])
+    (cloned_game_after_move, _, 
+     cloned_opponent, _) = get_cloned_game_state_based_on_generalized_move(game=game, 
+                                                                           player=cur_player, 
+                                                                           move=move)
         
     return minimax(cur_game=cloned_game_after_move, cur_player=cloned_opponent, 
                    depth=depth, is_maximizing_player=not is_maximizing_player)
@@ -65,24 +40,48 @@ def minimax(cur_game, cur_player, depth, is_maximizing_player) -> float:
     cur_game: a Game with state of current game.
     cur_player: whichever Player the 'maximizing_player' refers to (p1 or p2). It's
     assumed that cur_game state is the beginning of cur_player's turn.
-    (TODO FIXME Need to update cur_game so that it behaves that way? yes or no?)
+    (TODO FIXME Need to update cur_game so that it behaves that way? yes or no????)
     depth: Number of levels deep we want to look ahead from cur_game state.
     is_maximizing_player: bool on whether cur_player is a value maximizing or minimizing player.
 
     Returns: minimax value given cur_game state for cur_player.
     '''
-    terminal_game = False # whether cur_player has any other outs, 
-    # ie on if its stalemate or checkmate.
+    terminal_game = player_is_locked(cur_game, cur_player) # whether cur_player has any other outs, 
+                                                            # ie on if its stalemate or checkmate.
     if depth == 0 or terminal_game:
         if terminal_game: # ie opponent opposing cur_player can't move
-            penalty_offset = -1 if is_maximizing_player else 1
-            return penalty_offset * 1000 # TODO 0 for stalemate, ±1000 penalty on cur_player for getting checkmated.
+            if cur_player.in_check: # checkmate
+                penalty_offset = -1 if is_maximizing_player else 1
+                return penalty_offset * 1000 # ±1000 penalty on cur_player for getting checkmated.
+            else: # stalemate
+                return 0
         else:
             return value(cur_game, cur_player, is_maximizing_player)
+        
+    cur_player_true_legal_moves = get_all_truly_legal_player_moves(cur_game, cur_player) # all genuine legal moves.
+
     if is_maximizing_player:
         value_num = -1000
+        for move in cur_player_true_legal_moves:
+            (cloned_game_after_move, _, 
+            cloned_opponent, _) = get_cloned_game_state_based_on_generalized_move(game=cur_game,
+                                                                                  player=cur_player,
+                                                                                  move=move)
+            value_num = max(value_num, 
+                            minimax(cloned_game_after_move, 
+                                    cloned_opponent,
+                                    depth-1, False))
     else:
         value_num = 1000
+        for move in cur_player_true_legal_moves:
+            (cloned_game_after_move, _, 
+            cloned_opponent, _) = get_cloned_game_state_based_on_generalized_move(game=cur_game,
+                                                                                  player=cur_player,
+                                                                                  move=move)
+            value_num = min(value_num, 
+                            minimax(cloned_game_after_move, 
+                                    cloned_opponent,
+                                    depth-1, True))
 
     return value_num
 
@@ -115,3 +114,60 @@ def value(cur_game, cur_player, is_maximizing_player) -> float:
     assert(cur_player_king_exists and opponent_king_exists)
 
     return value
+
+
+def get_cloned_game_state_based_on_generalized_move(game, player, move):
+    '''
+    A wrapper for clone_game_and_get_game_state_based_on_move(), specialized for minimax.
+    # TODO this wrapper should be implementable in the clone_game_and_get... method in state_helpers
+    # TODO side calls for 'QUEEN', 'KING' should be generalized to 'QC', 'KC' ? but only if
+    # that yields any tangible benefits for code reduction.
+    Takes in any general 'move', which is either 
+    [[x_0, y_0], [x_1, y_1]] pos->dest
+    or 'QC'/'KC' castle.
+    game: Game. Won't be modified.
+    player: The Player making move. Won't be modified.
+    move: [[x_0, y_0], [x_1, y_1]], 'QC', 'KC'
+    Required: move is truly legal for player (ie for pos->dest, doesn't self suicide into check)
+    Returns (in order): the cloned Game, the cloned Player which made the move, 
+    the opposing cloned opponent Player, and the cloned Board.
+    '''
+
+    (cloned_game_after_move, cloned_player, 
+     cloned_opponent, cloned_board) = None, None, None, None
+    
+    if type(move) == str:
+        if move == 'QC':
+            assert(player.bool_castle_legal(side='QUEEN', 
+                                           opponent=convert_color_to_player(game, 
+                                            swap_colors(player.color))))
+            (cloned_game_after_move, 
+             cloned_player, 
+             cloned_opponent,
+             cloned_board) = clone_game_and_get_game_state_based_on_move(game, 
+                                                                        castle_side_color=['QUEEN', 
+                                                                        player.color])
+        elif move == 'KC':
+            assert(player.bool_castle_legal(side='KING', 
+                                           opponent=convert_color_to_player(game, 
+                                            swap_colors(player.color))))
+            (cloned_game_after_move, 
+             cloned_player, 
+             cloned_opponent, 
+             cloned_board) = clone_game_and_get_game_state_based_on_move(game, 
+                                                                        castle_side_color=['KING', 
+                                                                        player.color])
+        else:
+            assert(False)
+    else:
+        assert(len(move) == 2)
+        assert(player.bool_move_legal(pos=move[0], dest=move[1]))
+        assert(not move_puts_player_in_check(game, move[0], move[1]))
+        (cloned_game_after_move, 
+        cloned_player, 
+        cloned_opponent, 
+        cloned_board) = clone_game_and_get_game_state_based_on_move(game, 
+                                                                    pos=move[0], 
+                                                                    dest=move[1])
+        
+    return cloned_game_after_move, cloned_player, cloned_opponent, cloned_board
