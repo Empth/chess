@@ -168,7 +168,31 @@ def update_player_pawns_leap_status(player, moved_piece=None, prev_pos=None, cur
             and prev_pos[0] == cur_pos[0]):
             player.pieces[moved_piece.name].pawn_two_leap_on_prev_turn = True
 
+def get_all_truly_legal_player_moves(game, player):
+    '''
+    Given game, player, get an array of all possible player moves which
+    are movement zone legal, and which does not leave said player in check (ie check legal).
+    An elt of this array is [[x_0, y_0], [x_1, y_1]] if it denotes a pos->dest move, and is
+    string 'QC' or 'KC' if it refers to a castle (king or queenside).
 
+    As corollary, if an empty array returns, it means player is in checkmate or stalemate.
+    '''
+    movement_zone_legal_player_moves = player.get_all_player_move_options() # a bunch of these may lead into check
+    truly_legal_player_moves = [] # all moves that don't keep or move player into check
+    for move in movement_zone_legal_player_moves:
+        if not move_puts_player_in_check(game=game, pos=move[0], dest=move[1]):
+            truly_legal_player_moves.append(move)
+
+    opponent_color = swap_colors(player.color)
+    opponent = convert_color_to_player(game=game, color=opponent_color) # TODO I repeat this idiom alot, maybe it can be its own method?
+
+    if player.bool_castle_legal('QUEEN', opponent):
+        truly_legal_player_moves.append('QC')
+
+    if player.bool_castle_legal('KING', opponent):
+        truly_legal_player_moves.append('KC')
+
+    return truly_legal_player_moves
 
 
 

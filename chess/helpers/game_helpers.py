@@ -127,3 +127,5 @@ def get_color_in_check(game) -> str:
     if p2_check:
         return game.p2.color
     return ''
+
+    
