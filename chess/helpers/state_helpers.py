@@ -2,6 +2,7 @@ from .general_helpers import get_piece_visual, swap_colors
 from movement_zone import get_movement_zone, mass_movement_zone # os.getcwd is Desktop\Chess  ...
 from .game_helpers import convert_color_to_player
 from misc.constants import *
+import random
 
 '''
 For things like pawn promotion status, piece has moved, king in check, move places player in check, etc
@@ -161,12 +162,13 @@ def update_player_pawns_leap_status(player, moved_piece=None, prev_pos=None, cur
             and prev_pos[0] == cur_pos[0]):
             player.pieces[moved_piece.name].pawn_two_leap_on_prev_turn = True
 
-def get_all_truly_legal_player_moves(game, player):
+def get_all_truly_legal_player_moves(game, player, shuffle=False):
     '''
     Given game, player, get an array of all possible player moves which
     are movement zone legal, and which does not leave said player in check (ie check legal).
     An elt of this array is [[x_0, y_0], [x_1, y_1]] if it denotes a pos->dest move, and is
     string 'QC' or 'KC' if it refers to a castle (king or queenside).
+    shuffle: Whether to randomize returned array or not.
 
     As corollary, if an empty array returns, it means player is in checkmate or stalemate.
     '''
@@ -184,6 +186,9 @@ def get_all_truly_legal_player_moves(game, player):
 
     if player.bool_castle_legal('KING', opponent):
         truly_legal_player_moves.append('KC')
+
+    if shuffle:
+        random.shuffle(truly_legal_player_moves)
 
     return truly_legal_player_moves
 

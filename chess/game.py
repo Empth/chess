@@ -32,6 +32,7 @@ class Game:
         self.special_command = ''
         self.exists_command = False
         self.game_clone = None
+        self.debug_val = 0
 
 
     def reset(self):
@@ -269,29 +270,26 @@ class Game:
         This method will take up PLAYER's turn.
         '''
         cur_player = convert_color_to_player(game=self, color=self.turn)
-        all_truly_legal_player_moves = get_all_truly_legal_player_moves(self, cur_player)
+        all_truly_legal_player_moves = get_all_truly_legal_player_moves(self, cur_player, True)
         n = len(all_truly_legal_player_moves)
         assert(n > 0) # n should never be 0, as this implies random is called out of stalemate or checkmate, which isn't possible.
-        indices = list(range(n)) # indices to be shuffled
-        random.shuffle(indices)
-        for idx in indices:
-            executing_move = all_truly_legal_player_moves[idx]
-            move_taken = False
-            if type(executing_move) == str:
-                assert(executing_move in ['KC', 'QC'])
-                side_code = 'KING' if executing_move == 'KC' else 'QUEEN'
-                move_taken = self.make_castle_move(side_code) # must be completely valid.
-            else:
-                assert(len(executing_move) == 2 and len(executing_move[0]) == 2 and len(executing_move[1]) == 2)
-                move_taken = self.make_turn(executing_move) # must be completely valid.
-            assert(move_taken)
-            if self.special_command != '':
-                # Then its checkmate or stalemate.
-                return
-            else:
-                set_error_message(game=self, message='')
-                get_error_message(self) # hopefully this resets error messaging popping up due to using make_turn
-                return
+        executing_move = all_truly_legal_player_moves[0]
+        move_taken = False
+        if type(executing_move) == str:
+            assert(executing_move in ['KC', 'QC'])
+            side_code = 'KING' if executing_move == 'KC' else 'QUEEN'
+            move_taken = self.make_castle_move(side_code) # must be completely valid.
+        else:
+            assert(len(executing_move) == 2 and len(executing_move[0]) == 2 and len(executing_move[1]) == 2)
+            move_taken = self.make_turn(executing_move) # must be completely valid.
+        assert(move_taken)
+        if self.special_command != '':
+            # Then its checkmate or stalemate.
+            return
+        else:
+            set_error_message(game=self, message='')
+            get_error_message(self) # hopefully this resets error messaging popping up due to using make_turn
+            return
             
     def make_best_move(self, depth=2):
         '''
@@ -309,12 +307,14 @@ class Game:
         n = len(all_truly_legal_player_moves)
         assert(n > 0) # n == 0 shouldn't be possible.
         is_maximizing_player = True if cur_player.color == WHITE else False
-        player_polarity = 1 if cur_player.color == WHITE else -1 # min or max criterion cleverness
-        best_score = -1 * player_polarity * float('inf') # worst score is inf if cur_player is minimizer
-                                                        # o/w worst is -inf for cur_player as maximizer.
+        player_polarity = 1 if is_maximizing_player else -1 # min or max criterion cleverness
+        best_score = -player_polarity * MAX # worst score is MAX if cur_player is minimizer
+                                            # o/w worst is -MAX for cur_player as maximizer.
         best_move = None
         for move in all_truly_legal_player_moves:
-            move_score = evaluate_minimax_of_move(self, move, cur_player, depth-1, is_maximizing_player)
+            move_score = evaluate_minimax_of_move(self, move, cur_player, depth-1, 
+                                                  is_maximizing_player, alpha=-MAX,
+                                                  beta=MAX, alpha_beta_mode=False)
             if player_polarity * move_score > player_polarity * best_score: # cleverness deals with max vs min concisely
                 best_score = move_score
                 best_move = move

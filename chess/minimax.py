@@ -2,8 +2,13 @@ from helpers.state_helpers import (clone_game_and_get_game_state_based_on_move, 
                                    player_is_locked, get_all_truly_legal_player_moves)
 from helpers.game_helpers import convert_color_to_player
 from helpers.general_helpers import swap_colors
+from misc.constants import *
+import random
 
-def evaluate_minimax_of_move(game, move, cur_player, depth, is_maximizing_player=False) -> float:
+num_evaluated_nodes = 0
+
+def evaluate_minimax_of_move(game, move, cur_player, depth, is_maximizing_player=False, 
+                             alpha=-MAX, beta=MAX, alpha_beta_mode=True) -> float:
     '''
     Minimax value returns the minimax value after 'move' is used
     by 'cur_player' on 'game', with search performed 'depth' levels deep.
@@ -19,6 +24,9 @@ def evaluate_minimax_of_move(game, move, cur_player, depth, is_maximizing_player
     depth: Number of levels deep we want to look ahead, after making 'move'.
     is_maximizing_player: bool on whether cur_player is a value maximizing or minimizing player.
     False by default, assuming cur_player is always called to be the ai agent.
+    alpha: Minimum guarenteed value that maximizing player will get
+    beta: Maximum guarenteed value that minimizing player will get
+    alpha_beta_mode: Toggle for alpha-beta pruning on/off
 
     Note, depth 1 in eval_minimax really behaves like a depth 2 search 
     in the case where cur_player is free to make any move.
@@ -29,12 +37,13 @@ def evaluate_minimax_of_move(game, move, cur_player, depth, is_maximizing_player
      cloned_opponent, _) = get_cloned_game_state_based_on_generalized_move(game=game, 
                                                                            player=cur_player, 
                                                                            move=move)
-        
+    game.debug_val = num_evaluated_nodes
     return minimax(cur_game=cloned_game_after_move, cur_player=cloned_opponent, 
-                   depth=depth, is_maximizing_player=not is_maximizing_player)
+                   depth=depth, is_maximizing_player=not is_maximizing_player, 
+                   alpha=alpha, beta=beta, alpha_beta_mode=alpha_beta_mode)
 
 
-def minimax(cur_game, cur_player, depth, is_maximizing_player) -> float:
+def minimax(cur_game, cur_player, depth, is_maximizing_player, alpha=-MAX, beta=MAX, alpha_beta_mode=True) -> float:
     '''
     Minimax algorithm.
     cur_game: a Game with state of current game.
@@ -43,16 +52,21 @@ def minimax(cur_game, cur_player, depth, is_maximizing_player) -> float:
     (TODO FIXME Need to update cur_game so that it behaves that way? yes or no????)
     depth: Number of levels deep we want to look ahead from cur_game state.
     is_maximizing_player: bool on whether cur_player is a value maximizing or minimizing player.
+    alpha: Minimum guarenteed value that maximizing player will get
+    beta: Maximum guarenteed value that minimizing player will get
+    alpha_beta_mode: Toggle for alpha-beta pruning on/off
 
     Returns: minimax value given cur_game state for cur_player.
     '''
     terminal_game = player_is_locked(cur_game, cur_player) # whether cur_player has any other outs, 
                                                             # ie on if its stalemate or checkmate.
     if depth == 0 or terminal_game:
+        global num_evaluated_nodes
+        num_evaluated_nodes += 1
         if terminal_game: # ie opponent opposing cur_player can't move
             if cur_player.in_check: # checkmate
                 penalty_offset = -1 if is_maximizing_player else 1
-                return penalty_offset * 1000 # ±1000 penalty on cur_player for getting checkmated.
+                return penalty_offset * MAX # MAX penalty on cur_player for getting checkmated.
             else: # stalemate
                 return 0
         else:
@@ -61,7 +75,7 @@ def minimax(cur_game, cur_player, depth, is_maximizing_player) -> float:
     cur_player_true_legal_moves = get_all_truly_legal_player_moves(cur_game, cur_player) # all genuine legal moves.
 
     if is_maximizing_player:
-        value_num = -1000
+        value_num = -MAX
         for move in cur_player_true_legal_moves:
             (cloned_game_after_move, _, 
             cloned_opponent, _) = get_cloned_game_state_based_on_generalized_move(game=cur_game,
@@ -70,9 +84,16 @@ def minimax(cur_game, cur_player, depth, is_maximizing_player) -> float:
             value_num = max(value_num, 
                             minimax(cloned_game_after_move, 
                                     cloned_opponent,
-                                    depth-1, False))
+                                    depth-1, False,
+                                    alpha=alpha, beta=beta,
+                                    alpha_beta_mode=alpha_beta_mode))
+            
+            if value_num > beta and alpha_beta_mode:
+                break # value_num too big, min player will derive no value exploring this node's branches
+            alpha = max(alpha, value_num)
+        return value_num
     else:
-        value_num = 1000
+        value_num = MAX
         for move in cur_player_true_legal_moves:
             (cloned_game_after_move, _, 
             cloned_opponent, _) = get_cloned_game_state_based_on_generalized_move(game=cur_game,
@@ -81,17 +102,24 @@ def minimax(cur_game, cur_player, depth, is_maximizing_player) -> float:
             value_num = min(value_num, 
                             minimax(cloned_game_after_move, 
                                     cloned_opponent,
-                                    depth-1, True))
+                                    depth-1, True,
+                                    alpha=alpha, beta=beta,
+                                    alpha_beta_mode=alpha_beta_mode))
+            
+            if value_num < alpha and alpha_beta_mode:
+                break # value_num too small, max player will derive no value exploring this node's branches
+            beta = min(beta, value_num)
+        return value_num
 
-    return value_num
 
-
-def value(cur_game, cur_player, is_maximizing_player) -> float:
+def value(cur_game, cur_player, is_maximizing_player, fuzz=0) -> float:
     '''
     Value function for given cur_player and cur_game, based on the
     cur_player's remaining pieces, opponent's remaining pieces, 
     and cur_player's piece positions (and maybe opponent's piece
     positions).
+    fuzz: Variance parameter on amount of randomness added to value.
+    Returns: Value
     '''
     # TODO make it additionally factor in board position.
     value = 0 # value is absolute, ie want >>0 for maximizing player, want << 0 for min player
@@ -113,7 +141,9 @@ def value(cur_game, cur_player, is_maximizing_player) -> float:
 
     assert(cur_player_king_exists and opponent_king_exists)
 
-    return value
+    randomness = 0 if fuzz == 0 else random.uniform(-fuzz, fuzz)
+
+    return value + randomness
 
 
 def get_cloned_game_state_based_on_generalized_move(game, player, move):
