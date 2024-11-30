@@ -80,16 +80,6 @@ def move_locks_opponent(game, pos=None, dest=None, castle_side_color=[]) -> bool
         (game_clone, _, 
         opponent_clone, _) = clone_game_and_get_game_state_based_on_move(game, None, None, castle_side_color)
      # ^ These cloned states have made the move by the current player
-    '''
-    # replaced for now.
-    for legal_move in opponent_clone.get_all_player_move_options(): # Note legal_move is [[x_0, y_0], [x_1, y_1]]
-        op_pos, op_dest = legal_move[0], legal_move[1]
-        assert(opponent_clone.bool_move_legal(op_pos, op_dest))
-        if not move_puts_player_in_check(game_clone, op_pos, op_dest): 
-            # ^ this method puts a clone inside of the clone, so it doesn't modify this clone's state.
-            return False
-    return True
-    '''
     return player_is_locked(game_clone, opponent_clone)
 
 def clone_game_and_get_game_state_based_on_move(game, pos=None, dest=None, castle_side_color=[]):
