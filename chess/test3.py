@@ -346,6 +346,8 @@ class TestRandomMove(unittest.TestCase):
         # update check first, to get correct game state.
         update_players_check(game)
         self.assertEqual(game.turn, 'WHITE')
+        os.system('cls')
+        print(game.board)
         input_commands = ['r', 'PAUSE']
         with patch('builtins.input', side_effect=input_commands):
             game.start()

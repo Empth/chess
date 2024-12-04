@@ -240,4 +240,29 @@ def non_bool_en_passant_legal(piece, dest, player) -> tuple[bool, str]:
 def bool_en_passant_legal(piece, dest, player) -> bool:
     return non_bool_en_passant_legal(piece, dest, player)[0]
 
+def piece_exists_on_pos_offset(board, pos, offsets, finding_piece) -> bool:
+    '''
+    Finds whether a 'finding_piece' with rank, color exists, on any in bounds
+    pos+offset[i] position on board.
+    board: board
+    pos: [x, y] in [8]^2
+    offsets: array of [deltax, deltay] offsets
+    finding_piece: len 2 array with string params of RANK, COLOR in that order
+    Returns: False if no such piece exists on board. Otherwise, returns True.
+    '''
+    assert(pos[0]-1 in range(8) and pos[1]-1 in range(8))
+    assert(len(finding_piece) == 2)
+    assert(finding_piece[1] in BWSET)
+    for offset in offsets:
+        x, y = pos[0]+offset[0], pos[1]+offset[1] # x, y still [8]^2 notation
+        if x-1 not in range(8) or y-1 not in range(8):
+            continue
+        gotten_piece = board.get_piece([x, y])
+        if gotten_piece == None:
+            continue
+        if gotten_piece.rank == finding_piece[0] and gotten_piece.color == finding_piece[1]:
+            return True
+        
+    return False
+
     

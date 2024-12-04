@@ -24,9 +24,9 @@ def evaluate_minimax_of_move(game, move, cur_player, depth, is_maximizing_player
     depth: Number of levels deep we want to look ahead, after making 'move'.
     is_maximizing_player: bool on whether cur_player is a value maximizing or minimizing player.
     False by default, assuming cur_player is always called to be the ai agent.
-    alpha: Minimum guarenteed value that maximizing player will get
-    beta: Maximum guarenteed value that minimizing player will get
-    alpha_beta_mode: Toggle for alpha-beta pruning on/off
+    alpha: Minimum guarenteed value that maximizing player will get.
+    beta: Maximum guarenteed value that minimizing player will get.
+    alpha_beta_mode: Toggle for alpha-beta pruning on/off.
 
     Note, depth 1 in eval_minimax really behaves like a depth 2 search 
     in the case where cur_player is free to make any move.
@@ -52,9 +52,9 @@ def minimax(cur_game, cur_player, depth, is_maximizing_player, alpha=-MAX, beta=
     (TODO FIXME Need to update cur_game so that it behaves that way? yes or no????)
     depth: Number of levels deep we want to look ahead from cur_game state.
     is_maximizing_player: bool on whether cur_player is a value maximizing or minimizing player.
-    alpha: Minimum guarenteed value that maximizing player will get
-    beta: Maximum guarenteed value that minimizing player will get
-    alpha_beta_mode: Toggle for alpha-beta pruning on/off
+    alpha: Minimum guarenteed value that maximizing player will get.
+    beta: Maximum guarenteed value that minimizing player will get.
+    alpha_beta_mode: Toggle for alpha-beta pruning on/off.
 
     Returns: minimax value given cur_game state for cur_player.
     '''

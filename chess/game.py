@@ -258,7 +258,7 @@ class Game:
         clone.winner = self.winner # now its okay since field is not a player
         # We don't store any other information about error message state, or special command state.
         self.game_clone = clone
-        return self.game_clone
+        return clone
 
 
     def make_random_move(self):
@@ -270,7 +270,7 @@ class Game:
         This method will take up PLAYER's turn.
         '''
         cur_player = convert_color_to_player(game=self, color=self.turn)
-        all_truly_legal_player_moves = get_all_truly_legal_player_moves(self, cur_player, True)
+        all_truly_legal_player_moves = get_all_truly_legal_player_moves(self, cur_player, False) # FIXME set to true
         n = len(all_truly_legal_player_moves)
         assert(n > 0) # n should never be 0, as this implies random is called out of stalemate or checkmate, which isn't possible.
         executing_move = all_truly_legal_player_moves[0]
@@ -303,7 +303,7 @@ class Game:
         assert(type(depth) == int)
         assert(depth > 0)
         cur_player = convert_color_to_player(game=self, color=self.turn)
-        all_truly_legal_player_moves = get_all_truly_legal_player_moves(self, cur_player)
+        all_truly_legal_player_moves = get_all_truly_legal_player_moves(self, cur_player, shuffle=False)
         n = len(all_truly_legal_player_moves)
         assert(n > 0) # n == 0 shouldn't be possible.
         is_maximizing_player = True if cur_player.color == WHITE else False
@@ -314,7 +314,7 @@ class Game:
         for move in all_truly_legal_player_moves:
             move_score = evaluate_minimax_of_move(self, move, cur_player, depth-1, 
                                                   is_maximizing_player, alpha=-MAX,
-                                                  beta=MAX, alpha_beta_mode=False)
+                                                  beta=MAX, alpha_beta_mode=True)
             if player_polarity * move_score > player_polarity * best_score: # cleverness deals with max vs min concisely
                 best_score = move_score
                 best_move = move

@@ -1,6 +1,7 @@
 from .general_helpers import get_piece_visual, swap_colors
 from movement_zone import get_movement_zone, mass_movement_zone # os.getcwd is Desktop\Chess  ...
 from .game_helpers import convert_color_to_player
+from .legality_helpers import get_ordinal_collision, get_cardinal_collision, piece_exists_on_pos_offset
 from misc.constants import *
 import random
 
@@ -39,12 +40,49 @@ def player_in_check(player, opponent) -> bool:
     # NOTE King code doesn't work with debug configs...
     assert(player.color in BWSET and opponent.color in BWSET)
     assert(player.color != opponent.color)
-    #print(player.pieces.keys())
-    #print(opponent.pieces.keys())
     player_king = player.king
     if player_king == None:
         return False # There is no king, hence there is no check condition. Mainly for tests with debug state.
-    return (tuple(player_king.pos) in mass_movement_zone(player.board, opponent))
+    king_pos = player_king.pos
+    board = player.board
+    opponent_color = swap_colors(player.color)
+    
+    # diagonal ray check
+    for ordinal in set(['NE', 'SE', 'SW', 'NW']):
+        collision_pos = get_ordinal_collision(board, king_pos, ordinal)
+        if collision_pos != None:
+            col_piece = board.get_piece(collision_pos)
+            if col_piece.color != player.color and col_piece.rank in ['BISHOP', 'QUEEN']:
+                return True
+    
+    # straight ray check
+    for cardinal in set(['N', 'E', 'S', 'W']):
+        collision_pos = get_cardinal_collision(board, king_pos, cardinal)
+        if collision_pos != None:
+            col_piece = board.get_piece(collision_pos)
+            if col_piece.color != player.color and col_piece.rank in ['ROOK', 'QUEEN']:
+                return True
+
+    y_offset = 1 if player.color == WHITE else -1 # absolute offset of enemy pawn when it can cap king
+
+    if piece_exists_on_pos_offset(board, king_pos, 
+                                  offsets=[[1, y_offset], [-1, y_offset]], 
+                                  finding_piece=['PAWN', opponent_color]):
+        return True # Opponent PAWN checks
+    
+    if piece_exists_on_pos_offset(board, king_pos, 
+                                  offsets=([[1, 2], [2, 1], [-1, 2], [2, -1],
+                                            [1, -2], [-2, 1], [-1, -2], [-2, -1]]), 
+                                  finding_piece=['KNIGHT', opponent_color]):
+        return True # Opponent KNIGHT checks
+    
+    if piece_exists_on_pos_offset(board, king_pos, 
+                                  offsets=([[1, 1], [1, -1], [-1, 1], [-1, -1], 
+                                            [1, 0], [-1, 0], [0, 1], [0, -1]]), 
+                                  finding_piece=['KING', opponent_color]):
+        return True # Opponent KING checks
+    
+    return False # Player KING is out of check
 
 def move_puts_player_in_check(game, pos, dest) -> bool:
     '''
@@ -117,8 +155,7 @@ def clone_game_and_get_game_state_based_on_move(game, pos=None, dest=None, castl
         assert(cur_player.bool_castle_legal(side, opponent)) 
         # ^ hinges on promise that this is a pure viewer with no modifications to game's state
 
-    game.clone_game()
-    game_clone = game.game_clone
+    game_clone = game.clone_game()
     board_clone = game_clone.board
     assert(game_clone.p1.color != game_clone.p2.color)
     assert(cur_player_color in BWSET and opponent_color in BWSET)
@@ -135,7 +172,6 @@ def clone_game_and_get_game_state_based_on_move(game, pos=None, dest=None, castl
         cur_player_clone.castle(side, opponent_clone)
 
     return game_clone, cur_player_clone, opponent_clone, board_clone
-
 
 def update_player_pawns_leap_status(player, moved_piece=None, prev_pos=None, cur_pos=None, castled=False):
     '''
