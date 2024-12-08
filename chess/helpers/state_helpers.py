@@ -239,4 +239,9 @@ def player_is_locked(game, player):
     return len(get_all_truly_legal_player_moves(game, player)) == 0
 
 
-
+def undo_pawn_promotion(piece):
+    '''
+    Method takes promoted piece, and reverts it back to pawn status.
+    '''
+    piece.rank = PAWN
+    piece.visual = get_piece_visual(rank=piece.rank, color=piece.color)

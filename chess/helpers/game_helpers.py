@@ -128,4 +128,12 @@ def get_color_in_check(game) -> str:
         return game.p2.color
     return ''
 
+def get_opponent(game, player):
+    '''
+    Given player in game, get its opponent.
+    '''
+    assert(player.color in BWSET)
+    opponent = game.p1 if game.p1.color != player.color else game.p2
+    return opponent
+
     

@@ -4,16 +4,18 @@ from board import Board
 from debug import Debug
 from helpers.general_helpers import algebraic_uniconverter, swap_colors
 from helpers.game_helpers import (clear_terminal, get_error_message, get_special_command, set_error_message, set_special_command, 
-                          get_color_in_check, pos_checker, dest_checker, convert_color_to_player)
-from helpers.state_helpers import update_players_check, move_puts_player_in_check, move_locks_opponent, get_all_truly_legal_player_moves
+                          get_color_in_check, pos_checker, dest_checker, convert_color_to_player, get_opponent)
+from helpers.state_helpers import (update_players_check, move_puts_player_in_check, move_locks_opponent, 
+get_all_truly_legal_player_moves, pawn_promotion, undo_pawn_promotion)
 from movement_zone import get_movement_zone
 from misc.constants import *
 from minimax import evaluate_minimax_of_move
+from turn import Turn
 
 '''File contains The Game logic.'''
 
-special_command_set = set(['PAUSE', 'EXIT', 'RESELECT', 'FORFEIT', 'RANDOM', 'R', 'KC', 'QC', 'B'])
-mate_special_command_set = set(['checkmate', 'stalemate'])
+#special_command_set = set(['PAUSE', 'EXIT', 'RESELECT', 'FORFEIT', 'RANDOM', 'R', 'KC', 'QC', 'B'])
+#mate_special_command_set = set(['checkmate', 'stalemate'])
 
 class Game:
     def __init__(self, debug=None):
@@ -27,12 +29,7 @@ class Game:
         self.p2 = Player(color=BLACK, board=self.board, game=self, debug=debug)
         self.turn = self.p1.color  # 'WHITE' or 'BLACK'
         self.winner = None # Should be either 'WHITE', 'BLACK', or 'DRAW'
-        self.error_message = ''
-        self.show_error = False
-        self.special_command = ''
-        self.exists_command = False
-        self.game_clone = None
-        self.debug_val = 0
+        self.turn_log: list[Turn] = []
 
 
     def reset(self):
@@ -52,213 +49,33 @@ class Game:
         '''
         clear_terminal()
         print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT, RANDOM (or R), QC or KC (to castle), B (best move)')
-        if self.show_error: 
-            get_error_message(game=self)
-        else:
-            print('\n')
         print(str(self.board))
-        if render_below_board:
-            color_in_check = get_color_in_check(self)
-            if color_in_check in BWSET: # some player is in check
-                print(str(color_in_check)+' is in check!\n')
-            else:
-                print('No player is in check.\n')
 
 
     def start(self):
         '''
         Starts a new game, or continues an existing game if it was paused. TODO I didn't implement pause
         '''
-
         while self.winner == None:
             self.render()
-            if not self.exists_command: # FIXME Big antipattern adding this on, it exists to pivot to checkmate branch from random() checkmate, but it sucks...
-                # FIXME Everything in game.py needs refactoring!
-                turn_success = self.make_turn()
-
-            if self.exists_command:
-                command = get_special_command(game=self)
-                if command == 'checkmate':
-                    self.winner = swap_colors(self.turn) 
-                    # ^ Need this because color swapping is default handled by player move functions
-                    break
-                if command == 'stalemate':
-                    set_special_command(self, "stalemate")
-                    self.winner = 'DRAW'
-                    break
-                if command == 'PAUSE':
-                    break # TODO not implemented
-                if command == 'EXIT':
-                    self.reset()
-                    clear_terminal()
-                    return
-                if command == 'FORFEIT':
-                    self.winner = swap_colors(self.turn) # as opposing player color wins
-                    set_special_command(self, "forfeited") # hack for forfeit win message
-                    break
-                if command == 'RESELECT':
-                    clear_terminal()
+            cur_player = convert_color_to_player(self, self.turn)
+            query = input('Input move (e.g. e2e4 or kc/qc): ')
+            n = len(query)
+            if n not in [2, 4]:
+                continue
+            if n == 4:
+                pos = algebraic_uniconverter(query[:2].upper())
+                dest = algebraic_uniconverter(query[2:].upper())
+                move_success = cur_player.attempt_action(pos, dest) # type: ignore
+                if not move_success:
                     continue
-                if command == 'RANDOM' or command == 'R':
-                    self.make_random_move()
+            if n == 2:
+                if query.upper() not in ['KC', 'QC']:
                     continue
-                if command == 'B':
-                    self.make_best_move()
+                castle_side = KING if query.upper() == 'KC' else QUEEN
+                move_success = cur_player.attempt_action(castle_side=castle_side)
+                if not move_success:
                     continue
-                if command == 'KC' or command == 'QC':
-                    side = 'KING' if command[0] == 'K' else 'QUEEN'
-                    self.make_castle_move(side=side)
-
-
-        if self.winner != None:
-            self.render(render_below_board=False)
-            if self.winner == 'DRAW':
-                print('Game has ended in a draw through '+str(get_special_command(game=self))+'.\n') 
-                # assumes get special command was set above as stalemate.
-            elif get_special_command(self) == 'forfeited':
-                forfeiter = swap_colors(self.winner)
-                print(str(forfeiter) +' forfeits. '+ str(self.winner)+' wins!\n')
-            else:
-                print('Checkmate! '+str(self.winner)+' wins!\n')
-
-
-    def make_turn(self, executing_move=None) -> bool:
-        '''
-        Method executes the move if its fully legal (in movement zone, and not leaving the movementer in check)
-        and after move executation, will update the check status. Also, deals with checkmate/stalemate conditions, and 
-        deals with complaining after an illegal move.
-        Returns True if turn executes successful move (move legal and not moving into check), otherwise returns False.
-        executing_move: [[x_0, y_0], [x_1, y_1]] which tells make_turn to execute x_0, y_0 -> x_1, y_1 
-        as a move. Said move MUST be movement zone legal (ie found in movement zones, check notwithstanding).
-        Is None otherwise if player move is derived from user input.
-        '''
-        pos, dest = [], [] # temp
-        if executing_move == None:
-            pos_example = 'E2 or e2' if self.turn == WHITE else 'E7 or e7'
-            dest_example = 'E4 or e4' if self.turn == WHITE else 'E5 or e5'
-            pos = input('['+str(self.turn)+"\'S TURN] Select piece\'s position (e.g. "+str(pos_example)+"): ")
-            if pos.upper() in special_command_set:
-                set_special_command(game=self, command=pos.upper())
-                return False
-            if not pos_checker(game=self, pos=pos): return False
-            pos = pos[0].upper()+pos[1] # to support lowercase
-            dest = input('['+str(self.turn)+"\'S TURN] Select the destination for "+
-                        str(self.board.get_piece(pos=algebraic_uniconverter(pos)).rank)
-                        +" at "+str(pos)+" (e.g. "+str(dest_example)+"): ")
-            if dest.upper() in special_command_set:
-                set_special_command(game=self, command=dest.upper())
-                return False
-            if not dest_checker(game=self, pos=pos, dest=dest): return False
-            dest = dest[0].upper()+dest[1] # to support lowercase
-
-            # Now, we update pos, dest into [x, y] form instead of string.
-            pos, dest = algebraic_uniconverter(pos[0].upper()+pos[1]), algebraic_uniconverter(dest[0].upper()+dest[1])
-        else:
-            pos, dest = executing_move[0], executing_move[1] # ie move is given by some nonuser agent.
-
-        # So we see pos -> dest is in the movement zone.
-        cur_player_color = self.turn
-        cur_player = convert_color_to_player(game=self, color=cur_player_color)
-        opponent_color = swap_colors(self.turn)
-        opponent = convert_color_to_player(game=self, color=opponent_color)
-
-        cur_piece = self.board.get_piece(pos)
-        assert(cur_piece != None)
-
-        # Now checking if pos -> dest places said movementer's king in check
-        # (and thus would be invalid). Perfect time to use __clone_game!
-        puts_cur_player_in_check = move_puts_player_in_check(game=self, 
-                                                             pos=pos, 
-                                                             dest=dest) # only modifies self's game_clone param.
-        if puts_cur_player_in_check:
-            if cur_player.in_check:
-                if cur_piece.rank == 'KING': # our move into check move is moving king, while king is already in check
-                    set_error_message(game=self, message='This move is not legal as your KING would still be in check!')
-                else:
-                    set_error_message(game=self, message='This move is not legal as it leaves your KING in check!')
-            else:
-                set_error_message(game=self, message='This move is not legal as it puts your KING into check!')
-            return False
-        
-        # Now we check to see if this pos->dest move places the opponent into checkmate or stalemate,
-        # in that all of the opponent's subsequent possible moves leads to their king's capture.
-
-        locks_opponent = move_locks_opponent(game=self, pos=pos, dest=dest) # TODO make into its own method
-        if locks_opponent: 
-            # now need to check if this lock leads to checkmate or stalemate.
-            # its okay to make pos->dest move now since the game is basically over.
-            cur_player.make_move(pos, dest)
-            if opponent.in_check:
-                # setting nonuppercased special commands is a hack to overload the win/draw conditions
-                # into these existing special command methods.
-                set_special_command(game=self, command='checkmate')
-                return True
-            else:
-                set_special_command(game=self, command='stalemate')
-                return True
-        
-        # Move of pos -> dest is fully legal (albeit doesn't terminate the game), now make the move
-        cur_player.make_move(pos, dest)
-        return True
-    
-    def make_castle_move(self, side) -> bool:
-        '''
-        Like make_turn, but for castling on 'side' and doesn't ask for user input. 
-        Will return True and execute if the 'side' castle is legal for the current player's turn,
-        otherwise will return False and throw the appropriate error message.
-        side: 'KING' or 'QUEEN'
-        '''
-        cur_player_color = self.turn
-        cur_player = convert_color_to_player(game=self, color=cur_player_color)
-        opponent_color = swap_colors(self.turn)
-        opponent = convert_color_to_player(game=self, color=opponent_color)
-        castle_legal, error_message = cur_player.non_bool_castle_legal(side, opponent)
-        if not castle_legal:
-            set_error_message(game=self, message=error_message)
-            return False
-        # castle on this side is legal. Perform the castle.
-        # Case to check if this leads to checkmate or stalemate # TODO make into its own method
-        locks_opponent = move_locks_opponent(game=self, castle_side_color = [side, cur_player.color])
-        if locks_opponent:
-            # now need to check if this lock leads to checkmate or stalemate.
-            # its okay to make pos->dest move now since the game is basically over.
-            cur_player.castle(side, opponent)
-            if opponent.in_check:
-                # setting nonuppercased special commands is a hack to overload the win/draw conditions
-                # into these existing special command methods.
-                set_special_command(game=self, command='checkmate')
-                return True
-            else:
-                set_special_command(game=self, command='stalemate')
-                return True
-        cur_player.castle(side, opponent)
-        return True
-    
-
-    def clone_game(self):
-        '''
-        Creates an seperate deep copy of this game instance, and has game_clone param point to
-        the deep copy. In the game clone, any modification of player, board, piece state 
-        should not effect the state of this current game.
-
-        Returns: The cloned game in game_clone param
-
-        This method should not be used outside of internal logic, ie 
-        only should be used for in_check or similar methods and tree search.
-        '''
-        clone = Game()
-        clone.board = Board()
-        clone.p1 = None # this just in case ensures that there are no shenanigans with clone_player() 
-        clone.p2 = None
-        clone.p1 = self.p1.clone_player(board=clone.board, clone_game=clone) # note, this will also update clone.board's state to have this
-                                                            # player's pieces, not just return a player 1 deep clone.
-                                                            # Blame the Player <-> Piece <-> Board spaghetti.
-        clone.p2 = self.p2.clone_player(board=clone.board, clone_game=clone) # ^ same for p2
-        clone.turn = self.turn
-        clone.winner = self.winner # now its okay since field is not a player
-        # We don't store any other information about error message state, or special command state.
-        self.game_clone = clone
-        return clone
 
 
     def make_random_move(self):
@@ -269,27 +86,6 @@ class Game:
         The move distribution is uniform. 
         This method will take up PLAYER's turn.
         '''
-        cur_player = convert_color_to_player(game=self, color=self.turn)
-        all_truly_legal_player_moves = get_all_truly_legal_player_moves(self, cur_player, False) # FIXME set to true
-        n = len(all_truly_legal_player_moves)
-        assert(n > 0) # n should never be 0, as this implies random is called out of stalemate or checkmate, which isn't possible.
-        executing_move = all_truly_legal_player_moves[0]
-        move_taken = False
-        if type(executing_move) == str:
-            assert(executing_move in ['KC', 'QC'])
-            side_code = 'KING' if executing_move == 'KC' else 'QUEEN'
-            move_taken = self.make_castle_move(side_code) # must be completely valid.
-        else:
-            assert(len(executing_move) == 2 and len(executing_move[0]) == 2 and len(executing_move[1]) == 2)
-            move_taken = self.make_turn(executing_move) # must be completely valid.
-        assert(move_taken)
-        if self.special_command != '':
-            # Then its checkmate or stalemate.
-            return
-        else:
-            set_error_message(game=self, message='')
-            get_error_message(self) # hopefully this resets error messaging popping up due to using make_turn
-            return
             
     def make_best_move(self, depth=2):
         '''
@@ -300,42 +96,124 @@ class Game:
         This method will take up PLAYER's turn.
         depth: Deepness of minimax search, integer greater than 0.
         '''
-        assert(type(depth) == int)
-        assert(depth > 0)
-        cur_player = convert_color_to_player(game=self, color=self.turn)
-        all_truly_legal_player_moves = get_all_truly_legal_player_moves(self, cur_player, shuffle=False)
-        n = len(all_truly_legal_player_moves)
-        assert(n > 0) # n == 0 shouldn't be possible.
-        is_maximizing_player = True if cur_player.color == WHITE else False
-        player_polarity = 1 if is_maximizing_player else -1 # min or max criterion cleverness
-        best_score = -player_polarity * MAX # worst score is MAX if cur_player is minimizer
-                                            # o/w worst is -MAX for cur_player as maximizer.
-        best_move = None
-        for move in all_truly_legal_player_moves:
-            move_score = evaluate_minimax_of_move(self, move, cur_player, depth-1, 
-                                                  is_maximizing_player, alpha=-MAX,
-                                                  beta=MAX, alpha_beta_mode=True)
-            if player_polarity * move_score > player_polarity * best_score: # cleverness deals with max vs min concisely
-                best_score = move_score
-                best_move = move
 
-        assert(best_move != None)
+    def unmake_turn(self, pseudomove=False):
+        '''
+        Undos latest turn made, recorded on end of turn_log (pseudolegal or not). 
+        Handles updating turn_log w/ pop undone move from turn_log history.
+        Wrapper for unmake_move, unmake_castle.
+        psuedomove: Whether move is pseudolegal move, for assertions. TODO seems unnessessary?
+        '''
+        latest_turn = self.turn_log[-1]
+        assert(latest_turn.is_pseudomove == pseudomove)
+        n = len(self.turn_log)
+        if n >= 2:
+            for i in range(n-1):
+                assert(self.turn_log[i].is_pseudomove == False)
 
-        # TODO repeated code, make into its own method?
-        if type(best_move) == str:
-                side_code = 'KING' if best_move == 'KC' else 'QUEEN'
-                move_taken = self.make_castle_move(side_code) # must be completely valid.
+        move_type = latest_turn.move_type
+        if move_type == MOVE:
+            self.unmake_move()
+        elif move_type == CASTLE:
+            self.unmake_castle()
         else:
-            assert(len(best_move) == 2 and len(best_move[0]) == 2 and len(best_move[1]) == 2)
-            move_taken = self.make_turn(best_move) # must be completely valid.
-        assert(move_taken)
-        if self.special_command != '':
-            # Then its checkmate or stalemate.
-            return
-        else:
-            set_error_message(game=self, message='')
-            get_error_message(self) # hopefully this resets error messaging popping up due to using make_turn
-            return
+            assert(False)
+
+        self.turn_log.pop()
+
+
+    def unmake_move(self):
+        '''
+        Undos a pos->dest move and reverts game state to start of turn before that move.
+        '''
+        latest_turn = self.turn_log[-1]
+        assert(not self.board.piece_exists(latest_turn.moved_piece_pos))
+        moved_piece_record = latest_turn.moved_piece # recorded piece
+        moved_piece_board = self.board.get_piece(latest_turn.moved_piece_dest) # that piece on board
+        assert(moved_piece_board == moved_piece_record)
+
+        board = self.board
+        old_pos = latest_turn.moved_piece_pos
+        dest = latest_turn.moved_piece_dest
+        # move moved_piece back into original position and revert its position state
+        board.move_piece(old_pos, moved_piece_board)
+
+        if latest_turn.pawn_promoted: # undo pawn promotion
+            assert(moved_piece_board.rank != PAWN)
+            undo_pawn_promotion(moved_piece_board)
+
+        moved_piece_board.moved = not latest_turn.pieces_first_move # piece didn't move
+
+        # move captured piece or none back into original position
+        captured_piece = latest_turn.captured_piece
+        board.add_or_replace_piece(dest, captured_piece)
+
+        # revert 2 leap statuses
+        moved_piece_board.pawn_two_leap_on_prev_turn = False # piece did not 2-leaped at start of this turn
+        player = convert_color_to_player(self, latest_turn.turn_color) # get player on this turn
+        opponent = get_opponent(self, player)
+        if len(self.turn_log) >= 2:
+            second_latest_turn = self.turn_log[-2]
+            opp_two_leap_code = second_latest_turn.code_of_piece_that_two_leaped # opponent two leaper on turn before latest turn
+            if opp_two_leap_code != None:
+                opponent.pieces[opp_two_leap_code].pawn_two_leap_on_prev_turn = True
+
+        # update check status
+        white_check, black_check = latest_turn.prev_players_check[0], latest_turn.prev_players_check[1]
+        self.p1.in_check = white_check if self.p1.color == WHITE else black_check
+        self.p2.in_check = white_check if self.p2.color == WHITE else black_check
+
+        # revert turn color
+        self.turn = latest_turn.turn_color
+
+        # revert winner status
+        self.winner = None
+
+
+
+    def unmake_castle(self):
+        '''
+        Undos a castle and reverts game state to start of turn before that move.
+        '''
+
+        latest_turn = self.turn_log[-1]
+        board = self.board
+        castle_side = latest_turn.castle_side
+        player = convert_color_to_player(self, latest_turn.turn_color) # get player on this turn
+        turn_color = latest_turn.turn_color
+        king_code, rook_code = latest_turn.castle_king_code, latest_turn.castle_rook_code
+        assert(king_code in player.pieces and rook_code in player.pieces) # as castling last turn requires these still exist
+        king = player.pieces[king_code]
+        rook = player.pieces[rook_code]
+        y = 8 if turn_color == BLACK else 1
+        rx = 8 if castle_side == KING else 1 # rook_x_pos
+        # move king, rook back into their original positions
+        board.move_piece([5, y], king)
+        board.move_piece([rx, y], rook)
+        
+        # revert moved status
+        king.moved = False
+        rook.moved = False
+
+        # revert 2 leap statuses
+        opponent = get_opponent(self, player)
+        if len(self.turn_log) >= 2:
+            second_latest_turn = self.turn_log[-2]
+            opp_two_leap_code = second_latest_turn.code_of_piece_that_two_leaped # opponent two leaper on turn before latest turn
+            if opp_two_leap_code != None:
+                opponent.pieces[opp_two_leap_code].pawn_two_leap_on_prev_turn = True
+
+        # update check status
+        white_check, black_check = latest_turn.prev_players_check[0], latest_turn.prev_players_check[1]
+        self.p1.in_check = white_check if self.p1.color == WHITE else black_check
+        self.p2.in_check = white_check if self.p2.color == WHITE else black_check
+
+        # revert turn color
+        self.turn = latest_turn.turn_color
+
+        # revert winner status
+        self.winner = None
+
 
 
             

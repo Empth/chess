@@ -8,6 +8,6 @@ if __name__ == "__main__":
     black_pieces = ['R-A8', 'N-B8', 'B-C8', 'Q-D8', 'K-E8', 'B-F8', 'N-G8', 'R-H8']
     debug = set_up_debug(white_pieces=white_pieces, black_pieces=black_pieces)
     '''
-    my_game = Game(debug=debug)
+    my_game = Game()
     my_game.start()
     

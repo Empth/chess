@@ -13,7 +13,6 @@ class Board:
         Removes a piece from the board.
         pos: input format of coordinate (1, 1) (which corresponds to A1)
         Returns: Removed piece or None if not present.
-        Note, this method updates the removed piece position to None.
         Note, this method also removes this piece from said player's collection/pieces.
         '''
         return self.add_or_replace_piece(pos=pos, piece=None)
@@ -53,7 +52,7 @@ class Board:
             piece.player.pieces[piece.name] = piece
             piece.pos = pos
         if replaced != None:
-            replaced.pos = None
+            # replaced.pos = None TODO Safe?
             del replaced.player.pieces[replaced.name]
         return replaced
 

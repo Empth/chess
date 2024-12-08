@@ -19,4 +19,3 @@ if __name__ == "__main__":
     input_commands = ['r']*20 + ['b']*6 + ['PAUSE']
     with patch('builtins.input', side_effect=input_commands):
         game.start()
-    print(game.debug_val)

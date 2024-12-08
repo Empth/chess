@@ -26,16 +26,5 @@ class Piece:
         if not isinstance(other, Piece):
             return False
         return (self.name == other.name and self.color == other.color 
-                and self.rank == other.rank and self.pos == other.pos
-                and self.player == other.player)
-    
-    def clone_piece(self, clone_player):
-        '''
-        Given this piece, returns a deep copy clone of that piece.
-        '''
-        clone = Piece(color=self.color, rank=self.rank, player=clone_player, pos=self.pos)
-        clone.name = self.name
-        clone.visual = self.visual
-        clone.moved = self.moved
-        clone.pawn_two_leap_on_prev_turn = self.pawn_two_leap_on_prev_turn
-        return clone
+                and self.rank == other.rank and self.pos == other.pos and self.moved == other.moved
+                and self.pawn_two_leap_on_prev_turn == other.pawn_two_leap_on_prev_turn)
