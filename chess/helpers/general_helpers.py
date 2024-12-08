@@ -164,3 +164,21 @@ def in_between_hori_tiles(pos_1, pos_2, exclude_left=True, exclude_right=True):
         return_arr.append([b, y])
     return return_arr
 
+def well_formed(query):
+    '''
+    Checks if move query of size 4 is well formed (eg 'e2f3')
+    '''
+    if len(query) != 4:
+        return False
+    
+    query = query.upper()
+    for i in range(2):
+        if not query[2*i+1].isdigit():
+            return False
+        if not (query[2*i] in LETTERSET and int(query[2*i+1])-1 in range(8)):
+            return False
+        
+    return True
+
+    
+

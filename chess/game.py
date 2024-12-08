@@ -2,11 +2,9 @@ import random
 from player import Player
 from board import Board
 from debug import Debug
-from helpers.general_helpers import algebraic_uniconverter, swap_colors
-from helpers.game_helpers import (clear_terminal, get_error_message, get_special_command, set_error_message, set_special_command, 
-                          get_color_in_check, pos_checker, dest_checker, convert_color_to_player, get_opponent)
-from helpers.state_helpers import (update_players_check, move_puts_player_in_check, move_locks_opponent, 
-get_all_truly_legal_player_moves, pawn_promotion, undo_pawn_promotion)
+from helpers.general_helpers import algebraic_uniconverter, swap_colors, well_formed
+from helpers.game_helpers import (clear_terminal, convert_color_to_player, get_opponent)
+from helpers.state_helpers import (update_players_check, pawn_promotion, undo_pawn_promotion)
 from movement_zone import get_movement_zone
 from misc.constants import *
 from minimax import evaluate_minimax_of_move
@@ -29,7 +27,7 @@ class Game:
         self.p2 = Player(color=BLACK, board=self.board, game=self, debug=debug)
         self.turn = self.p1.color  # 'WHITE' or 'BLACK'
         self.winner = None # Should be either 'WHITE', 'BLACK', or 'DRAW'
-        self.turn_log: list[Turn] = []
+        self.turn_log: list[Turn] = [] # stack of Turns
 
 
     def reset(self):
@@ -39,43 +37,67 @@ class Game:
         self.__init__()
 
 
-    def render(self, render_below_board=True):
+    def render(self):
         '''
-        Renders the game visuals, minus input text which must be handled outside.
-        All previous rendered visuals in the terminal are erased.
-        In order: Special Command shortcut list, error message slot, board, 
-        (and optionally) in_check message slot, based off if render below_board is True
-        render_below_board: If we render in_check below board.
+        Renders the game visuals.
         '''
         clear_terminal()
-        print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT, RANDOM (or R), QC or KC (to castle), B (best move)')
+        print('Special commands: PAUSE, EXIT, FORFEIT, RESELECT, RANDOM (or R), QC or KC (to castle), B (best move), U (undo)')
         print(str(self.board))
+        if self.p1.in_check:
+            print(str(self.p1.color) +' is in check!')
+        if self.p2.in_check:
+            print(str(self.p2.color) +' is in check!')
 
 
     def start(self):
         '''
-        Starts a new game, or continues an existing game if it was paused. TODO I didn't implement pause
+        Starts a new game, or continues an existing game if it was paused.
         '''
+        update_players_check(self) # for debug state mainly
+
         while self.winner == None:
             self.render()
             cur_player = convert_color_to_player(self, self.turn)
-            query = input('Input move (e.g. e2e4 or kc/qc): ')
-            n = len(query)
-            if n not in [2, 4]:
+            opponent = get_opponent(self, cur_player)
+            query = input('['+str(self.turn)+'\'S TURN] Input move (e.g. e2e4 or kc/qc): ')
+            if query.upper() == 'R':
+                self.make_random_move()
+            if query.upper() == 'U':
+                self.unmake_turn()
                 continue
+            n = len(query)
+            if n not in [2, 4, 1]:
+                continue
+            query = query.upper() # uppercases query
             if n == 4:
-                pos = algebraic_uniconverter(query[:2].upper())
-                dest = algebraic_uniconverter(query[2:].upper())
+                if not well_formed(query):
+                    continue
+                pos = algebraic_uniconverter(query[:2])
+                dest = algebraic_uniconverter(query[2:])
                 move_success = cur_player.attempt_action(pos, dest) # type: ignore
                 if not move_success:
                     continue
             if n == 2:
-                if query.upper() not in ['KC', 'QC']:
+                if query not in ['KC', 'QC']:
                     continue
-                castle_side = KING if query.upper() == 'KC' else QUEEN
+                castle_side = KING if query == 'KC' else QUEEN
                 move_success = cur_player.attempt_action(castle_side=castle_side)
                 if not move_success:
                     continue
+            
+            if len(opponent.get_all_legal_moves()) == 0:
+                if opponent.in_check:
+                    self.winner = cur_player.color
+                else:
+                    self.winner = 'DRAW'
+
+        self.render()
+        if self.winner == 'DRAW':
+            print('Match ends in a stalemate draw.')
+        else:
+            print('Checkmate! '+str(self.winner)+ ' wins!')
+
 
 
     def make_random_move(self):
@@ -86,6 +108,19 @@ class Game:
         The move distribution is uniform. 
         This method will take up PLAYER's turn.
         '''
+        cur_player = convert_color_to_player(self, self.turn)
+        all_legal_moves = cur_player.get_all_legal_moves()
+        assert(len(all_legal_moves) > 0)
+        random.shuffle(all_legal_moves)
+        move = all_legal_moves[0]
+        if type(move) == str:
+            # castle
+            move_success = cur_player.attempt_action(castle_side=move)
+            assert(move_success)
+        else:
+            # normal move
+            move_success = cur_player.attempt_action(pos=move[0], dest=move[1])
+
             
     def make_best_move(self, depth=2):
         '''
@@ -104,9 +139,11 @@ class Game:
         Wrapper for unmake_move, unmake_castle.
         psuedomove: Whether move is pseudolegal move, for assertions. TODO seems unnessessary?
         '''
+        n = len(self.turn_log)
+        if n == 0:
+            return # no move to revert back to
         latest_turn = self.turn_log[-1]
         assert(latest_turn.is_pseudomove == pseudomove)
-        n = len(self.turn_log)
         if n >= 2:
             for i in range(n-1):
                 assert(self.turn_log[i].is_pseudomove == False)

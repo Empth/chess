@@ -11,3 +11,4 @@ BISHOP = 'BISHOP'
 KNIGHT = 'KNIGHT'
 PAWN = 'PAWN'
 KQSET = set([KING, QUEEN])
+LETTERSET = set(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'])

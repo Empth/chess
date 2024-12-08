@@ -17,7 +17,7 @@ class Turn:
         self.castle_rook_code: str | None = None # None for move, usually 'R-XY' for castle
         self.pawn_promoted: bool = False # For PAWN promotion status
         self.pieces_first_move: bool # Overloaded for both castle, move
-        self.code_of_piece_that_two_leaped: str | None # PAWN only, code for PAWN that 2-leaped on this turn eg 'P-A2'
+        self.code_of_piece_that_two_leaped: str | None = None # PAWN only, code for PAWN that 2-leaped on this turn eg 'P-A2'
         self.turn_color: str # BLACK or WHITE turn color on start of this turn
         self.prev_players_check: list # Size 2 array of check status of WHITE, BLACK players resp on start of this turn
         self.is_pseudomove: bool # TODO unecessary?

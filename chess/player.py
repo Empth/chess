@@ -2,7 +2,6 @@ from piece import Piece
 from board import Board
 from turn import Turn
 from misc.constants import *
-from move_legal import pawn_move_legal, rook_move_legal, bishop_move_legal, knight_move_legal, queen_move_legal, king_move_legal
 from helpers.state_helpers import pawn_promotion, update_moved_piece, update_players_check, update_player_pawns_leap_status
 from helpers.general_helpers import (check_in_bounds, algebraic_uniconverter, convert_letter_to_rank, in_between_hori_tiles, swap_colors, 
 ordinal_direction)
@@ -66,8 +65,13 @@ class Player:
         '''
         Retrieves KING piece of this player to return.
         '''
+        for piece in self.pieces.values():
+            if piece.rank == 'KING':
+                return piece
+        return None
 
-    def attempt_action(self, pos:list|None=None, dest:list|None=None, castle_side:str|None=None) -> bool:
+    def attempt_action(self, pos:list|None=None, dest:list|None=None, castle_side:str|None=None,
+                       move_pseudolegal_assumption=False) -> bool:
         '''
         Wrapper for attempt_move() or attempt_castle().
         pos: [x, y] in [8]^2. A Player piece must exist here. O/W None for castle.
@@ -83,7 +87,7 @@ class Player:
         if castle_side != None:
             return self.attempt_castle(castle_side)
         else:
-            return self.attempt_move(pos, dest)
+            return self.attempt_move(pos, dest, move_pseudolegal_assumption=move_pseudolegal_assumption)
         
     def attempt_move(self, pos, dest, move_pseudolegal_assumption=False) -> bool:
         '''
@@ -100,9 +104,9 @@ class Player:
             return False
         
         if not move_pseudolegal_assumption:
-            move_pseudolegal = self.move_pseudolegal(pos, dest)
+            move_pseudolegal_assumption = self.move_pseudolegal(pos, dest)
         
-        if move_pseudolegal:
+        if move_pseudolegal_assumption:
             turn_color_at_turn_start = self.color
             opponent = get_opponent(self.game, self)
             player_check = self.in_check
@@ -294,19 +298,15 @@ class Player:
             return False, 'Color of selected piece doesnt match players color of '+str(self.color)+'!'
         if dest == pos:
             return False, 'Piece cannot stall as a move!'
+        dest_piece = self.board.get_piece(dest)
+        if dest_piece != None:
+            if dest_piece.color == self.color:
+                return False, 'Cannot teamkill as a move!'
+            else:
+                if dest_piece.rank == KING:
+                    return False, 'You cannot kill the KING!'
             
         return True, 'Cannot detect any issues with prelim checks'
-    
-    
-    def get_all_player_move_options(self):
-        '''
-        TODO options are pseudolegal not all move options
-        Given this Player, returns the list of all legal moves
-        said player can make with its pieces, where legal moves are represented by
-        [[x_0, y_0], [x_1, y_1]] objects, which refer to a legal move 
-        x_0, y_0 -> x_1, y_1
-        '''
-        return []
     
 
     def update_state(self, moved_piece_arr: list, former_pos=None, dest=None):
@@ -326,6 +326,54 @@ class Player:
         
         update_players_check(self.game)
         self.game.turn = swap_colors(self.game.turn)
+
+
+    def get_all_legal_moves(self):
+        '''
+        Function retrieves an array of all truly legal moves for this player 
+        (ie pseudolegal and does not put/leave player in check and does not try
+        to capture a king).
+        A move is represented as either a 'KING'/'QUEEN' string (castle move)
+        or is [[x_0, y_0], [x_1, y_1]] array from [x_0, y_0] pos to
+        [x_1, y_1] dest.
+        Returns: Array of moves (moves are list or str)
+        '''
+        all_pseudolegal_moves = self.get_all_psuedolegal_moves()
+        all_truly_legal_moves = []
+        for pseud_move in all_pseudolegal_moves:
+            move_success = self.attempt_action(pos=pseud_move[0], dest=pseud_move[1], move_pseudolegal_assumption=True)
+            if move_success:
+                all_truly_legal_moves.append(pseud_move)
+                assert(self.game.turn_log[-1].is_pseudomove == False)
+                self.game.unmake_turn()
+
+        opponent = get_opponent(self.game, self)
+        if self.castle_legal(KING, opponent):
+            all_truly_legal_moves.append(KING)
+        if self.castle_legal(QUEEN, opponent):
+            all_truly_legal_moves.append(QUEEN)
+
+        return all_truly_legal_moves
+    
+    def get_all_psuedolegal_moves(self):
+        '''
+        Function retrieves an array of all pseudolegal pos->dest moves for this 
+        player. A pseudolegal move is a [[x_0, y_0], [x_1, y_1]] array, representing
+        valid movement from [x_0, y_0] pos to [x_1, y_1] dest.
+        Returns: Array of psedolegal moves.
+        '''
+        all_pseudolegal_moves = []
+        for piece in self.pieces.values(): # piece
+            piece_pos_arr = piece.pos # recall this is [x, y] in [8]^2
+            piece_movement_zone = get_movement_zone(board=self.board, piece=piece) # recall this is set of ordered pair tuples.
+            for piece_dest in piece_movement_zone:
+                piece_dest_arr = list(piece_dest) # this converts dest into [x, y]
+                all_pseudolegal_moves.append([piece_pos_arr, piece_dest_arr])
+
+        return all_pseudolegal_moves
+
+
+
 
     
         
