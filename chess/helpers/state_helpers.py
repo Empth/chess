@@ -3,7 +3,6 @@ from movement_zone import get_movement_zone, mass_movement_zone # os.getcwd is D
 from .game_helpers import convert_color_to_player
 from .legality_helpers import get_ordinal_collision, get_cardinal_collision, piece_exists_on_pos_offset
 from misc.constants import *
-import random
 
 '''
 For things like pawn promotion status, piece has moved, king in check, move places player in check, etc

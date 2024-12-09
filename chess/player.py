@@ -7,6 +7,8 @@ from helpers.general_helpers import (check_in_bounds, algebraic_uniconverter, co
 ordinal_direction)
 from helpers.game_helpers import convert_color_to_player, get_opponent
 from movement_zone import get_movement_zone, mass_movement_zone
+from minimax import minimax
+import random
 
 '''
 Player who gets to make chess moves.
@@ -70,24 +72,25 @@ class Player:
                 return piece
         return None
 
-    def attempt_action(self, pos:list|None=None, dest:list|None=None, castle_side:str|None=None,
+    def attempt_action(self, turn: list|str,
                        move_pseudolegal_assumption=False) -> bool:
         '''
         Wrapper for attempt_move() or attempt_castle().
-        pos: [x, y] in [8]^2. A Player piece must exist here. O/W None for castle.
-        dest: [x, y] in [8]^2. O/W None for castle.
-        castle_side: 'KING', 'QUEEN', or None for make_move
-        Either castle_side or pos, dest must be given.
+        turn: [[x_0, y_0], [x_1, y_1]] pos->dest move list, 
+        or 'KING'/'QUEEN' string for castle.
         Returns: success status of attempted move.
         '''
-        assert(castle_side == None or castle_side in KQSET)
-        assert(castle_side != None or (pos != None and dest != None))
-        assert(not (castle_side != None and (pos != None or dest != None)))
-
-        if castle_side != None:
-            return self.attempt_castle(castle_side)
+        if type(turn) == list:
+            assert(len(turn) == 2)
+            assert(len(turn[0]) == len(turn[1]) == 2)
         else:
-            return self.attempt_move(pos, dest, move_pseudolegal_assumption=move_pseudolegal_assumption)
+            assert(turn in KQSET)
+
+        if type(turn) == list:
+            return self.attempt_move(turn[0], turn[1], move_pseudolegal_assumption=move_pseudolegal_assumption)
+        else:
+            # note pseudolegal castle == legal castle
+            return self.attempt_castle(turn, castle_legal_assumption=move_pseudolegal_assumption)
         
     def attempt_move(self, pos, dest, move_pseudolegal_assumption=False) -> bool:
         '''
@@ -341,7 +344,7 @@ class Player:
         all_pseudolegal_moves = self.get_all_psuedolegal_moves()
         all_truly_legal_moves = []
         for pseud_move in all_pseudolegal_moves:
-            move_success = self.attempt_action(pos=pseud_move[0], dest=pseud_move[1], move_pseudolegal_assumption=True)
+            move_success = self.attempt_action(pseud_move, move_pseudolegal_assumption=True)
             if move_success:
                 all_truly_legal_moves.append(pseud_move)
                 assert(self.game.turn_log[-1].is_pseudomove == False)
@@ -371,6 +374,59 @@ class Player:
                 all_pseudolegal_moves.append([piece_pos_arr, piece_dest_arr])
 
         return all_pseudolegal_moves
+    
+
+    def make_random_move(self) -> bool:
+        '''
+        Given a game state where it is PLAYER's turn, makes a 
+        randomized move for PLAYER, where moves are drawn
+        from set of all possible legal moves. 
+        The move distribution is uniform. 
+        This method will take up PLAYER's turn.
+        Return: Success status of random move.
+        '''
+        all_legal_moves = self.get_all_legal_moves()
+        assert(len(all_legal_moves) > 0)
+        random.shuffle(all_legal_moves)
+        move = all_legal_moves[0]
+        move_success = self.attempt_action(move, True)
+        return move_success
+    
+
+    def make_best_move(self, depth:int=3) -> bool:
+        '''
+        Given a game state where it is PLAYER's turn, makes the
+        best move for PLAYER, based on minimax search 'depth' levels deep.
+        If PLAYER is WHITE, PLAYER is a maximizing player, otherwise PLAYER
+        is a minimizing player.
+        This method will take up PLAYER's turn.
+        depth: Deepness of minimax search, integer greater than 0.
+        Return: Success status of best move.
+        '''
+        assert(depth > 0)
+        game = self.game
+        opponent = get_opponent(self.game, self)
+        all_legal_moves = self.get_all_legal_moves()
+        n = len(all_legal_moves)
+        assert(n > 0) # n == 0 shouldn't be possible.
+        is_maximizing_player = True if self.color == WHITE else False
+        player_polarity = 1 if is_maximizing_player else -1 # min or max criterion cleverness
+        best_score = -1 * player_polarity * float('inf') # worst score is inf if cur_player is minimizer
+                                                         # o/w worst is -inf for cur_player as maximizer.
+        best_move = None
+        for move in all_legal_moves:
+            success_status = self.attempt_action(move, True)
+            assert(success_status)
+            move_score = minimax(game, opponent, depth-1, is_maximizing_player)
+            if player_polarity * move_score > player_polarity * best_score: # cleverness deals with max vs min concisely
+                best_score = move_score
+                best_move = move
+            print(str(depth)+' '+str(move))
+            game.unmake_turn()
+
+        assert(best_move != None)
+        move_taken = self.attempt_action(best_move)
+        return move_taken
 
 
 

@@ -7,7 +7,6 @@ from helpers.game_helpers import (clear_terminal, convert_color_to_player, get_o
 from helpers.state_helpers import (update_players_check, pawn_promotion, undo_pawn_promotion)
 from movement_zone import get_movement_zone
 from misc.constants import *
-from minimax import evaluate_minimax_of_move
 from turn import Turn
 
 '''File contains The Game logic.'''
@@ -61,28 +60,32 @@ class Game:
             cur_player = convert_color_to_player(self, self.turn)
             opponent = get_opponent(self, cur_player)
             query = input('['+str(self.turn)+'\'S TURN] Input move (e.g. e2e4 or kc/qc): ')
-            if query.upper() == 'R':
-                self.make_random_move()
-            if query.upper() == 'U':
+            query = query.upper() # uppercases query
+            if query == 'R':
+                cur_player.make_random_move()
+                continue
+            if query == 'U':
                 self.unmake_turn()
+                continue
+            if query == 'B':
+                cur_player.make_best_move()
                 continue
             n = len(query)
             if n not in [2, 4, 1]:
                 continue
-            query = query.upper() # uppercases query
             if n == 4:
                 if not well_formed(query):
                     continue
                 pos = algebraic_uniconverter(query[:2])
                 dest = algebraic_uniconverter(query[2:])
-                move_success = cur_player.attempt_action(pos, dest) # type: ignore
+                move_success = cur_player.attempt_action([pos, dest]) # type: ignore
                 if not move_success:
                     continue
             if n == 2:
                 if query not in ['KC', 'QC']:
                     continue
                 castle_side = KING if query == 'KC' else QUEEN
-                move_success = cur_player.attempt_action(castle_side=castle_side)
+                move_success = cur_player.attempt_action(castle_side)
                 if not move_success:
                     continue
             
@@ -98,39 +101,6 @@ class Game:
         else:
             print('Checkmate! '+str(self.winner)+ ' wins!')
 
-
-
-    def make_random_move(self):
-        '''
-        Given a game state where it is PLAYER's turn, makes a 
-        randomized move for PLAYER, where moves are drawn
-        from set of all possible legal moves. 
-        The move distribution is uniform. 
-        This method will take up PLAYER's turn.
-        '''
-        cur_player = convert_color_to_player(self, self.turn)
-        all_legal_moves = cur_player.get_all_legal_moves()
-        assert(len(all_legal_moves) > 0)
-        random.shuffle(all_legal_moves)
-        move = all_legal_moves[0]
-        if type(move) == str:
-            # castle
-            move_success = cur_player.attempt_action(castle_side=move)
-            assert(move_success)
-        else:
-            # normal move
-            move_success = cur_player.attempt_action(pos=move[0], dest=move[1])
-
-            
-    def make_best_move(self, depth=2):
-        '''
-        Given a game state where it is PLAYER's turn, makes the
-        best move for PLAYER, based on minimax search 'depth' levels deep.
-        If PLAYER is WHITE, PLAYER is a maximizing player, otherwise PLAYER
-        is a minimizing player.
-        This method will take up PLAYER's turn.
-        depth: Deepness of minimax search, integer greater than 0.
-        '''
 
     def unmake_turn(self, pseudomove=False):
         '''
@@ -167,7 +137,11 @@ class Game:
         assert(not self.board.piece_exists(latest_turn.moved_piece_pos))
         moved_piece_record = latest_turn.moved_piece # recorded piece
         moved_piece_board = self.board.get_piece(latest_turn.moved_piece_dest) # that piece on board
-        assert(moved_piece_board == moved_piece_record)
+        if moved_piece_board != moved_piece_record:
+            print('Latest dest: '+str(latest_turn.moved_piece_dest))
+            print('Record: '+str(moved_piece_record))
+            print('On board: '+str(moved_piece_board))
+            assert(False)
 
         board = self.board
         old_pos = latest_turn.moved_piece_pos
@@ -205,7 +179,6 @@ class Game:
 
         # revert winner status
         self.winner = None
-
 
 
     def unmake_castle(self):

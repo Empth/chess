@@ -1,5 +1,5 @@
 from game import Game
-#from tests import set_up_debug
+from tests import set_up_debug
 
 if __name__ == "__main__":
     debug=None
