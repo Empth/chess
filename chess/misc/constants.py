@@ -1,7 +1,7 @@
 WHITE = 'WHITE'
 BLACK = 'BLACK'
 BWSET = set([BLACK, WHITE])
-MAX = float('inf')
+MAX = float(1000)
 MOVE = 'MOVE'
 CASTLE = 'CASTLE'
 KING = 'KING'

@@ -37,6 +37,7 @@ def minimax(cur_game, cur_player, depth, is_maximizing_player, alpha=-MAX, beta=
     if is_maximizing_player:
         value_num = -MAX
         for move in all_legal_moves:
+            '''
             global count
             if move == [[4, 7], [4, 5]]:
                 print('hi')
@@ -44,14 +45,15 @@ def minimax(cur_game, cur_player, depth, is_maximizing_player, alpha=-MAX, beta=
                 print(count)
                 if count == 15:
                     print(cur_game.board)
+            '''
             success_status = cur_player.attempt_action(move, True)
-            print(cur_game.board)
+            #print(cur_game.board)
             assert(success_status)
             value_num = max(value_num, 
                             minimax(cur_game, cur_opponent, depth-1, False,
                                     alpha=alpha, beta=beta,
                                     alpha_beta_mode=alpha_beta_mode))
-            print(str(depth)+' '+str(move))
+            #print(str(depth)+' '+str(move))
             cur_game.unmake_turn()
             if value_num > beta and alpha_beta_mode:
                 break # value_num too big, min player will derive no value exploring this node's branches
@@ -65,7 +67,7 @@ def minimax(cur_game, cur_player, depth, is_maximizing_player, alpha=-MAX, beta=
                             minimax(cur_game, cur_opponent, depth-1, True,
                                     alpha=alpha, beta=beta,
                                     alpha_beta_mode=alpha_beta_mode))
-            print(str(depth)+' '+str(move))
+            #print(str(depth)+' '+str(move))
             cur_game.unmake_turn()
             if value_num < alpha and alpha_beta_mode:
                 break # value_num too small, max player will derive no value exploring this node's branches

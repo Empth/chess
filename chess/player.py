@@ -195,9 +195,9 @@ class Player:
         assert(side in KQSET)
         opponent = get_opponent(self.game, self)
         if not castle_legal_assumption:
-            castle_legal = self.castle_legal(side, opponent)
+            castle_legal_assumption = self.castle_legal(side, opponent)
 
-        if castle_legal:
+        if castle_legal_assumption:
             # castling guarenteed to work
             turn_color_at_turn_start = self.color
             player_check = self.in_check
@@ -331,7 +331,7 @@ class Player:
         self.game.turn = swap_colors(self.game.turn)
 
 
-    def get_all_legal_moves(self):
+    def get_all_legal_moves(self, shuffle=False):
         '''
         Function retrieves an array of all truly legal moves for this player 
         (ie pseudolegal and does not put/leave player in check and does not try
@@ -339,12 +339,22 @@ class Player:
         A move is represented as either a 'KING'/'QUEEN' string (castle move)
         or is [[x_0, y_0], [x_1, y_1]] array from [x_0, y_0] pos to
         [x_1, y_1] dest.
+        shuffle: Whether to randomize returning array or not.
         Returns: Array of moves (moves are list or str)
         '''
+        encountered = 0
         all_pseudolegal_moves = self.get_all_psuedolegal_moves()
         all_truly_legal_moves = []
         for pseud_move in all_pseudolegal_moves:
+            '''
+            if len(self.game.turn_log) >= 4:
+                moved_piece = self.game.turn_log[3].moved_piece
+                if moved_piece.pos == [4, 5] and moved_piece.name == 'P-D7' and encountered == 0 and pseud_move == [[5, 5], [4, 6]]:
+                    print(self.game.board)
+                    encountered += 1
+            '''
             move_success = self.attempt_action(pseud_move, move_pseudolegal_assumption=True)
+            #print(self.game.board)
             if move_success:
                 all_truly_legal_moves.append(pseud_move)
                 assert(self.game.turn_log[-1].is_pseudomove == False)
@@ -355,6 +365,10 @@ class Player:
             all_truly_legal_moves.append(KING)
         if self.castle_legal(QUEEN, opponent):
             all_truly_legal_moves.append(QUEEN)
+
+        if shuffle:
+            random.seed(42)
+            random.shuffle(all_truly_legal_moves)
 
         return all_truly_legal_moves
     
@@ -385,15 +399,14 @@ class Player:
         This method will take up PLAYER's turn.
         Return: Success status of random move.
         '''
-        all_legal_moves = self.get_all_legal_moves()
+        all_legal_moves = self.get_all_legal_moves(shuffle=True)
         assert(len(all_legal_moves) > 0)
-        random.shuffle(all_legal_moves)
         move = all_legal_moves[0]
         move_success = self.attempt_action(move, True)
         return move_success
     
 
-    def make_best_move(self, depth:int=3) -> bool:
+    def make_best_move(self, depth:int=3, shuffle=False) -> bool:
         '''
         Given a game state where it is PLAYER's turn, makes the
         best move for PLAYER, based on minimax search 'depth' levels deep.
@@ -401,27 +414,30 @@ class Player:
         is a minimizing player.
         This method will take up PLAYER's turn.
         depth: Deepness of minimax search, integer greater than 0.
+        shuffle: Whether to randomize order of generated legal moves.
         Return: Success status of best move.
         '''
         assert(depth > 0)
         game = self.game
         opponent = get_opponent(self.game, self)
-        all_legal_moves = self.get_all_legal_moves()
+        all_legal_moves = self.get_all_legal_moves(shuffle=shuffle)
         n = len(all_legal_moves)
         assert(n > 0) # n == 0 shouldn't be possible.
         is_maximizing_player = True if self.color == WHITE else False
         player_polarity = 1 if is_maximizing_player else -1 # min or max criterion cleverness
-        best_score = -1 * player_polarity * float('inf') # worst score is inf if cur_player is minimizer
-                                                         # o/w worst is -inf for cur_player as maximizer.
+        best_score = -1 * player_polarity * MAX # worst score is inf if cur_player is minimizer
+                                                # o/w worst is -inf for cur_player as maximizer.
         best_move = None
+        i = 0
         for move in all_legal_moves:
             success_status = self.attempt_action(move, True)
             assert(success_status)
-            move_score = minimax(game, opponent, depth-1, is_maximizing_player)
+            move_score = minimax(game, opponent, depth-1, not is_maximizing_player)
             if player_polarity * move_score > player_polarity * best_score: # cleverness deals with max vs min concisely
                 best_score = move_score
                 best_move = move
-            print(str(depth)+' '+str(move))
+            print(str(move)+' Progress: '+str(i+1)+'/'+str(n))
+            i+=1
             game.unmake_turn()
 
         assert(best_move != None)

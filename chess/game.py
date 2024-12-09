@@ -68,8 +68,10 @@ class Game:
                 self.unmake_turn()
                 continue
             if query == 'B':
-                cur_player.make_best_move()
+                cur_player.make_best_move(depth=2, shuffle=False)
                 continue
+            if query == 'PAUSE':
+                break
             n = len(query)
             if n not in [2, 4, 1]:
                 continue
@@ -138,7 +140,7 @@ class Game:
         moved_piece_record = latest_turn.moved_piece # recorded piece
         moved_piece_board = self.board.get_piece(latest_turn.moved_piece_dest) # that piece on board
         if moved_piece_board != moved_piece_record:
-            print('Latest dest: '+str(latest_turn.moved_piece_dest))
+            print('Latest dest: ')
             print('Record: '+str(moved_piece_record))
             print('On board: '+str(moved_piece_board))
             assert(False)
@@ -157,7 +159,9 @@ class Game:
 
         # move captured piece or none back into original position
         captured_piece = latest_turn.captured_piece
-        board.add_or_replace_piece(dest, captured_piece)
+        if captured_piece != None:
+            captured_piece_orig_pos = latest_turn.captured_piece_pos
+            board.add_or_replace_piece(captured_piece_orig_pos, captured_piece)
 
         # revert 2 leap statuses
         moved_piece_board.pawn_two_leap_on_prev_turn = False # piece did not 2-leaped at start of this turn
