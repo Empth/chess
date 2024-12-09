@@ -19,7 +19,7 @@ def set_up_debug(white_pieces = [], black_pieces = [], turn_state=None):
     return Debug(board_state=mapper, turn_state=turn_state)
 
 class TestBoardMoves(unittest.TestCase):
-    print('hi')
+    print('')
     
 if __name__ == '__main__':
     unittest.main()

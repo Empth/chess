@@ -63,18 +63,14 @@ class Game:
             query = query.upper() # uppercases query
             if query == 'R':
                 cur_player.make_random_move()
-                continue
             if query == 'U':
                 self.unmake_turn()
                 continue
             if query == 'B':
                 cur_player.make_best_move(depth=2, shuffle=False)
-                continue
             if query == 'PAUSE':
                 break
             n = len(query)
-            if n not in [2, 4, 1]:
-                continue
             if n == 4:
                 if not well_formed(query):
                     continue

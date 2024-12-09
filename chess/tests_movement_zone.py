@@ -27,7 +27,7 @@ class TestPawnZone(unittest.TestCase):
         movement_zone = (get_movement_zone(board=board, piece=board.get_piece([1, 2])))
         expected_zone = set([(1,3), (1,4)])
         self.assertEqual(movement_zone, expected_zone)
-        player_1.make_move(pos=[1,2], dest=[1,3])
+        player_1.attempt_move(pos=[1,2], dest=[1,3])
         movement_zone = (get_movement_zone(board=board, piece=board.get_piece([1, 3])))
         expected_zone = set([(1,4)])
         self.assertEqual(movement_zone, expected_zone)
@@ -35,7 +35,7 @@ class TestPawnZone(unittest.TestCase):
         movement_zone = (get_movement_zone(board=board, piece=board.get_piece([2, 2])))
         expected_zone = set([(2,3), (2,4)])
         self.assertEqual(movement_zone, expected_zone)
-        player_1.make_move(pos=[2,2], dest=[2,4])
+        player_1.attempt_move(pos=[2,2], dest=[2,4])
         movement_zone = (get_movement_zone(board=board, piece=board.get_piece([2, 4])))
         expected_zone = set([(2,5)])
         self.assertEqual(movement_zone, expected_zone)
@@ -47,7 +47,7 @@ class TestPawnZone(unittest.TestCase):
         movement_zone = (get_movement_zone(board=board, piece=board.get_piece([1, 7])))
         expected_zone = set([(1,6), (1,5)])
         self.assertEqual(movement_zone, expected_zone)
-        player_2.make_move(pos=[1,7], dest=[1,6])
+        player_2.attempt_move(pos=[1,7], dest=[1,6])
         movement_zone = (get_movement_zone(board=board, piece=board.get_piece([1, 6])))
         expected_zone = set([(1,5)])
         self.assertEqual(movement_zone, expected_zone)
@@ -59,7 +59,7 @@ class TestPawnZone(unittest.TestCase):
         movement_zone = (get_movement_zone(board=board, piece=board.get_piece([2, 7])))
         expected_zone = set([(2,6), (2,5)])
         self.assertEqual(movement_zone, expected_zone)
-        player_2.make_move(pos=[2,7], dest=[2,5])
+        player_2.attempt_move(pos=[2,7], dest=[2,5])
         movement_zone = (get_movement_zone(board=board, piece=board.get_piece([2, 5])))
         expected_zone = set() # white pawn blocks (2, 4)
         self.assertEqual(movement_zone, expected_zone)
@@ -72,10 +72,10 @@ class TestPawnZone(unittest.TestCase):
         board = game.board
         player_1 = game.p1
         player_2 = game.p2
-        player_1.make_move(pos=[1,2], dest=[1,3])
-        player_1.make_move(pos=[2,2], dest=[2,4])
-        player_2.make_move(pos=[8,7], dest=[8,6])
-        player_2.make_move(pos=[7,7], dest=[7,5])
+        player_1.attempt_move(pos=[1,2], dest=[1,3])
+        player_1.attempt_move(pos=[2,2], dest=[2,4])
+        player_2.attempt_move(pos=[8,7], dest=[8,6])
+        player_2.attempt_move(pos=[7,7], dest=[7,5])
 
         movement_zone = (get_movement_zone(board=board, piece=board.get_piece([1, 3])))
         expected_zone = set([(1,4)])
@@ -128,7 +128,7 @@ class TestPawnZone(unittest.TestCase):
         board = game.board
         player_1 = game.p1
         player_2 = game.p2
-        player_1.make_move(pos=[4,2], dest=[4,4]) 
+        player_1.attempt_move(pos=[4,2], dest=[4,4]) 
         board.move_piece(pos=[5, 5], piece=board.get_piece([1, 8]))
         board.move_piece(pos=[4, 5], piece=board.get_piece([2, 8]))
         board.move_piece(pos=[3, 5], piece=board.get_piece([3, 8]))
@@ -141,7 +141,7 @@ class TestPawnZone(unittest.TestCase):
         board = game.board
         player_1 = game.p1
         player_2 = game.p2
-        player_2.make_move(pos=[4,7], dest=[4,5]) 
+        player_2.attempt_move(pos=[4,7], dest=[4,5]) 
         board.move_piece(pos=[5, 4], piece=board.get_piece([1, 2]))
         board.move_piece(pos=[4, 4], piece=board.get_piece([2, 2]))
         board.move_piece(pos=[3, 4], piece=board.get_piece([3, 2]))
@@ -176,29 +176,29 @@ class TestPawnZone(unittest.TestCase):
         '''
         game = Game(debug=set_up_debug(white_pieces=['P-A2', 'P-B2', 'P-C2', 'P-D2'], black_pieces=['Q-A3', 'Q-A4', 'Q-B4', 'Q-C3', 'Q-D4']))
         player_1 = game.p1
-        player_1.make_move(pos=[4,2], dest=[4,3])
-        self.assertFalse(player_1.bool_move_legal(pos=[1, 2], dest=[1, 3]))
-        self.assertFalse(player_1.bool_move_legal(pos=[1, 2], dest=[1, 4]))
-        self.assertTrue(player_1.bool_move_legal(pos=[2, 2], dest=[2, 3]))
-        self.assertFalse(player_1.bool_move_legal(pos=[2, 2], dest=[2, 4]))
-        self.assertFalse(player_1.bool_move_legal(pos=[3, 2], dest=[3, 3]))
-        self.assertFalse(player_1.bool_move_legal(pos=[3, 2], dest=[3, 4]))
-        self.assertFalse(player_1.bool_move_legal(pos=[4, 3], dest=[4, 4]))
-        self.assertFalse(player_1.bool_move_legal(pos=[4, 3], dest=[4, 5]))
+        player_1.attempt_move(pos=[4,2], dest=[4,3])
+        self.assertFalse(player_1.move_pseudolegal(pos=[1, 2], dest=[1, 3]))
+        self.assertFalse(player_1.move_pseudolegal(pos=[1, 2], dest=[1, 4]))
+        self.assertTrue(player_1.move_pseudolegal(pos=[2, 2], dest=[2, 3]))
+        self.assertFalse(player_1.move_pseudolegal(pos=[2, 2], dest=[2, 4]))
+        self.assertFalse(player_1.move_pseudolegal(pos=[3, 2], dest=[3, 3]))
+        self.assertFalse(player_1.move_pseudolegal(pos=[3, 2], dest=[3, 4]))
+        self.assertFalse(player_1.move_pseudolegal(pos=[4, 3], dest=[4, 4]))
+        self.assertFalse(player_1.move_pseudolegal(pos=[4, 3], dest=[4, 5]))
 
         # Now do the same but with black pawns attacking in reverse direction
 
         game = Game(debug=set_up_debug(black_pieces=['P-A7', 'P-B7', 'P-C7', 'P-D7'], white_pieces=['Q-A6', 'Q-A5', 'Q-B5', 'Q-C6', 'Q-D5']))
         player_2 = game.p2
-        player_1.make_move(pos=[4,7], dest=[4,6])
-        self.assertFalse(player_2.bool_move_legal(pos=[1, 7], dest=[1, 6]))
-        self.assertFalse(player_2.bool_move_legal(pos=[1, 7], dest=[1, 5]))
-        self.assertTrue(player_2.bool_move_legal(pos=[2, 7], dest=[2, 6]))
-        self.assertFalse(player_2.bool_move_legal(pos=[2, 7], dest=[2, 5]))
-        self.assertFalse(player_2.bool_move_legal(pos=[3, 7], dest=[3, 6]))
-        self.assertFalse(player_2.bool_move_legal(pos=[3, 7], dest=[3, 5]))
-        self.assertFalse(player_2.bool_move_legal(pos=[4, 6], dest=[4, 5]))
-        self.assertFalse(player_2.bool_move_legal(pos=[4, 6], dest=[4, 4]))
+        player_1.attempt_move(pos=[4,7], dest=[4,6])
+        self.assertFalse(player_2.move_pseudolegal(pos=[1, 7], dest=[1, 6]))
+        self.assertFalse(player_2.move_pseudolegal(pos=[1, 7], dest=[1, 5]))
+        self.assertTrue(player_2.move_pseudolegal(pos=[2, 7], dest=[2, 6]))
+        self.assertFalse(player_2.move_pseudolegal(pos=[2, 7], dest=[2, 5]))
+        self.assertFalse(player_2.move_pseudolegal(pos=[3, 7], dest=[3, 6]))
+        self.assertFalse(player_2.move_pseudolegal(pos=[3, 7], dest=[3, 5]))
+        self.assertFalse(player_2.move_pseudolegal(pos=[4, 6], dest=[4, 5]))
+        self.assertFalse(player_2.move_pseudolegal(pos=[4, 6], dest=[4, 4]))
 
 
 class TestRookZone(unittest.TestCase):

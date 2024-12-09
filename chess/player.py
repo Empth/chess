@@ -319,12 +319,14 @@ class Player:
         promotion rank, and swap game turn color for next turn. 
         moved_piece_arr: list of pieces that this player moved, must be of len [1, 2]
         '''
-        assert(1<=len(moved_piece_arr)<=2)
-
+        n = len(moved_piece_arr)
+        assert(1<=n<=2)
+        castled = (n == 2)
         for moved_piece in moved_piece_arr:
+            update_player_pawns_leap_status(self, moved_piece, former_pos, 
+                                            dest, castled=castled)
             if moved_piece.rank == PAWN:
                 pawn_promotion(self, dest, moved_piece)
-                update_player_pawns_leap_status(self, moved_piece, former_pos, dest)
             update_moved_piece(moved_piece)
         
         update_players_check(self.game)
