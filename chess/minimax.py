@@ -5,7 +5,7 @@ import random
 
 count = 0
 
-def minimax(cur_game, cur_player, depth, is_maximizing_player, alpha=-MAX, beta=MAX, alpha_beta_mode=True) -> float:
+def minimax(cur_game, cur_player, depth, is_maximizing_player, alpha=-MAX, beta=MAX, alpha_beta_mode=True):
     '''
     Minimax algorithm.
     cur_game: a Game with state of current game.
@@ -28,57 +28,38 @@ def minimax(cur_game, cur_player, depth, is_maximizing_player, alpha=-MAX, beta=
         if terminal_game: # ie cur_player can't move
             if cur_player.in_check: # checkmate
                 penalty_offset = -1 if is_maximizing_player else 1
-                return penalty_offset * MAX # MAX penalty on cur_player for getting checkmated.
+                return penalty_offset * MAX, None # MAX penalty on cur_player for getting checkmated.
             else: # stalemate
-                return 0
+                return float(0), None
         else:
-            return value(cur_game, cur_player, is_maximizing_player)
+            return value(cur_game, cur_player, is_maximizing_player), None
+        
+    player_polarity = 1 if is_maximizing_player else -1
+    best_score = -MAX if is_maximizing_player else MAX # the best guarenteeable score for cur_player
+    best_move = None
+    for move in all_legal_moves:
+        success_status = cur_player.attempt_action(move, True)
+        assert(success_status)
+        move_score, opponent_move = minimax(cur_game, cur_opponent, depth-1, 
+                                            not is_maximizing_player,
+                                            alpha, beta, alpha_beta_mode)
+        if player_polarity * move_score > player_polarity * best_score:
+            best_score = move_score
+            best_move = move
 
-    if is_maximizing_player:
-        value_num = -MAX
-        j = 0
-        for move in all_legal_moves:
-            # first arg of omit should be 'not cur_player.in_check'
-            success_status = cur_player.attempt_action(move, True)
-            '''
-            if j == 29:
-                if cur_opponent.pieces['P-D7'].pos == [4, 5]:
-                    print(cur_game.board)
-                    print('hit')
-            '''
-            assert(success_status)
-            value_num = max(value_num, 
-                            minimax(cur_game, cur_opponent, depth-1, False,
-                                    alpha=alpha, beta=beta,
-                                    alpha_beta_mode=alpha_beta_mode))
-            cur_game.unmake_turn()
-            if value_num > beta and alpha_beta_mode:
-                break # value_num too big, min player will derive no value exploring this node's branches
-            alpha = max(alpha, value_num)
-            j += 1
-        return value_num
-    else:
-        value_num = MAX
-        k = 0
-        for move in all_legal_moves:
-            '''
-            if k == 1:
-                if cur_opponent.pieces['B-F1'].pos == [2, 5]:
-                    print(cur_game.board)
-                    print('i')
-            '''
-            success_status = cur_player.attempt_action(move, True)
-            assert(success_status)
-            value_num = min(value_num, 
-                            minimax(cur_game, cur_opponent, depth-1, True,
-                                    alpha=alpha, beta=beta,
-                                    alpha_beta_mode=alpha_beta_mode))
-            cur_game.unmake_turn()
-            if value_num < alpha and alpha_beta_mode:
-                break # value_num too small, max player will derive no value exploring this node's branches
-            beta = min(beta, value_num)
-            k+=1
-        return value_num
+        cur_game.unmake_turn()
+        if is_maximizing_player:
+            if best_score > beta:
+                break # best_score is too big, min player from above will derive 
+                        # no value exploring this node's branches.
+            alpha = max(alpha, best_score)
+        else:
+            if best_score < alpha:
+                break # best_score is too small, max player from above will derive 
+                        # no value exploring this node's branches.
+            beta = min(beta, best_score)
+
+    return best_score, best_move
 
 
 def value(cur_game, cur_player, is_maximizing_player, fuzz=0) -> float:

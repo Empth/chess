@@ -417,35 +417,9 @@ class Player:
         shuffle: Whether to randomize order of generated legal moves.
         Return: Success status of best move.
         '''
-        alpha=-MAX
-        beta=MAX
-        assert(depth > 0)
         game = self.game
-        opponent = get_opponent(self.game, self)
-        all_legal_moves = self.get_all_legal_moves(shuffle=shuffle)
-        n = len(all_legal_moves)
-        assert(n > 0) # n == 0 shouldn't be possible.
         is_maximizing_player = True if self.color == WHITE else False
-        player_polarity = 1 if is_maximizing_player else -1 # min or max criterion cleverness
-        best_score = -1 * player_polarity * MAX # worst score is inf if cur_player is minimizer
-                                                # o/w worst is -inf for cur_player as maximizer.
-        best_move = None
-        i = 0
-        for move in all_legal_moves:
-            success_status = self.attempt_action(move, True)
-            assert(success_status)
-            move_score = minimax(game, opponent, depth-1, not is_maximizing_player, alpha, beta, True)
-            if player_polarity * move_score > player_polarity * best_score: # cleverness deals with max vs min concisely
-                best_score = move_score
-                best_move = move
-            print(str(move)+' Progress: '+str(i+1)+'/'+str(n))
-            i+=1
-            game.unmake_turn()
-            if is_maximizing_player:
-                alpha = max(alpha, move_score)
-            else:
-                beta = min(beta, move_score)
-
+        minmax_val, best_move = minimax(game, self, depth, is_maximizing_player)
         assert(best_move != None)
         move_taken = self.attempt_action(best_move)
         return move_taken
