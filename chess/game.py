@@ -4,7 +4,7 @@ from board import Board
 from debug import Debug
 from helpers.general_helpers import algebraic_uniconverter, swap_colors, well_formed
 from helpers.game_helpers import (clear_terminal, convert_color_to_player, get_opponent)
-from helpers.state_helpers import (update_players_check, pawn_promotion, undo_pawn_promotion)
+from helpers.state_helpers import (update_both_players_check, pawn_promotion, undo_pawn_promotion)
 from movement_zone import get_movement_zone
 from misc.constants import *
 from turn import Turn
@@ -53,7 +53,7 @@ class Game:
         '''
         Starts a new game, or continues an existing game if it was paused.
         '''
-        update_players_check(self) # for debug state mainly
+        update_both_players_check(self) # for debug state mainly
 
         while self.winner == None:
             self.render()
@@ -67,7 +67,7 @@ class Game:
                 self.unmake_turn()
                 continue
             if query == 'B':
-                cur_player.make_best_move(depth=2, shuffle=False)
+                cur_player.make_best_move(depth=3, shuffle=False)
             if query == 'PAUSE':
                 break
             n = len(query)

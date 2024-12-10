@@ -36,42 +36,47 @@ def minimax(cur_game, cur_player, depth, is_maximizing_player, alpha=-MAX, beta=
 
     if is_maximizing_player:
         value_num = -MAX
+        j = 0
         for move in all_legal_moves:
+            success_status = cur_player.attempt_action(move, True, omit_pl_op_check=[not cur_player.in_check, False])
             '''
-            global count
-            if move == [[4, 7], [4, 5]]:
-                print('hi')
-                count += 1
-                print(count)
-                if count == 15:
+            if j == 29:
+                if cur_opponent.pieces['P-D7'].pos == [4, 5]:
                     print(cur_game.board)
+                    print('hit')
             '''
-            success_status = cur_player.attempt_action(move, True)
-            #print(cur_game.board)
             assert(success_status)
             value_num = max(value_num, 
                             minimax(cur_game, cur_opponent, depth-1, False,
                                     alpha=alpha, beta=beta,
                                     alpha_beta_mode=alpha_beta_mode))
-            #print(str(depth)+' '+str(move))
             cur_game.unmake_turn()
             if value_num > beta and alpha_beta_mode:
                 break # value_num too big, min player will derive no value exploring this node's branches
             alpha = max(alpha, value_num)
+            j += 1
         return value_num
     else:
         value_num = MAX
+        k = 0
         for move in all_legal_moves:
-            success_status = cur_player.attempt_action(move, True)
+            '''
+            if k == 1:
+                if cur_opponent.pieces['B-F1'].pos == [2, 5]:
+                    print(cur_game.board)
+                    print('i')
+            '''
+            success_status = cur_player.attempt_action(move, True, omit_pl_op_check=[not cur_player.in_check, False])
+            assert(success_status)
             value_num = min(value_num, 
                             minimax(cur_game, cur_opponent, depth-1, True,
                                     alpha=alpha, beta=beta,
                                     alpha_beta_mode=alpha_beta_mode))
-            #print(str(depth)+' '+str(move))
             cur_game.unmake_turn()
             if value_num < alpha and alpha_beta_mode:
                 break # value_num too small, max player will derive no value exploring this node's branches
             beta = min(beta, value_num)
+            k+=1
         return value_num
 
 

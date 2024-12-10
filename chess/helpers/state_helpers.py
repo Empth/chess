@@ -1,6 +1,6 @@
 from .general_helpers import get_piece_visual, swap_colors
 from movement_zone import get_movement_zone, mass_movement_zone # os.getcwd is Desktop\Chess  ...
-from .game_helpers import convert_color_to_player
+from .game_helpers import convert_color_to_player, get_opponent
 from .legality_helpers import get_ordinal_collision, get_cardinal_collision, piece_exists_on_pos_offset
 from misc.constants import *
 
@@ -25,12 +25,12 @@ def update_moved_piece(piece):
     if not piece.moved:
         piece.moved = True
 
-def update_players_check(game):
+def update_player_check(game, player):
     '''
-    Given a game, updates the check status of p1, p2
+    Given a game, player, method updates the check status of player
     '''
-    game.p1.in_check = player_in_check(game.p1, game.p2)
-    game.p2.in_check = player_in_check(game.p2, game.p1)
+    opponent = get_opponent(game, player)
+    player.in_check = player_in_check(player, opponent)
 
 def player_in_check(player, opponent) -> bool:
     '''
@@ -117,3 +117,11 @@ def undo_pawn_promotion(piece):
     '''
     piece.rank = PAWN
     piece.visual = get_piece_visual(rank=piece.rank, color=piece.color)
+
+
+def update_both_players_check(game):
+    '''
+    Given Game, update both player's checks.
+    '''
+    update_player_check(game, game.p1)
+    update_player_check(game, game.p2)

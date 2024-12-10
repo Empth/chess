@@ -8,7 +8,7 @@ from piece import Piece
 import random
 import os
 from tests import set_up_debug
-from helpers.state_helpers import (update_players_check)
+from helpers.state_helpers import (update_player_check)
 from helpers.game_helpers import clear_terminal
 from movement_zone import mass_movement_zone, get_movement_zone
 from misc.constants import *
@@ -131,7 +131,10 @@ class TestStateHelperFunctions(unittest.TestCase):
         Tests update_players_check on board configs.
         '''
         game = Game()
-        update_players_check(game)
+        p1 = game.p1
+        p2 = game.p2
+        update_player_check(game, p1)
+        update_player_check(game, p2)
         self.assertFalse(game.p1.in_check)
         self.assertFalse(game.p2.in_check)
 
@@ -139,7 +142,10 @@ class TestStateHelperFunctions(unittest.TestCase):
         black_pieces = ['K-E8', 'Q-E2']
         debug = set_up_debug(white_pieces=white_pieces, black_pieces=black_pieces)
         game = Game(debug)
-        update_players_check(game)
+        p1 = game.p1
+        p2 = game.p2
+        update_player_check(game, p1)
+        update_player_check(game, p2)
         self.assertTrue(game.p1.in_check)
         self.assertTrue(game.p2.in_check)
 
@@ -147,7 +153,10 @@ class TestStateHelperFunctions(unittest.TestCase):
         black_pieces = ['K-E8', 'Q-D8']
         debug = set_up_debug(white_pieces=white_pieces, black_pieces=black_pieces)
         game = Game(debug)
-        update_players_check(game)
+        p1 = game.p1
+        p2 = game.p2
+        update_player_check(game, p1)
+        update_player_check(game, p2)
         self.assertTrue(game.p1.in_check)
         self.assertFalse(game.p2.in_check)
 
@@ -286,7 +295,8 @@ class TestRandomMove(unittest.TestCase):
         p1 = game.p1
         p2 = game.p2
         # update check first, to get correct game state.
-        update_players_check(game)
+        update_player_check(game, p1)
+        update_player_check(game, p2)
         p1.make_random_move()
         # WHITE ROOK has to move E4 -> E3. Check this.
         self.assertFalse(board.piece_exists([5, 4]))
@@ -304,7 +314,8 @@ class TestRandomMove(unittest.TestCase):
         debug = set_up_debug(white_pieces=white_pieces, black_pieces=black_pieces)
         game = Game(debug)
         # update check first, to get correct game state.
-        update_players_check(game)
+        update_player_check(game, game.p1)
+        update_player_check(game, game.p2)
         self.assertEqual(game.turn, 'WHITE')
         os.system('cls')
         print(game.board)
