@@ -67,7 +67,7 @@ class Game:
                 self.unmake_turn()
                 continue
             if query == 'B':
-                cur_player.make_best_move(depth=3, shuffle=False)
+                cur_player.make_best_move(depth=4, shuffle=True)
             if query == 'PAUSE':
                 break
             n = len(query)

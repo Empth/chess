@@ -406,7 +406,7 @@ class Player:
         return move_success
     
 
-    def make_best_move(self, depth:int=3, shuffle=False) -> bool:
+    def make_best_move(self, depth:int, shuffle=False) -> bool:
         '''
         Given a game state where it is PLAYER's turn, makes the
         best move for PLAYER, based on minimax search 'depth' levels deep.
