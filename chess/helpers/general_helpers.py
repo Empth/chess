@@ -197,5 +197,12 @@ def get_tuple(move_arr):
     '''
     return tuple([tuple(move_arr[0]), tuple(move_arr[1])])
 
+def rotate_coordinates(coord):
+    '''
+    Given [x, y] array in [8]^2, rotate it relative to the 8 x 8 board, 
+    and return the rotated coordinates in [8]^2.
+    '''
+    return [9-coord[0], 9-coord[1]]
+
     
 

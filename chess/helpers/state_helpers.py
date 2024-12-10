@@ -3,6 +3,7 @@ from movement_zone import get_movement_zone, mass_movement_zone # os.getcwd is D
 from .game_helpers import convert_color_to_player, get_opponent
 from .legality_helpers import get_ordinal_collision, get_cardinal_collision, piece_exists_on_pos_offset
 from misc.constants import *
+from misc.tables import *
 
 '''
 For things like pawn promotion status, piece has moved, king in check, move places player in check, etc
@@ -125,3 +126,55 @@ def update_both_players_check(game):
     '''
     update_player_check(game, game.p1)
     update_player_check(game, game.p2)
+
+
+def is_endgame(game) -> bool:
+    '''
+    Function determines if game is in endgame. We have 2 criterion for this:
+    * Both players are missing QUEEN.
+    or 
+    * Every side which has a QUEEN has no other pieces or 1 minor piece
+    at maximum (we excludes PAWN from being a piece).
+    Return: If game is in endgame.
+    '''
+    # FIXME maybe slow?
+    p1 = game.p1
+    p2 = game.p2
+    p1_piece_counts = [0, 0, 0, 0, 0, 0] # counts num of P, N, B, R, Q, K resp
+    p2_piece_counts = [0, 0, 0, 0, 0, 0]
+
+    for piece in p1.pieces.values():
+        p1_piece_counts[RANK_VALUE_MAP[piece.rank]] += 1 # RANK_VALUE_MAP serves as good indices as well
+
+    for piece in p2.pieces.values():
+        p2_piece_counts[RANK_VALUE_MAP[piece.rank]] += 1
+
+    p1_has_queen = (p1_piece_counts[4] != 0)
+    p2_has_queen = (p2_piece_counts[4] != 0)
+    if not (p1_has_queen or p2_has_queen):
+        return True # both players have no QUEEN
+    
+    if p1_has_queen:
+        if p1_piece_counts[3] > 0:
+            return False # p1 has QUEEN and major piece
+        if p1_piece_counts[1]+p1_piece_counts[2] > 1:
+            return False # p1 has QUEEN and > 1 minor piece
+        
+    if p2_has_queen:
+        if p2_piece_counts[3] > 0:
+            return False # p2 has QUEEN and major piece
+        if p2_piece_counts[1]+p2_piece_counts[2] > 1:
+            return False # p2 has QUEEN and > 1 minor piece
+        
+    return True # condition 2 holds for endgame
+    
+
+
+    
+
+
+    return True 
+
+
+
+    

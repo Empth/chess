@@ -11,9 +11,9 @@ from turn import Turn
 
 '''File contains The Game logic.'''
 
-#special_command_set = set(['PAUSE', 'EXIT', 'RESELECT', 'FORFEIT', 'RANDOM', 'R', 'KC', 'QC', 'B'])
-#mate_special_command_set = set(['checkmate', 'stalemate'])
-
+special_command_set = set(['PAUSE', 'EXIT', 'RESELECT', 
+                           'FORFEIT', 'RANDOM', 'R', 'KC', 
+                           'QC', 'B', 'U'])
 class Game:
     def __init__(self, debug=None):
 
@@ -61,31 +61,35 @@ class Game:
             opponent = get_opponent(self, cur_player)
             query = input('['+str(self.turn)+'\'S TURN] Input move (e.g. e2e4 or kc/qc): ')
             query = query.upper() # uppercases query
-            if query == 'R':
-                cur_player.make_random_move()
-            if query == 'U':
-                self.unmake_turn()
-                continue
-            if query == 'B':
-                cur_player.make_best_move(depth=3, shuffle=False)
-            if query == 'PAUSE':
-                break
-            n = len(query)
-            if n == 4:
-                if not well_formed(query):
+            if query in special_command_set:
+                if query == 'R':
+                    cur_player.make_random_move()
+                if query == 'U':
+                    self.unmake_turn()
                     continue
-                pos = algebraic_uniconverter(query[:2])
-                dest = algebraic_uniconverter(query[2:])
-                move_success = cur_player.attempt_action([pos, dest]) # type: ignore
-                if not move_success:
+                if query == 'B':
+                    cur_player.make_best_move(depth=4, shuffle=True)
+                if query == 'PAUSE':
+                    break
+            else:
+                n = len(query)
+                if n not in [2, 4]:
                     continue
-            if n == 2:
-                if query not in ['KC', 'QC']:
-                    continue
-                castle_side = KING if query == 'KC' else QUEEN
-                move_success = cur_player.attempt_action(castle_side)
-                if not move_success:
-                    continue
+                if n == 4:
+                    if not well_formed(query):
+                        continue
+                    pos = algebraic_uniconverter(query[:2])
+                    dest = algebraic_uniconverter(query[2:])
+                    move_success = cur_player.attempt_action([pos, dest]) # type: ignore
+                    if not move_success:
+                        continue
+                if n == 2:
+                    if query not in ['KC', 'QC']:
+                        continue
+                    castle_side = KING if query == 'KC' else QUEEN
+                    move_success = cur_player.attempt_action(castle_side)
+                    if not move_success:
+                        continue
             
             if len(opponent.get_all_legal_moves()) == 0:
                 if opponent.in_check:
@@ -94,6 +98,8 @@ class Game:
                     self.winner = 'DRAW'
 
         self.render()
+        if self.winner == None:
+            print('')
         if self.winner == 'DRAW':
             print('Match ends in a stalemate draw.')
         else:

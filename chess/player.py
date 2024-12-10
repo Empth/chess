@@ -419,7 +419,9 @@ class Player:
         '''
         game = self.game
         is_maximizing_player = True if self.color == WHITE else False
-        minmax_val, best_move = minimax(game, self, depth, is_maximizing_player)
+        minmax_val, best_move = minimax(game, self, depth, 
+                                        is_maximizing_player,
+                                        shuffle=shuffle)
         assert(best_move != None)
         move_taken = self.attempt_action(best_move)
         return move_taken

@@ -1,6 +1,8 @@
 from helpers.game_helpers import convert_color_to_player, get_opponent
-from helpers.general_helpers import swap_colors, get_tuple
+from helpers.general_helpers import swap_colors, get_tuple, rotate_coordinates, convert_coord
+from helpers.state_helpers import is_endgame
 from misc.constants import *
+from misc.tables import *
 import random
 
 count = 0
@@ -85,29 +87,40 @@ def value(cur_game, cur_player, is_maximizing_player, fuzz=0) -> float:
     fuzz: Variance parameter on amount of randomness added to value.
     Returns: Value
     '''
-    # TODO make it additionally factor in board position.
-    value = 0 # value is absolute, ie want >>0 for maximizing player, want << 0 for min player
+    game_value = 0 # game_value is absolute, ie want >>0 for maximizing player, want << 0 for min player
     offset = 1 if is_maximizing_player else -1 # multiplicative offset for max/min player
+    is_end = is_endgame(cur_game)
     opponent = convert_color_to_player(cur_game, color=swap_colors(cur_player.color))
-    rank_point = {'PAWN': 1, 'KNIGHT': 3, 'BISHOP': 3, 'ROOK': 5, 'QUEEN': 9}
-    cur_player_king_exists, opponent_king_exists = False, False
-    for piece in cur_player.pieces.values():
-        if piece.rank == 'KING':
-            cur_player_king_exists = True
-            continue # king should always exist, and is priceless
-        value += offset * rank_point[piece.rank]
-
-    for piece in opponent.pieces.values():
-        if piece.rank == 'KING':
-            opponent_king_exists = True
-            continue # king should always exist, and is priceless
-        value -= offset * rank_point[piece.rank]
-
-    assert(cur_player_king_exists and opponent_king_exists)
-
+    player_score = get_player_score(cur_player, is_end)
+    opponent_score = get_player_score(opponent, is_end)
+    game_value = offset * (player_score - opponent_score)
+    random.seed(42)
     randomness = 0 if fuzz == 0 else random.uniform(-fuzz, fuzz)
 
-    return value + randomness
+    return game_value + randomness
+
+
+def get_player_score(player, is_endgame) -> float:
+    '''
+    Get pure material value of this player's pieces,
+    plus piece penalties from strength of individual piece 
+    positions from piece square table.
+    Score is raw (e.g. positive)
+    is_endgame: If game is in endgame.
+    '''
+    rotate_pos = (player.color == BLACK) # rotate positions on PENALTY table if BLACK player
+    king_suffix = 'END' if is_endgame else 'MID'
+    value = 0
+    penalty = 0
+    for piece in player.pieces.values():
+        rank = piece.rank
+        penalty_code = rank if rank != KING else rank+king_suffix # key for PENALTY table
+        value += VALUE[rank]
+        piece_pos = piece.pos if not rotate_pos else rotate_coordinates(piece.pos)
+        x, y = convert_coord(piece_pos)
+        penalty += PENALTY[penalty_code][x][y]
+
+    return value + penalty
 
 
 def mvv_lva_order_moves(game, player, move_arr):
@@ -125,7 +138,7 @@ def mvv_lva_order_moves(game, player, move_arr):
     board = game.board
     cap_move_score_map = {} # maps from idx of capturing pos->dest move 
                         # in unsorted_capture_moves array to its MVV-LVA score
-    value_map = {PAWN: 0, KNIGHT:1, BISHOP:2, ROOK:3, QUEEN:4, KING:5}
+    value_map = RANK_VALUE_MAP
     n = len(value_map)
     # split non_capture_moves and capture_moves
     for move in move_arr:
