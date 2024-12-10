@@ -73,17 +73,12 @@ class Player:
         return None
 
     def attempt_action(self, turn: list|str,
-                       move_pseudolegal_assumption=False,
-                       omit_pl_op_check=[False, False]) -> bool:
+                       move_pseudolegal_assumption=False) -> bool:
         '''
         Wrapper for attempt_move() or attempt_castle().
         turn: [[x_0, y_0], [x_1, y_1]] pos->dest move list, 
         or 'KING'/'QUEEN' string for castle.
         move_pseudolegal_assumption: Assumption on if we have to check pseudolegality of move or not.
-        omit_pl_op_check: 1st, 2nd args tell whether this player, opponent (resp) 
-        check updates can be ommited or not. 
-        (check doesn't need to be updated for pl for example because we know the attempted
-        action is legal and doesn't put pl into check).
         Returns: success status of attempted move.
         '''
         if type(turn) == list:
@@ -94,25 +89,19 @@ class Player:
 
         if type(turn) == list:
             return self.attempt_move(turn[0], turn[1], 
-                                     move_pseudolegal_assumption=move_pseudolegal_assumption,
-                                     omit_pl_op_check=omit_pl_op_check)
+                                     move_pseudolegal_assumption=move_pseudolegal_assumption)
         else:
             # note pseudolegal castle == legal castle
             return self.attempt_castle(turn, 
-                                       castle_legal_assumption=move_pseudolegal_assumption, 
-                                       omit_pl_op_check=[True, omit_pl_op_check[1]])
-            # we never need to check player check after castle, as player never castles into check
+                                       castle_legal_assumption=move_pseudolegal_assumption)
         
-    def attempt_move(self, pos, dest, move_pseudolegal_assumption=False, 
-                     omit_pl_op_check=[False, False]) -> bool:
+    def attempt_move(self, pos, dest, move_pseudolegal_assumption=False) -> bool:
         '''
         Attempts a move from pos->dest for this player.
         pos: [x, y] in [8]^2. This Player piece must exist here.
         dest: [x, y] in [8]^2.
         move_pseudolegal_assumption: Boolean on if we have outside info that
         pos->dest is pseudolegal w/o need to check pseudolegality in this function.
-        omit_pl_op_check: 1st, 2nd args tell whether this player, opponent (resp) 
-        check updates can be ommited or not.
         Modifies: Board, Game state if returning True. Otherwise 
         no modifications if returning False.
         Returns: Success status of attempted move.
@@ -136,8 +125,7 @@ class Player:
             captured_piece = self.make_pseudomove(pos, dest)
 
             assert(moved_piece.pos == dest)
-            self.update_state([moved_piece], pos, dest, 
-                              omit_pl_op_check=omit_pl_op_check)
+            self.update_state([moved_piece], pos, dest)
 
             new_rank = moved_piece.rank
             pseudolegal_turn = Turn()
@@ -197,8 +185,7 @@ class Player:
         return captured_piece
     
     
-    def attempt_castle(self, side, castle_legal_assumption=False, 
-                       omit_pl_op_check=[True, False]) -> bool:
+    def attempt_castle(self, side, castle_legal_assumption=False) -> bool:
         '''
         Attempts a castle on 'side' for this player.
         side: 'KING' or 'QUEEN'
@@ -223,7 +210,7 @@ class Player:
             prev_check_status = [player_check, opponent_check] if self.color == WHITE else [opponent_check, player_check]
             
             moved_king, moved_rook = self.castle(side)
-            self.update_state([moved_king, moved_rook], omit_pl_op_check=omit_pl_op_check)
+            self.update_state([moved_king, moved_rook])
             turn = Turn()
             turn.log_castle(side, moved_king.name, moved_rook.name, turn_color_at_turn_start, prev_check_status)
             self.game.turn_log.append(turn)
@@ -330,12 +317,13 @@ class Player:
         return True, 'Cannot detect any issues with prelim checks'
     
 
-    def update_state(self, moved_piece_arr: list, former_pos=None, dest=None, omit_pl_op_check=[False, False]):
+    def update_state(self, moved_piece_arr: list, former_pos=None, dest=None):
         '''
         Player updates game state, typically at end of every turn, to prepare for next turn.
         Updates moved param of piece, both player's check status, pawn leap status, pawn
         promotion rank, and swap game turn color for next turn. 
-        moved_piece_arr: list of pieces that this player moved, must be of len [1, 2]
+        moved_piece_arr: list of pieces that this player moved, must be of len 1-2
+        If None, we compute the player check status as usual.
         '''
         n = len(moved_piece_arr)
         assert(1<=n<=2)
@@ -346,12 +334,9 @@ class Player:
             if moved_piece.rank == PAWN:
                 pawn_promotion(self, dest, moved_piece)
             update_moved_piece(moved_piece)
-        check_player_check, check_opponent_check = not omit_pl_op_check[0], not omit_pl_op_check[1]
         opponent = get_opponent(self.game, self)
-        if check_player_check:
-            update_player_check(self.game, self)
-        if check_opponent_check:
-            update_player_check(self.game, opponent)
+        update_player_check(self.game, self)
+        update_player_check(self.game, opponent)
         self.game.turn = swap_colors(self.game.turn)
 
 
@@ -447,7 +432,7 @@ class Player:
         best_move = None
         i = 0
         for move in all_legal_moves:
-            success_status = self.attempt_action(move, True, omit_pl_op_check=[not self.in_check, False])
+            success_status = self.attempt_action(move, True)
             assert(success_status)
             move_score = minimax(game, opponent, depth-1, not is_maximizing_player, alpha, beta, True)
             if player_polarity * move_score > player_polarity * best_score: # cleverness deals with max vs min concisely

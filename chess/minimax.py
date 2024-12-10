@@ -38,7 +38,8 @@ def minimax(cur_game, cur_player, depth, is_maximizing_player, alpha=-MAX, beta=
         value_num = -MAX
         j = 0
         for move in all_legal_moves:
-            success_status = cur_player.attempt_action(move, True, omit_pl_op_check=[not cur_player.in_check, False])
+            # first arg of omit should be 'not cur_player.in_check'
+            success_status = cur_player.attempt_action(move, True)
             '''
             if j == 29:
                 if cur_opponent.pieces['P-D7'].pos == [4, 5]:
@@ -66,7 +67,7 @@ def minimax(cur_game, cur_player, depth, is_maximizing_player, alpha=-MAX, beta=
                     print(cur_game.board)
                     print('i')
             '''
-            success_status = cur_player.attempt_action(move, True, omit_pl_op_check=[not cur_player.in_check, False])
+            success_status = cur_player.attempt_action(move, True)
             assert(success_status)
             value_num = min(value_num, 
                             minimax(cur_game, cur_opponent, depth-1, True,
