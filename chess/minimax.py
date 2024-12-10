@@ -1,5 +1,5 @@
 from helpers.game_helpers import convert_color_to_player, get_opponent
-from helpers.general_helpers import swap_colors
+from helpers.general_helpers import swap_colors, get_tuple
 from misc.constants import *
 import random
 
@@ -25,6 +25,8 @@ def minimax(cur_game, cur_player, depth, is_maximizing_player, alpha=-MAX, beta=
     '''
     cur_opponent = get_opponent(cur_game, cur_player)
     all_legal_moves = cur_player.get_all_legal_moves()
+    mvv_lva_sorted_moves = mvv_lva_order_moves(cur_game, cur_player, all_legal_moves)
+    assert(len(all_legal_moves) == len(mvv_lva_sorted_moves))
     n = len(all_legal_moves)
     terminal_game = (n == 0) # whether cur_player has any other outs, 
                             # ie on if its stalemate or checkmate.
@@ -42,7 +44,7 @@ def minimax(cur_game, cur_player, depth, is_maximizing_player, alpha=-MAX, beta=
     best_score = -MAX if is_maximizing_player else MAX # the best guarenteeable score for cur_player
     best_move = None
     i = 0
-    for move in all_legal_moves:
+    for move in mvv_lva_sorted_moves:
         success_status = cur_player.attempt_action(move, True)
         assert(success_status)
         move_score, opponent_move = minimax(cur_game, cur_opponent, depth-1, 
@@ -106,3 +108,70 @@ def value(cur_game, cur_player, is_maximizing_player, fuzz=0) -> float:
     randomness = 0 if fuzz == 0 else random.uniform(-fuzz, fuzz)
 
     return value + randomness
+
+
+def mvv_lva_order_moves(game, player, move_arr):
+    '''
+    Given a list of player's legal moves, order player's 
+    capturing moves according to MVV-LVA, and put them in the front
+    of the returning array.
+    We treat en passant as a non-capture for convinience.
+    Castle moves sits in non-capture portion of array.
+    Returns: Reordered move array.
+    '''
+    non_capture_moves = []
+    unsorted_capture_moves = []
+    sorted_capture_moves = []
+    board = game.board
+    cap_move_score_map = {} # maps from idx of capturing pos->dest move 
+                        # in unsorted_capture_moves array to its MVV-LVA score
+    value_map = {PAWN: 0, KNIGHT:1, BISHOP:2, ROOK:3, QUEEN:4, KING:5}
+    n = len(value_map)
+    # split non_capture_moves and capture_moves
+    for move in move_arr:
+        if type(move) == str:
+            assert(move in KQSET)
+            non_capture_moves.append(move)
+        else:
+            pos, dest = move
+            if not board.piece_exists(dest):
+                # move does not capture
+                non_capture_moves.append(move)
+            else:
+                piece_on_dest = board.get_piece(dest)
+                assert(piece_on_dest != None)
+                if piece_on_dest.color == player.color:
+                    # move does not capture teammate
+                    non_capture_moves.append(move)
+                else:
+                    unsorted_capture_moves.append(move)
+
+
+
+    # build up our move->score map with capturing moves
+    i = 0
+    for move in unsorted_capture_moves:
+        pos, dest = move
+        victim = board.get_piece(dest)
+        aggressor = board.get_piece(pos)
+        assert(aggressor != None)
+        assert(victim != None)
+        assert(victim.rank != KING)
+        victim_value = value_map[victim.rank]
+        aggressor_value = value_map[aggressor.rank]
+        cap_move_score_map[i] = n * victim_value + (n - 1 - aggressor_value)
+        # ^ zig-zag bijection, highest score is 6*4 + 5 = 29 (PxQ) 
+        # and lowest is 6*0 + 0 = 0 (KxP)
+        i += 1
+
+    sorted_capture_idx = sorted(cap_move_score_map, # type: ignore
+                                    key=cap_move_score_map.get, # type: ignore
+                                    reverse=True) # type: ignore
+    
+    for idx in sorted_capture_idx:
+        sorted_capture_moves.append(unsorted_capture_moves[idx])
+
+
+    return sorted_capture_moves+non_capture_moves
+
+

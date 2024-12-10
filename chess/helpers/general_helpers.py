@@ -180,5 +180,22 @@ def well_formed(query):
         
     return True
 
+
+def get_set(arr):
+    '''
+    converts [[[x_1, y_1], [x_2, y_2]],...] to a set thing and returns it.
+    '''
+    return_set = set()
+    for move in arr:
+        move_tuple = get_tuple(move)
+        return_set.add(move_tuple)
+    return return_set
+
+def get_tuple(move_arr):
+    '''
+    converts [[x_1, y_1], [x_2, y_2]] to tuples and returns it.
+    '''
+    return tuple([tuple(move_arr[0]), tuple(move_arr[1])])
+
     
 
