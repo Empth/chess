@@ -131,7 +131,7 @@ def update_both_players_check(game):
 def is_endgame(game) -> bool:
     '''
     Function determines if game is in endgame. We have 2 criterion for this:
-    * Both players are missing QUEEN.
+    * Both players have point total < 13
     or 
     * Every side which has a QUEEN has no other pieces or 1 minor piece
     at maximum (we excludes PAWN from being a piece).
@@ -142,17 +142,22 @@ def is_endgame(game) -> bool:
     p2 = game.p2
     p1_piece_counts = [0, 0, 0, 0, 0, 0] # counts num of P, N, B, R, Q, K resp
     p2_piece_counts = [0, 0, 0, 0, 0, 0]
+    p1_points = 0
+    p2_points = 0
 
     for piece in p1.pieces.values():
         p1_piece_counts[RANK_VALUE_MAP[piece.rank]] += 1 # RANK_VALUE_MAP serves as good indices as well
+        p1_points += NORMAL_VALUE[piece.rank]
 
     for piece in p2.pieces.values():
         p2_piece_counts[RANK_VALUE_MAP[piece.rank]] += 1
+        p2_points += NORMAL_VALUE[piece.rank]
 
     p1_has_queen = (p1_piece_counts[4] != 0)
     p2_has_queen = (p2_piece_counts[4] != 0)
-    if not (p1_has_queen or p2_has_queen):
-        return True # both players have no QUEEN
+    threshold = 13
+    if min(p1_points, p2_points) < threshold:
+        return True 
     
     if p1_has_queen:
         if p1_piece_counts[3] > 0:
@@ -167,13 +172,6 @@ def is_endgame(game) -> bool:
             return False # p2 has QUEEN and > 1 minor piece
         
     return True # condition 2 holds for endgame
-    
-
-
-    
-
-
-    return True 
 
 
 

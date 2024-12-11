@@ -1,5 +1,6 @@
 from .constants import *
 RANK_VALUE_MAP = {PAWN: 0, KNIGHT:1, BISHOP:2, ROOK:3, QUEEN:4, KING:5} # for mvv/lva
+NORMAL_VALUE = {PAWN: 1, KNIGHT:3, BISHOP:3, ROOK:5, QUEEN:9, KING:0}
 VALUE = {PAWN: 100, KNIGHT: 320, BISHOP: 330, ROOK: 500, QUEEN: 900, KING: 20000} # base units of centipawns
 
 # tables normalized for WHITE

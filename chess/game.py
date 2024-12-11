@@ -12,8 +12,7 @@ from turn import Turn
 '''File contains The Game logic.'''
 
 special_command_set = set(['PAUSE', 'EXIT', 'RESELECT', 
-                           'FORFEIT', 'RANDOM', 'R', 'KC', 
-                           'QC', 'B', 'U'])
+                           'FORFEIT', 'RANDOM', 'R', 'B', 'U'])
 class Game:
     def __init__(self, debug=None):
 
@@ -68,7 +67,7 @@ class Game:
                     self.unmake_turn()
                     continue
                 if query == 'B':
-                    cur_player.make_best_move(depth=4, shuffle=True)
+                    cur_player.make_best_move(depth=3, shuffle=True)
                 if query == 'PAUSE':
                     break
             else:
